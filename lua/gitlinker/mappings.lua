@@ -18,8 +18,10 @@ end
 
 function M.set(mappings)
   mappings = require("gitlinker.opts").get().mappings
-  set_keymap("n", mappings)
-  set_keymap("v", mappings, { silent = false })
+  if mappings and string.len(mappings) > 0 then
+    set_keymap("n", mappings)
+    set_keymap("v", mappings, { silent = false })
+  end
 end
 
 return M
