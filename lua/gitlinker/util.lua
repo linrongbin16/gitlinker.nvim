@@ -33,25 +33,25 @@ local function relative_path(cwd)
 end
 
 local function selected_line_range()
-  local lstart
-  local lend
-  local mode = vim.api.nvim_get_mode().mode
-  if mode:lower() == "v" or mode:lower() == "x" then
-    local pos1 = vim.fn.getpos("v")[2]
-    local pos2 = vim.fn.getcurpos()[2]
-    lstart = math.min(pos1, pos2)
-    lend = math.max(pos1, pos2)
-    log.debug(
-      "[util.selected_line_range] mode:%s, pos1:%d, pos2:%d",
-      mode,
-      pos1,
-      pos2
-    )
-  else
-    lstart = vim.api.nvim_win_get_cursor(0)[1]
-    log.debug("[util.selected_line_range] mode:%s, lstart:%d", mode, lstart)
-  end
-
+  -- local lstart
+  -- local lend
+  -- local mode = vim.api.nvim_get_mode().mode
+  -- if mode:lower() == "v" or mode:lower() == "x" then
+  local pos1 = vim.fn.getpos("v")[2]
+  local pos2 = vim.fn.getcurpos()[2]
+  local lstart = math.min(pos1, pos2)
+  local lend = math.max(pos1, pos2)
+  --   log.debug(
+  --     "[util.selected_line_range] mode:%s, pos1:%d, pos2:%d",
+  --     mode,
+  --     pos1,
+  --     pos2
+  --   )
+  -- else
+  --   lstart = vim.api.nvim_win_get_cursor(0)[1]
+  --   log.debug("[util.selected_line_range] mode:%s, lstart:%d", mode, lstart)
+  -- end
+  --
   return { lstart = lstart, lend = lend }
 end
 
