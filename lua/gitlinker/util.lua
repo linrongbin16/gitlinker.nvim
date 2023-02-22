@@ -32,22 +32,11 @@ local function relative_path(cwd)
   return relative_path
 end
 
-local function cursor_line_number()
-  return vim.api.nvim_win_get_cursor(0)[1]
-end
-
-local function selected_line_range(mode, add_current_line_on_normal_mode)
-  local lstart
-  local lend
-  if mode == "v" then
-    local pos1 = vim.fn.getpos("v")[2]
-    local pos2 = vim.fn.getcurpos()[2]
-    lstart = math.min(pos1, pos2)
-    lend = math.max(pos1, pos2)
-  elseif add_current_line_on_normal_mode == true then
-    lstart = cursor_line_number()
-  end
-
+local function selected_line_range()
+  local pos1 = vim.fn.getpos("v")[2]
+  local pos2 = vim.fn.getcurpos()[2]
+  local lstart = math.min(pos1, pos2)
+  local lend = math.max(pos1, pos2)
   return { lstart = lstart, lend = lend }
 end
 
@@ -55,7 +44,6 @@ local M = {
   to_slash_path = to_slash_path,
   to_backslash_path = to_backslash_path,
   relative_path = relative_path,
-  cursor_line_number = cursor_line_number,
   selected_line_range = selected_line_range,
 }
 
