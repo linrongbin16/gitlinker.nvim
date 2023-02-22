@@ -22,21 +22,21 @@ local function relative_path(cwd)
   if cwd ~= nil then
     cwd = to_backslash_path(cwd)
   end
-  local relative_path = buf_path:make_relative(cwd)
+  local relpath = buf_path:make_relative(cwd)
   log.debug(
-    "[util.get_relative_path] buf_path:%s, cwd:%s, relative_path:%s",
+    "[util.get_relative_path] buf_path:%s, cwd:%s, relpath:%s",
     vim.inspect(buf_path),
     vim.inspect(cwd),
-    vim.inspect(relative_path)
+    vim.inspect(relpath)
   )
-  return relative_path
+  return relpath
 end
 
 local function selected_line_range()
   local lstart
   local lend
   local mode = vim.api.nvim_get_mode().mode
-  if mode == "v" or mode == "x" then
+  if mode:lower() == "v" or mode:lower() == "x" then
     local pos1 = vim.fn.getpos("v")[2]
     local pos2 = vim.fn.getcurpos()[2]
     lstart = math.min(pos1, pos2)
