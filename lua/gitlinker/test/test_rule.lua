@@ -35,11 +35,11 @@ local test_cases = {
     "https://github.enterprise.io/organization/repository",
   },
   {
-    "https://github.enterprise.io:organization/repository.git",
+    "https://github.enterprise.io/organization/repository.git",
     "https://github.enterprise.io/organization/repository.git",
   },
   {
-    "https://github.enterprise.io:organization/repository",
+    "https://github.enterprise.io/organization/repository",
     "https://github.enterprise.io/organization/repository",
   },
 }
