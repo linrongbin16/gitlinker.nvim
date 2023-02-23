@@ -10,7 +10,7 @@ local defaults = {
       -- git@github(.com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
       ["^git@github%.([%.%w]+):([%.%-%+%%%w]+)$"] = "https://github.(%1)/(%2)",
       -- http(s)://github(.com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
-      ["^[http|https]://github%.([%.%w]+)/([%.%-%+%%%w]+)$"] = "https://github.(%1)/(%2)",
+      ["^(http|https)://github%.([%.%w]+)/([%.%-%+%%%w]+)$"] = "https://github.(%2)/(%3)",
     }
 
     for pattern, replace in pairs(regex_rules) do
