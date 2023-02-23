@@ -1,6 +1,5 @@
 local path = require("plenary.path")
 local log = require("gitlinker.log")
--- local path_separator = path:new().path.sep
 
 local function relative_path(cwd)
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
@@ -38,8 +37,6 @@ local function selected_line_range()
 end
 
 local M = {
-  to_slash_path = to_slash_path,
-  to_backslash_path = to_backslash_path,
   relative_path = relative_path,
   selected_line_range = selected_line_range,
 }

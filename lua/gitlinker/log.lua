@@ -26,12 +26,7 @@ local function log(level, msg)
   end
 
   local function log_format(s)
-    return string.format(
-      "[gitlinker] %s [%s]: %s",
-      os.date("%Y-%m-%d %H:%M:%S"),
-      level,
-      s
-    )
+    return string.format("[gitlinker] %s: %s", level, s)
   end
 
   local split_msg = vim.split(msg, "\n")

@@ -3,6 +3,8 @@ local M = {}
 local job = require("plenary.job")
 local path = require("plenary.path")
 local log = require("gitlinker.log")
+local os = vim.loop.os_uname().sysname
+local path_separator = path:new().path.sep
 
 -- wrap the git command to do the right thing always
 local function git(args, cwd)
@@ -69,7 +71,7 @@ local function strip_protocol(uri, errs)
   local ssh_schema = allowed_chars .. "@"
 
   local stripped_uri = uri:match(protocol_schema .. "(.+)$")
-    or uri:match(ssh_schema .. "(.+)$")
+      or uri:match(ssh_schema .. "(.+)$")
   if not stripped_uri then
     table.insert(
       errs,
@@ -127,9 +129,9 @@ local function parse_repo_path(stripped_uri, host, port, errs)
 
   -- parse repo path
   local repo_path = stripped_uri
-    :gsub("%%20", " ") -- decode the space character
-    :match(path_capture)
-    :gsub(" ", "%%20") -- encode the space character
+      :gsub("%%20", " ") -- decode the space character
+      :match(path_capture)
+      :gsub(" ", "%%20") -- encode the space character
   if not repo_path then
     table.insert(
       errs,
@@ -228,14 +230,18 @@ function M.root_path()
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
   local current_folder = tostring(buf_path:parent())
   local root = git({ "rev-parse", "--show-toplevel" }, current_folder)[1]
-  local git_root = tostring(path:new(root))
+  -- In Windows, plenary.path will return backslash, like: C:\\Users\\linrongbin16\\gitlinker.nvim
+  -- But git command will return slash, like: C:/Users/linrongbin16/gitlinker.nvim
+  -- So we convert git command's slash to plenary.path's backslash
+  if root ~= nil and os:match("Windows") and root:find('/') then
+    root = root:gsub('/', '\\')
+  end
   log.debug(
-    "[git.root] current_folder:%s, root:%s, git_root:%s",
+    "[git.root] current_folder:%s, root:%s",
     current_folder,
-    root,
-    git_root
+    tostring(root),
   )
-  return git_root
+  return root
 end
 
 function M.get_branch_remote()
@@ -254,7 +260,7 @@ function M.get_branch_remote()
   end
 
   local remote_from_upstream_branch =
-    upstream_branch:match("^(" .. allowed_chars .. ")%/")
+      upstream_branch:match("^(" .. allowed_chars .. ")%/")
   if not remote_from_upstream_branch then
     error(
       string.format(
