@@ -71,7 +71,7 @@ local function strip_protocol(uri, errs)
   local ssh_schema = allowed_chars .. "@"
 
   local stripped_uri = uri:match(protocol_schema .. "(.+)$")
-      or uri:match(ssh_schema .. "(.+)$")
+    or uri:match(ssh_schema .. "(.+)$")
   if not stripped_uri then
     table.insert(
       errs,
@@ -129,9 +129,9 @@ local function parse_repo_path(stripped_uri, host, port, errs)
 
   -- parse repo path
   local repo_path = stripped_uri
-      :gsub("%%20", " ") -- decode the space character
-      :match(path_capture)
-      :gsub(" ", "%%20") -- encode the space character
+    :gsub("%%20", " ") -- decode the space character
+    :match(path_capture)
+    :gsub(" ", "%%20") -- encode the space character
   if not repo_path then
     table.insert(
       errs,
@@ -233,13 +233,13 @@ function M.root_path()
   -- In Windows, plenary.path will return backslash, like: C:\\Users\\linrongbin16\\gitlinker.nvim
   -- But git command will return slash, like: C:/Users/linrongbin16/gitlinker.nvim
   -- So we convert git command's slash to plenary.path's backslash
-  if root ~= nil and os:match("Windows") and root:find('/') then
-    root = root:gsub('/', '\\')
+  if root ~= nil and os:match("Windows") and root:find("/") then
+    root = root:gsub("/", "\\")
   end
   log.debug(
     "[git.root] current_folder:%s, root:%s",
     current_folder,
-    tostring(root),
+    tostring(root)
   )
   return root
 end
@@ -260,7 +260,7 @@ function M.get_branch_remote()
   end
 
   local remote_from_upstream_branch =
-      upstream_branch:match("^(" .. allowed_chars .. ")%/")
+    upstream_branch:match("^(" .. allowed_chars .. ")%/")
   if not remote_from_upstream_branch then
     error(
       string.format(
