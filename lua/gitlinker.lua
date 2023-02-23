@@ -109,7 +109,7 @@ function M.get_buf_range_url(user_opts)
     user_opts.action_callback(url)
   end
   if user_opts.print_url then
-    log.info("url:%s", tostring(url))
+    log.info(tostring(url))
   end
 
   return url
