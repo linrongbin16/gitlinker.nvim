@@ -8,14 +8,14 @@ local defaults = {
   rule = function(remote)
     -- for lua regex pattern test: https://gitspartv.github.io/lua-patterns/
 
-    local regex_rules = {
-      -- git@github(.com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
-      ["^git@github%.([%.%_%-%w]+):([%p%w]+)$"] = "https://github.%1/%2",
-      -- http(s)://github(.com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
-      ["^(http|https)://github%.([%.%_%-%w]+)/([%p%w]+)$"] = "https://github.%2/%3",
+    local pattern_rules = {
+      -- git@github.(com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
+      ["^git@github%.([%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%1/%2/%3",
+      -- https://github.(com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
+      ["^(http|https)://github%.([%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%2/%3/%4",
     }
 
-    for pattern, replace in pairs(regex_rules) do
+    for pattern, replace in pairs(pattern_rules) do
       if string.match(remote, pattern) then
         return string.gsub(remote, pattern, replace)
       end
