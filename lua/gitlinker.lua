@@ -98,38 +98,12 @@ function M.get_buf_range_url(user_opts)
     return nil
   end
 
-  local matching_callback = M.hosts.get_matching_callback(url_data.host)
-  if not matching_callback then
+  local rule = opts.get().rule
+  if not rule then
     return nil
   end
 
-  local url = matching_callback(url_data)
-
-  if user_opts.action_callback then
-    user_opts.action_callback(url)
-  end
-  if user_opts.print_url then
-    log.info(url)
-  end
-
-  return url
-end
-
-function M.get_repo_url(user_opts)
-  user_opts = vim.tbl_deep_extend("force", opts.get(), user_opts or {})
-
-  local repo_url_data =
-    git.get_repo_data(git.get_branch_remote() or user_opts.remote)
-  if not repo_url_data then
-    return nil
-  end
-
-  local matching_callback = M.hosts.get_matching_callback(repo_url_data.host)
-  if not matching_callback then
-    return nil
-  end
-
-  local url = matching_callback(repo_url_data)
+  local url = rule(url_data.host)
 
   if user_opts.action_callback then
     user_opts.action_callback(url)

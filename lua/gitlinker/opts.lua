@@ -1,22 +1,24 @@
 local M = {}
 
-local hosts = require("gitlinker.hosts")
-
 local defaults = {
   remote = "origin", -- force the use of a specific remote
   action_callback = require("gitlinker.actions").open_in_browser, -- callback for what to do with the url
   print_url = true, -- print the url after action
   mappings = "<leader>gl", -- key mappings
-  callbacks = {
-    ["github.com"] = hosts.get_github_type_url,
-    ["gitlab.com"] = hosts.get_gitlab_type_url,
-    ["bitbucket.org"] = hosts.get_bitbucket_type_url,
-  },
-  rule = function()
+  rule = function(remote)
     local regex_rules = {
-      -- github.com
-      ["^(git@|http://|https://)github\\.([%w-_.]*):\\.git$"] = "https://github\\.",
+      -- git@github(.com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
+      ["^git@github%.([%.%w]+):([%.%-%+%%%w]+)$"] = "https://github.(%1)/(%2)",
+      -- http(s)://github(.com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
+      ["^[http|https]://github%.([%.%w]+)/([%.%-%+%%%w]+)$"] = "https://github.(%1)/(%2)",
     }
+
+    for pattern, replace in pairs(regex_rules) do
+      if string.match(remote, pattern) then
+        return string.gsub(remote, pattern, replace)
+      end
+    end
+    return nil
   end,
   debug = false,
   console_log = true,
