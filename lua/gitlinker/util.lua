@@ -25,7 +25,7 @@ local function normalize_path(p)
 end
 
 local function relative_path(cwd)
-  local buf_path = path:new(vim.api.nvim_buf_get_name(0))
+  local buf_path = vim.api.nvim_buf_get_name(0)
   local normalize_buf_path = normalize_path(buf_path)
   local normalize_cwd = normalize_path(cwd)
   local start_pos, end_pos = normalize_buf_path:find(normalize_cwd)
