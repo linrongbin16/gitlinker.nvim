@@ -26,8 +26,16 @@ end
 
 local function relative_path(cwd)
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
-  local relpath = buf_path:make_relative(cwd)
-  local normalized_relpath = normalize_path(tostring(relpath))
+  local normalize_buf_path = normalize_path(buf_path)
+  local normalize_cwd = normalize_path(cwd)
+  local start_pos, end_pos = normalize_buf_path:find(normalize_cwd)
+  local relpath
+  if start_pos == 1 then
+    relpath = normalize_buf_path:sub(end_pos + 1)
+  else
+    relpath = normalize_buf_path
+  end
+  local normalized_relpath = normalize_path(relpath)
   -- log.debug(
   --   "[util.get_relative_path] buf_path:%s, cwd:%s, relpath:%s",
   --   vim.inspect(buf_path),
