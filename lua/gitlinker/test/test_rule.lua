@@ -58,4 +58,4 @@ for i, case in ipairs(test_cases) do
   )
 end
 
--- Run tests in nvim: require('gitlinker.test.test_rule')
+-- Run tests in nvim: `lua require('gitlinker.test.test_rule')`
