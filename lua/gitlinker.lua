@@ -26,7 +26,7 @@ end
 
 local function get_buf_range_url_data(user_opts)
   local git_root = git.root_path()
-  -- log.debug("[init.get_buf_range_url_data] git_root: %s", vim.inspect(git_root))
+  log.debug("[init.get_buf_range_url_data] git_root: %s", vim.inspect(git_root))
   if not git_root then
     log.error("Not in a git repository")
     return nil
@@ -48,18 +48,18 @@ local function get_buf_range_url_data(user_opts)
   end
 
   local buf_repo_path = util.relative_path(git_root)
-  -- log.debug(
-  --   "[init.get_buf_range_url_data] buf_repo_path: %s, git_root: %s",
-  --   vim.inspect(buf_repo_path),
-  --   vim.inspect(git_root)
-  -- )
+  log.debug(
+    "[init.get_buf_range_url_data] buf_repo_path: %s, git_root: %s",
+    vim.inspect(buf_repo_path),
+    vim.inspect(git_root)
+  )
   if not git.is_file_in_rev(buf_repo_path, rev) then
     log.error("'%s' does not exist in remote '%s'", buf_repo_path, remote)
     return nil
   end
 
   local buf_path = util.relative_path()
-  -- log.debug("[init.get_buf_range_url_data] buf_path: %s", vim.inspect(buf_path))
+  log.debug("[init.get_buf_range_url_data] buf_path: %s", vim.inspect(buf_path))
   if git.has_file_changed(buf_path, rev) then
     log.info(
       "Computed Line numbers are probably wrong because '%s' has changes",

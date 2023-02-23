@@ -228,8 +228,14 @@ function M.root_path()
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
   local current_folder = tostring(buf_path:parent())
   local root = git({ "rev-parse", "--show-toplevel" }, current_folder)[1]
-  log.debug("[git.root] current_folder:%s, root:%s", current_folder, root)
-  return tostring(path:new(root))
+  local git_root = tostring(path:new(root))
+  log.debug(
+    "[git.root] current_folder:%s, root:%s, git_root:%s",
+    current_folder,
+    root,
+    git_root
+  )
+  return git_root
 end
 
 function M.get_branch_remote()
