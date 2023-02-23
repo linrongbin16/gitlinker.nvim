@@ -50,7 +50,7 @@ for i, case in ipairs(test_cases) do
   assert(
     actual == expect,
     string.format(
-      "Failed test case [%d] - actual(%s) != expect(%s)",
+      "Failed test case [%d] - actual: `%s` != expect: `%s`",
       i,
       tostring(actual),
       tostring(expect)
