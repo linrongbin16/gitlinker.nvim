@@ -104,6 +104,10 @@ function M.get_buf_range_url(user_opts)
   end
 
   local url = rule(url_data.host)
+  if url == nil or string.len(url) <= 0 then
+    log.error("Cannot generate git link from host: %s", tostring(url_data.host))
+    return
+  end
 
   if user_opts.action_callback then
     user_opts.action_callback(url)
@@ -111,8 +115,6 @@ function M.get_buf_range_url(user_opts)
   if user_opts.print_url then
     log.info(tostring(url))
   end
-
-  return url
 end
 
 return M
