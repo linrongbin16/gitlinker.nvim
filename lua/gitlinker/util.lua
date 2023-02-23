@@ -1,16 +1,40 @@
 local path = require("plenary.path")
 local log = require("gitlinker.log")
+local os = vim.loop.os_uname().sysname
+
+local function is_macos()
+  return os == "Darwin"
+end
+
+local function is_windows()
+  if os:match("Windows") then
+    return true
+  else
+    return false
+  end
+end
+
+local function normalize_path(p)
+  if p == nil then
+    return p
+  end
+  if is_windows() and p:find("\\") then
+    return p:gsub("\\", "/")
+  end
+  return p
+end
 
 local function relative_path(cwd)
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
   local relpath = buf_path:make_relative(cwd)
+  local normalized_relpath = normalize_path(tostring(relpath))
   -- log.debug(
   --   "[util.get_relative_path] buf_path:%s, cwd:%s, relpath:%s",
   --   vim.inspect(buf_path),
   --   vim.inspect(cwd),
   --   vim.inspect(relpath)
   -- )
-  return relpath
+  return normalized_relpath
 end
 
 local function selected_line_range()
@@ -37,6 +61,9 @@ local function selected_line_range()
 end
 
 local M = {
+  is_macos = is_macos,
+  is_windows = is_windows,
+  normalize_path = normalize_path,
   relative_path = relative_path,
   selected_line_range = selected_line_range,
 }

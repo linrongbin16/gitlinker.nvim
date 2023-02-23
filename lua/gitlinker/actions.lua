@@ -1,13 +1,13 @@
 local M = {}
 
 local job = require("plenary.job")
-local os = vim.loop.os_uname().sysname
+local util = require("gitlinker.util")
 
 -- Copy url to clipboard
 --
 -- @param url the url string
 function M.copy_to_clipboard(url)
-  vim.api.nvim_command("let @+ = '" .. url .. "'")
+  vim.cmd("let @+ = '" .. url .. "'")
 end
 
 -- Open url in browser
@@ -18,9 +18,9 @@ end
 -- @param url the url string
 function M.open_in_browser(url)
   local j
-  if os == "Darwin" then
+  if util.is_macos() then
     j = job:new({ command = "open", args = { url } })
-  elseif os:match("Windows") then
+  elseif util.is_windows() then
     j = job:new({ command = "cmd", args = { "/C", "start", url } })
   else
     j = job:new({ command = "xdg-open", args = { url } })

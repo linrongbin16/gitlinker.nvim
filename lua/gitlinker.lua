@@ -5,10 +5,6 @@ local opts = require("gitlinker.opts")
 local log = require("gitlinker.log")
 local util = require("gitlinker.util")
 
--- public
-M.hosts = require("gitlinker.hosts")
-M.actions = require("gitlinker.actions")
-
 --- Setup plugin option and key mapping
 function M.setup(config)
   opts.setup(config)

@@ -3,8 +3,7 @@ local M = {}
 local job = require("plenary.job")
 local path = require("plenary.path")
 local log = require("gitlinker.log")
-local os = vim.loop.os_uname().sysname
-local path_separator = path:new().path.sep
+local util = require("gitlinker.util")
 
 -- wrap the git command to do the right thing always
 local function git(args, cwd)
@@ -71,7 +70,7 @@ local function strip_protocol(uri, errs)
   local ssh_schema = allowed_chars .. "@"
 
   local stripped_uri = uri:match(protocol_schema .. "(.+)$")
-    or uri:match(ssh_schema .. "(.+)$")
+      or uri:match(ssh_schema .. "(.+)$")
   if not stripped_uri then
     table.insert(
       errs,
@@ -129,9 +128,9 @@ local function parse_repo_path(stripped_uri, host, port, errs)
 
   -- parse repo path
   local repo_path = stripped_uri
-    :gsub("%%20", " ") -- decode the space character
-    :match(path_capture)
-    :gsub(" ", "%%20") -- encode the space character
+      :gsub("%%20", " ") -- decode the space character
+      :match(path_capture)
+      :gsub(" ", "%%20") -- encode the space character
   if not repo_path then
     table.insert(
       errs,
@@ -199,9 +198,9 @@ function M.get_closest_remote_compatible_rev(remote)
     return remote_rev
   end
 
-  log.error(
-    "Failed to get closest revision in that exists in remote '%s'",
-    remote
+  error(
+    string.format("Failed to get closest revision in that exists in remote '%s'",
+      remote)
   )
   return nil
 end
@@ -221,7 +220,7 @@ function M.get_repo_data(remote)
 
   local repo = parse_uri(remote_uri, errs)
   if not repo or vim.tbl_isempty(repo) then
-    log.error(table.concat(errs))
+    error(table.concat(errs))
   end
   return repo
 end
@@ -233,21 +232,20 @@ function M.root_path()
   -- In Windows, plenary.path will return backslash, like: C:\\Users\\linrongbin16\\gitlinker.nvim
   -- But git command will return slash, like: C:/Users/linrongbin16/gitlinker.nvim
   -- So we convert git command's slash to plenary.path's backslash
-  if root ~= nil and os:match("Windows") and root:find("/") then
-    root = root:gsub("/", "\\")
-  end
+  local normalize_root = util.normalize_path(root)
   log.debug(
-    "[git.root] current_folder:%s, root:%s",
+    "[git.root] current_folder:%s, root:%s, normalize_root:%s",
     current_folder,
-    tostring(root)
+    tostring(root),
+    normalize_root,
   )
-  return root
+  return normalize_root
 end
 
 function M.get_branch_remote()
   local remotes = remote()
   if #remotes == 0 then
-    log.error("Git repo has no remote")
+    error("Git repo has no remote")
     return nil
   end
   if #remotes == 1 then
@@ -260,7 +258,7 @@ function M.get_branch_remote()
   end
 
   local remote_from_upstream_branch =
-    upstream_branch:match("^(" .. allowed_chars .. ")%/")
+      upstream_branch:match("^(" .. allowed_chars .. ")%/")
   if not remote_from_upstream_branch then
     error(
       string.format(
