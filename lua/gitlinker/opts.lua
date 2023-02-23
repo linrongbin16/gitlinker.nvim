@@ -7,6 +7,7 @@ local defaults = {
   mappings = "<leader>gl", -- key mappings
   rule = function(remote)
     -- for lua regex pattern test: https://gitspartv.github.io/lua-patterns/
+    print("remote:" .. vim.inspect(remote))
 
     local pattern_rules = {
       -- git@github.(com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
@@ -17,9 +18,12 @@ local defaults = {
 
     for pattern, replace in pairs(pattern_rules) do
       if string.match(remote, pattern) then
-        return string.gsub(remote, pattern, replace)
+        local result = string.gsub(remote, pattern, replace)
+        print("result:" .. vim.inspect(result))
+        return result
       end
     end
+    print("result: nil")
     return nil
   end,
   debug = false,
