@@ -8,9 +8,9 @@ local defaults = {
   rule = function(remote)
     local regex_rules = {
       -- git@github(.com|*):linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
-      ["^git@github%.([.-_%w]+):([%p%w]+)$"] = "https://github.(%1)/(%2)",
+      ["^git@github%.([%.%-%_%w]+):([%p%w]+)$"] = "https://github.(%1)/(%2)",
       -- http(s)://github(.com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
-      ["^(http|https)://github%.([.-_%w]+)/([%p%w]+)$"] = "https://github.(%2)/(%3)",
+      ["^(http|https)://github%.([%.%-%_%w]+)/([%p%w]+)$"] = "https://github.(%2)/(%3)",
     }
 
     for pattern, replace in pairs(regex_rules) do
