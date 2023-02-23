@@ -5,12 +5,12 @@ local log = require("gitlinker.log")
 local function relative_path(cwd)
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
   local relpath = buf_path:make_relative(cwd)
-  log.debug(
-    "[util.get_relative_path] buf_path:%s, cwd:%s, relpath:%s",
-    vim.inspect(buf_path),
-    vim.inspect(cwd),
-    vim.inspect(relpath)
-  )
+  -- log.debug(
+  --   "[util.get_relative_path] buf_path:%s, cwd:%s, relpath:%s",
+  --   vim.inspect(buf_path),
+  --   vim.inspect(cwd),
+  --   vim.inspect(relpath)
+  -- )
   return relpath
 end
 

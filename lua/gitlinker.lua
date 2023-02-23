@@ -26,18 +26,18 @@ end
 
 local function get_buf_range_url_data(user_opts)
   local git_root = git.root_path()
-  log.debug("[init.get_buf_range_url_data] git_root: %s", vim.inspect(git_root))
+  -- log.debug("[init.get_buf_range_url_data] git_root: %s", vim.inspect(git_root))
   if not git_root then
     log.error("Not in a git repository")
     return nil
   end
   local remote = user_opts.remote or git.get_branch_remote()
   local repo_url_data = git.get_repo_data(remote)
-  log.debug(
-    "[init.get_buf_range_url_data] remote: %s, repo_url_data: %s",
-    vim.inspect(remote),
-    vim.inspect(repo_url_data)
-  )
+  -- log.debug(
+  --   "[init.get_buf_range_url_data] remote: %s, repo_url_data: %s",
+  --   vim.inspect(remote),
+  --   vim.inspect(repo_url_data)
+  -- )
   if not repo_url_data then
     return nil
   end
@@ -48,18 +48,18 @@ local function get_buf_range_url_data(user_opts)
   end
 
   local buf_repo_path = util.relative_path(git_root)
-  log.debug(
-    "[init.get_buf_range_url_data] buf_repo_path: %s, git_root: %s",
-    vim.inspect(buf_repo_path),
-    vim.inspect(git_root)
-  )
+  -- log.debug(
+  --   "[init.get_buf_range_url_data] buf_repo_path: %s, git_root: %s",
+  --   vim.inspect(buf_repo_path),
+  --   vim.inspect(git_root)
+  -- )
   if not git.is_file_in_rev(buf_repo_path, rev) then
     log.error("'%s' does not exist in remote '%s'", buf_repo_path, remote)
     return nil
   end
 
   local buf_path = util.relative_path()
-  log.debug("[init.get_buf_range_url_data] buf_path: %s", vim.inspect(buf_path))
+  -- log.debug("[init.get_buf_range_url_data] buf_path: %s", vim.inspect(buf_path))
   if git.has_file_changed(buf_path, rev) then
     log.info(
       "Computed Line numbers are probably wrong because '%s' has changes",
@@ -89,9 +89,9 @@ end
 --
 -- @returns The url string
 function M.get_buf_range_url(user_opts)
-  log.debug("[init.get_buf_range_url] user_opts1: %s", vim.inspect(user_opts))
+  -- log.debug("[init.get_buf_range_url] user_opts1: %s", vim.inspect(user_opts))
   user_opts = vim.tbl_deep_extend("force", opts.get(), user_opts or {})
-  log.debug("[init.get_buf_range_url] user_opts2: %s", vim.inspect(user_opts))
+  -- log.debug("[init.get_buf_range_url] user_opts2: %s", vim.inspect(user_opts))
 
   local url_data = get_buf_range_url_data(user_opts)
   if not url_data then
