@@ -33,7 +33,12 @@ local function log(level, msg)
   if use_console then
     vim.cmd("echohl " .. echohl[level])
     for _, m in ipairs(split_msg) do
-      vim.cmd(string.format('echom "%s"', log_format(m)))
+      vim.cmd(
+        string.format(
+          'echom "%s"',
+          vim.fn.escape(vim.fn.escape(log_format(m), '"'), "\\")
+        )
+      )
     end
     vim.cmd("echohl None")
   end
