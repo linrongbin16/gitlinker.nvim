@@ -93,12 +93,12 @@ end
 local function has_file_changed(file, rev)
   local result = cmd({ "diff", rev, "--", file })
   log.debug(
-    "[git.get_rev_name] file:%s, rev:%s, result:%s",
+    "[git.has_file_changed] file:%s, rev:%s, result:%s",
     vim.inspect(file),
     vim.inspect(rev),
     vim.inspect(result)
   )
-  return #result.stdout > 0
+  return type(result.stdout) == "table" and #result.stdout > 0
 end
 
 local function is_rev_in_remote(revspec, remote)
