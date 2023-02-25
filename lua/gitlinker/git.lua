@@ -6,63 +6,67 @@ local log = require("gitlinker.log")
 
 -- wrap the git command to do the right thing always
 local function cmd(args, cwd)
-  local stdout
-  local stderr
+  local result = {}
   local process = job:new({
     command = "git",
     args = args,
     cwd = cwd or M.get_root(),
     on_stdout = function(_, data)
-      log.debug("[git.cmd] stdout data:%s", log.inspect(data))
+      result.stdout = data
     end,
     on_stderr = function(_, data)
-      log.debug("[git.cmd] stderr data:%s", log.inspect(data))
+      result.stderr = data
+    end,
+    on_exit = function(_, code)
+      result.exit_code = code
     end,
   })
-  process:after_success(function(j)
-    stdout = j:result()
-  end)
+  -- process:after_success(function(j)
+  --   stdout = j:result()
+  -- end)
   process:sync()
-  return stdout or {}
+  return result
 end
 
 local function cmd2(args, cwd)
-  local stdout
-  local stderr
+  local result = {}
   local process = job:new({
     command = "git",
     args = args,
     cwd = cwd or M.get_root(),
     on_stdout = function(_, data)
-      log.debug("[git.cmd2] stdout data:%s", vim.inspect(data))
+      result.stdout = data
     end,
     on_stderr = function(_, data)
-      log.debug("[git.cmd2] stderr data:%s", vim.inspect(data))
+      result.stderr = data
+    end,
+    on_exit = function(_, code)
+      result.exit_code = code
     end,
   })
-  process:after_success(function(j)
-    stdout = j:result()
-    stderr = j:stderr_result()
-  end)
+  -- process:after_success(function(j)
+  --   stdout = j:result()
+  --   stderr = j:stderr_result()
+  -- end)
   process:sync()
-  return { stdout = stdout, stderr = stderr }
+  return result
 end
 
 local function get_remote()
-  return cmd({ "remote" })
+  return cmd({ "remote" }).stdout
 end
 
 local function get_remote_url(remote)
   assert(remote, "remote cannot be nil")
-  return cmd({ "remote", "get-url", remote })[1]
+  return cmd({ "remote", "get-url", remote }).stdout[1]
 end
 
 local function get_rev(revspec)
-  return cmd({ "rev-parse", revspec })[1]
+  return cmd({ "rev-parse", revspec }).stdout[1]
 end
 
 local function get_rev_name(revspec)
-  return cmd({ "rev-parse", "--abbrev-ref", revspec })[1]
+  return cmd({ "rev-parse", "--abbrev-ref", revspec }).stdout[1]
 end
 
 local function is_file_in_rev(file, revspec)
@@ -97,11 +101,11 @@ end
 
 local function has_file_changed(file, rev)
   local diffs = cmd({ "diff", rev, "--", file })
-  return #diffs > 0
+  return #diffs.stdout > 0
 end
 
 local function is_rev_in_remote(revspec, remote)
-  local output = cmd({ "branch", "--remotes", "--contains", revspec })
+  local output = cmd({ "branch", "--remotes", "--contains", revspec }).stdout
   for _, rbranch in ipairs(output) do
     if rbranch:match(remote) then
       return true
@@ -156,7 +160,7 @@ end
 local function get_root()
   local buf_path = path:new(vim.api.nvim_buf_get_name(0))
   local current_folder = tostring(buf_path:parent())
-  local root = cmd({ "rev-parse", "--show-toplevel" }, current_folder)[1]
+  local root = cmd({ "rev-parse", "--show-toplevel" }, current_folder).stdout[1]
   log.debug("[git.root] current_folder:%s, root:%s", current_folder, root)
   return tostring(path:new(root))
 end
