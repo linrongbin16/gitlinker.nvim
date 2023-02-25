@@ -6,50 +6,51 @@ local log = require("gitlinker.log")
 
 -- wrap the git command to do the right thing always
 local function cmd(args, cwd)
-  local result = {}
+  local value = {}
   local process = job:new({
     command = "git",
     args = args,
     cwd = cwd or M.get_root(),
     on_stdout = function(_, data)
-      result.stdout = data
+      value.stdout = data
     end,
     on_stderr = function(_, data)
-      result.stderr = data
+      value.stderr = data
     end,
     on_exit = function(_, code)
-      result.exit_code = code
+      value.exit_code = code
     end,
   })
-  -- process:after_success(function(j)
-  --   stdout = j:result()
-  -- end)
+  process:after_success(function(j)
+    value.result = j:result()
+    value.stderr_result = j:stderr_result()
+  end)
   process:sync()
-  return result
+  return value
 end
 
 local function cmd2(args, cwd)
-  local result = {}
+  local value = {}
   local process = job:new({
     command = "git",
     args = args,
     cwd = cwd or M.get_root(),
     on_stdout = function(_, data)
-      result.stdout = data
+      value.stdout = data
     end,
     on_stderr = function(_, data)
-      result.stderr = data
+      value.stderr = data
     end,
     on_exit = function(_, code)
-      result.exit_code = code
+      value.exit_code = code
     end,
   })
-  -- process:after_success(function(j)
-  --   stdout = j:result()
-  --   stderr = j:stderr_result()
-  -- end)
+  process:after_success(function(j)
+    value.result = j:result()
+    value.stderr_result = j:stderr_result()
+  end)
   process:sync()
-  return result
+  return value
 end
 
 local function get_remote()
