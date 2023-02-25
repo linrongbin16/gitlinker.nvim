@@ -11,41 +11,6 @@ local function cmd(args, cwd)
     command = "git",
     args = args,
     cwd = cwd or M.get_root(),
-    -- on_stdout = function(_, data)
-    --   value.stdout = data
-    -- end,
-    -- on_stderr = function(_, data)
-    --   value.stderr = data
-    -- end,
-    -- on_exit = function(_, code)
-    --   value.exit_code = code
-    -- end,
-  })
-  process:after_success(function(j)
-    value.stdout = j:result()
-  end)
-  process:after_failure(function(j)
-    value.stderr = j:stderr_result()
-  end)
-  process:sync()
-  return value
-end
-
-local function cmd2(args, cwd)
-  local value = {}
-  local process = job:new({
-    command = "git",
-    args = args,
-    cwd = cwd or M.get_root(),
-    -- on_stdout = function(_, data)
-    --   value.stdout = data
-    -- end,
-    -- on_stderr = function(_, data)
-    --   value.stderr = data
-    -- end,
-    -- on_exit = function(_, code)
-    --   value.exit_code = code
-    -- end,
   })
   process:after_success(function(j)
     value.stdout = j:result()
@@ -95,14 +60,14 @@ local function get_rev_name(revspec)
 end
 
 local function is_file_in_rev(file, revspec)
-  local result = cmd2({ "cat-file", "-e", revspec .. ":" .. file })
+  local result = cmd({ "cat-file", "-e", revspec .. ":" .. file })
   log.debug(
     "[git.is_file_in_rev] file:%s, revspec:%s, result:%s",
     vim.inspect(file),
     vim.inspect(revspec),
     vim.inspect(result)
   )
-  return result.stdout ~= nil and result.stderr ~= nil
+  return result.stderr == nil
 end
 
 -- local function string_split(s, sep)
@@ -215,7 +180,7 @@ local function get_branch_remote()
   -- origin/upstream
   local remotes = get_remote()
 
-  if #remotes == 0 then
+  if type(remotes) ~= "table" or #remotes == 0 then
     log.error("Error! Git repository has no remote")
     return nil
   end
@@ -232,7 +197,7 @@ local function get_branch_remote()
 
   -- origin
   local remote_from_upstream_branch =
-      upstream_branch:match("^(" .. allowed_chars .. ")%/")
+    upstream_branch:match("^(" .. allowed_chars .. ")%/")
 
   if not remote_from_upstream_branch then
     log.error(
