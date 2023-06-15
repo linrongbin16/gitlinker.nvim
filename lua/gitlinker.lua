@@ -5,6 +5,10 @@ local logger = require("gitlinker.logger")
 
 --- @type table<string, any>
 local Defaults = {
+  -- system/clipboard
+  --- @overload fun(url:string):nil
+  action = require("gitlinker.actions").system,
+
   -- print message(git host url) in command line
   --- @type boolean
   message = true,
@@ -275,8 +279,6 @@ local M = {
   setup = setup,
   --- @overload fun(option:table<string, any>):string|nil
   link = link,
-  --- @overload fun(remote_url:string):string|nil
-  map_remote_to_host = map_remote_to_host,
 }
 
 return M

@@ -4,6 +4,7 @@ local util = require("gitlinker.util")
 
 -- Copy url to clipboard
 --- @param url string
+--- @return nil
 local function clipboard(url)
   vim.api.nvim_command("let @+ = '" .. url .. "'")
 end
@@ -12,6 +13,7 @@ end
 -- Use urlview.nvim's system implementation.
 -- See: https://github.com/axieax/urlview.nvim/blob/b183133fd25caa6dd98b415e0f62e51e061cd522/lua/urlview/actions.lua#L38
 --- @param url string
+--- @return nil
 local function system(url)
   local j
   if util.is_macos() then
