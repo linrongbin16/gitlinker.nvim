@@ -95,6 +95,8 @@ local Defaults = {
 --- @type table<string, any>
 local Configs = {}
 
+--- @param option table<string, any>
+--- @return nil
 local function setup(option)
   Configs = vim.tbl_deep_extend("force", Defaults, option or {})
   logger.setup({
@@ -207,7 +209,7 @@ local function make_link_data()
 end
 
 --- @param remote_url string
---- @return string host_url
+--- @return string|nil host_url
 local function map_remote_to_host(remote_url)
   local custom_rules = Configs.custom_rules
   if type(custom_rules) == "function" then
@@ -241,6 +243,9 @@ local function map_remote_to_host(remote_url)
   return nil
 end
 
+--- @param host_url string
+--- @param linker Linker
+--- @return string
 local function make_sharable_permalinks(host_url, linker)
   local url = host_url .. linker.rev .. "/" .. linker.file
   if not linker.lstart then
@@ -253,7 +258,8 @@ local function make_sharable_permalinks(host_url, linker)
   return url
 end
 
---- Get the url for the buffer with selected lines
+--- @param option table<string, any>
+--- @return string|nil
 local function link(option)
   logger.debug("[make_link] before merge, option: %s", vim.inspect(option))
   option = vim.tbl_deep_extend("force", Configs, option or {})
