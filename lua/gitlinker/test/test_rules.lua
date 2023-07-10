@@ -1,4 +1,4 @@
-local map = require("gitlinker").map_remote_to_host
+local map_remote_to_host = require("gitlinker").map_remote_to_host
 
 -- Run unit tests in nvim: `lua require('gitlinker.test.test_rules')`
 
@@ -38,10 +38,26 @@ local test_cases = {
     "https://github.enterprise.io/organization/repository",
     "https://github.enterprise.io/organization/repository/blob/",
   },
+  {
+    "git@gitlab.com:linrongbin16/gitlinker.nvim.git",
+    "https://gitlab.com/linrongbin16/gitlinker.nvim/blob/",
+  },
+  {
+    "git@gitlab.com:linrongbin16/gitlinker.nvim",
+    "https://gitlab.com/linrongbin16/gitlinker.nvim/blob/",
+  },
+  {
+    "https://gitlab.com/ruifm/gitlinker.nvim.git",
+    "https://gitlab.com/ruifm/gitlinker.nvim/blob/",
+  },
+  {
+    "https://gitlab.com/ruifm/gitlinker.nvim",
+    "https://gitlab.com/ruifm/gitlinker.nvim/blob/",
+  },
 }
 
 for i, case in ipairs(test_cases) do
-  local actual = map(case[1])
+  local actual = map_remote_to_host(case[1])
   local expect = case[2]
   assert(
     actual == expect,

@@ -84,41 +84,18 @@ EOF
 },
 ```
 
-## Usage
+## Key Mappings
 
 There're two key mappings defined by default:
 
 - `<leader>gl` (normal/visual mode): copy git link to clipboard.
 - `<leader>gL` (normal/visual mode): open git link in default browser.
 
-To disable the default key mappings, set `mapping = false` in `setup()` function(see
-[Configuration](#configuration)).
+To disable the default key mappings, set `mapping = false` in `setup()` function
+(see [Configuration](#configuration)).
 
-To create your own key mappings, please use API `require("gitlinker").link(option)`.
-The `option` is a lua table:
-
-```lua
-require("gitlinker").link({
-    action = require("gitlinker.actions").clipboard, -- clipboard/system
-    message = true, -- true/false
-})
-```
-
-For example:
-
-```lua
-vim.keymap.set(
-    { 'n', 'x' },
-    '<leader>gb',
-    '<cmd>lua require("gitlinker").link({action = require("gitlinker.actions").clipboard})<cr>',
-    { desc = "Copy git link to clipboard" }
-)
-```
-
-### Actions
-
-- `require("gitlinker.actions").clipboard`: copy git link to clipboard.
-- `require("gitlinker.actions").system`: open git link in default browser.
+To create your own key mappings, please specify customize the `mapping` option
+in `setup()` function.
 
 ## Configuration
 
@@ -130,10 +107,12 @@ require('gitlinker').setup({
   -- key mapping
   mapping = {
     ["<leader>gl"] = {
+      -- copy git link to clipboard
       action = require("gitlinker.actions").clipboard,
       desc = "Copy git link to clipboard",
     },
     ["<leader>gL"] = {
+      -- open git link in default browser
       action = require("gitlinker.actions").system,
       desc = "Open git link in default browser",
     },
