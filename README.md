@@ -26,13 +26,8 @@ url to host url. The lua pattern has many limitations compared with the
 [standard regex expression](https://en.wikipedia.org/wiki/Regular_expression),
 but it's still the best solution in git sharable file permalinks scenario.
 
-For now github.com(include both git/http protocols and github enterprise) are supported:
-
-- `git@github\.([_.+-\w]+):([.-\w]+)/([.-\w]+)(\.git)?` => `https://github.$1/$2/$3/blob/`
-- `https?://github\.([_.+-\w]+):([.-\w]+)/([.-\w]+)(\.git)?` => `https://github.$1/$2/$3/blob/`
-
-> Notice above two rules are written with standard regex expressions, please see
-> [Configuration](#configuration) for all embeded pattern rules.
+For now github.com and gitlab.com (include both git/http and enterprise domains)
+are supported (please see [Configuration](#configuration)).
 
 PRs are welcomed for other git host websites!
 
@@ -123,10 +118,14 @@ require('gitlinker').setup({
     {
       ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
       ["^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
+      ["^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://gitlab.%1/%2/%3/blob/",
+      ["^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://gitlab.%1/%2/%3/blob/",
     },
     {
       ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
       ["^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
+      ["^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)$"] = "https://gitlab.%1/%2/%3/blob/",
+      ["^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)$"] = "https://gitlab.%1/%2/%3/blob/",
     },
   },
 
