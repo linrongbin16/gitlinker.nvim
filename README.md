@@ -94,7 +94,7 @@ in `setup()` function.
 
 ## Configuration
 
-````lua
+```lua
 require('gitlinker').setup({
   -- print message in command line
   message = true,
@@ -171,4 +171,4 @@ require('gitlinker').setup({
   -- write logs to file
   file_log = false,
 })
-````
+```
