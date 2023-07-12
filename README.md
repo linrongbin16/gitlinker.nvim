@@ -13,7 +13,7 @@ An example of git permalink:
 Personally, I use this all the time to easily share code locations with my
 co-workers.
 
-- [Break changes & updates](#break-changes-updates)
+- [Break changes & updates](#break-changes--updates)
   - [Lua pattern based rules](#lua-pattern-based-rules)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
