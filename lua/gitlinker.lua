@@ -107,7 +107,7 @@ local function setup(option)
   })
 
   -- key mapping
-  if Configs.mapping and #Configs.mapping > 0 then
+  if Configs.mapping then
     for k, v in pairs(Configs.mapping) do
       local opt = {
         noremap = true,
