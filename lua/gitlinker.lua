@@ -106,9 +106,16 @@ local function setup(option)
     file = Configs.file_log,
   })
 
+  local key_mappings = nil
+  if type(option) == "table" and type(option["mapping"]) == "table" then
+    key_mappings = option["mapping"]
+  else
+    key_mappings = Defaults.mapping
+  end
+
   -- key mapping
-  if Configs.mapping and #Configs.mapping > 0 then
-    for k, v in pairs(Configs.mapping) do
+  if key_mappings then
+    for k, v in pairs(key_mappings) do
       local opt = {
         noremap = true,
         silent = true,
