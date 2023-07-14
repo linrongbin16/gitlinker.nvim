@@ -23,7 +23,7 @@ local Defaults = {
     },
     ["<leader>gL"] = {
       action = require("gitlinker.actions").system,
-      desc = "Open git link in default browser",
+      desc = "Open git link in browser",
     },
   },
 
