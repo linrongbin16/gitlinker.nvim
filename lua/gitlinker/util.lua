@@ -81,8 +81,17 @@ end
 
 --- @return LineRange
 local function line_range()
-  local pos1 = vim.fn.getpos("v")[2]
-  local pos2 = vim.fn.getcurpos()[2]
+  vim.cmd([[execute "normal! \\<ESC>"]])
+  local mode = vim.fn.visualmode()
+  local pos1 = nil
+  local pos2 = nil
+  if mode == "v" or mode == "V" or mode == "\\<C-V>" then
+    pos1 = vim.fn.getpos("'<")[2]
+    pos2 = vim.fn.getpos("'>")[2]
+  else
+    pos1 = vim.fn.getpos("v")[2]
+    pos2 = vim.fn.getcurpos()[2]
+  end
   local lstart = math.min(pos1, pos2)
   local lend = math.max(pos1, pos2)
   return { lstart = lstart, lend = lend }
