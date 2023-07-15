@@ -75,22 +75,33 @@ local function relative_path(cwd)
   return relpath
 end
 
+local function is_visual_mode(m)
+  return type(m) == "string" and m:upper() == "V"
+    or m:upper() == "CTRL-V"
+    or m:upper() == "<C-V>"
+    or m == "\22"
+end
+
 --- @class LineRange
 --- @field lstart integer
 --- @field lend integer
 
 --- @return LineRange
 local function line_range()
-  vim.cmd([[execute "normal! \\<ESC>"]])
+  vim.cmd([[execute "normal! \<ESC>"]])
   local mode = vim.fn.visualmode()
   local pos1 = nil
   local pos2 = nil
-  if mode == "v" or mode == "V" or mode == "\\<C-V>" then
+  if is_visual_mode(mode) then
     pos1 = vim.fn.getpos("'<")[2]
     pos2 = vim.fn.getpos("'>")[2]
   else
     pos1 = vim.fn.getpos("v")[2]
+    -- if mode == "v" then
+    --   pos2 = vim.fn.getpos(".")[2]
+    -- else
     pos2 = vim.fn.getcurpos()[2]
+    -- end
   end
   local lstart = math.min(pos1, pos2)
   local lend = math.max(pos1, pos2)
