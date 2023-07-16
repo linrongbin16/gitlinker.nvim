@@ -59,11 +59,11 @@ end
 
 --- @return LineRange
 local function line_range()
-  vim.cmd([[execute "normal! \<ESC>"]])
-  local mode = vim.fn.visualmode()
+  local mode = vim.fn.mode()
   local pos1 = nil
   local pos2 = nil
   if is_visual_mode(mode) then
+    vim.cmd([[execute "normal! \<ESC>"]])
     pos1 = vim.fn.getpos("'<")[2]
     pos2 = vim.fn.getpos("'>")[2]
   else
