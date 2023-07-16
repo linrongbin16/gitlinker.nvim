@@ -214,7 +214,7 @@ local function make_link_data()
     vim.inspect(rev)
   )
 
-  local root = root_result.stdout[1])
+  local root = root_result.stdout[1]
   local buf_path_on_root = util.relative_path(root)
   logger.debug(
     "|make_link_data| root(%s):%s, buf_path_on_root(%s):%s",
