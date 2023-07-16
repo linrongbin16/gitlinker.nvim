@@ -125,7 +125,7 @@ end
 local function get_rev(revspec)
   local result = cmd({ "git", "rev-parse", revspec })
   logger.debug(
-    "|git._get_rev| revspec(%s):%s, result(%s):%s",
+    "|git.get_rev| revspec(%s):%s, result(%s):%s",
     vim.inspect(type(revspec)),
     vim.inspect(revspec),
     vim.inspect(type(result)),
