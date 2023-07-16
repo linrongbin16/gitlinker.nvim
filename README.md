@@ -48,14 +48,12 @@ Requirement:
 
 - git
 - neovim 0.8
-- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 
 ### [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use {
     'linrongbin16/gitlinker.nvim',
-    requires = { 'nvim-lua/plenary.nvim' },
     branch = 'master',
     config = function()
         require('gitlinker').setup()
@@ -68,7 +66,6 @@ use {
 ```vim
 call plug#begin()
 
-Plug 'nvim-lua/plenary.nvim'
 Plug 'linrongbin16/gitlinker.nvim', { 'branch': 'master' }
 
 call plug#end()
@@ -83,7 +80,6 @@ EOF
 ```lua
 {
     'linrongbin16/gitlinker.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
     config = function()
         require('gitlinker').setup()
     end,
