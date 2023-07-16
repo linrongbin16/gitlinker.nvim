@@ -15,7 +15,9 @@ end
 --- @param result JobResult
 --- @return boolean
 local function result_has_err(result)
-  return result.stderr ~= nil
+  return result["stderr"] ~= nil
+    and type(result["stderr"]) == "table"
+    and #result["stderr"] > 0
 end
 
 --- @param result JobResult
