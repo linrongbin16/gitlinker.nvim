@@ -13,7 +13,7 @@ An example of git permalink:
 Personally, I use this all the time to easily share code locations with my
 co-workers.
 
-- [Break changes & updates](#break-changes--updates)
+- [New Features & Break Changes](#new-features--break-changes)
   - [Lua pattern based rules](#lua-pattern-based-rules)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
@@ -22,7 +22,7 @@ co-workers.
 - [Key Mappings](#key-mappings)
 - [Configuration](#configuration)
 
-## Break changes & updates
+## New Features & Break Changes
 
 1. Bug fix: you can disable/custom the default key mappings.
 2. Windows support: you can use it on Windows.
