@@ -35,7 +35,61 @@ end
 --- @param cwd string|nil
 --- @return JobResult
 local function cmd(args, cwd)
-  return vim.system(args, { cwd = cwd, text = true }):wait()
+  local result = { stdout = {}, stderr = {} }
+  local job = vim.fn.jobstart(args, {
+    cwd = cwd,
+    on_stdout = function(chanid, data, name)
+      logger.debug(
+        "|cmd.on_stdout| args(%s):%s, cwd(%s):%s, chanid(%s):%s, data(%s):%s, name(%s):%s",
+        vim.inspect(type(args)),
+        vim.inspect(args),
+        vim.inspect(type(cwd)),
+        vim.inspect(cwd),
+        vim.inspect(type(chanid)),
+        vim.inspect(chanid),
+        vim.inspect(type(data)),
+        vim.inspect(data),
+        vim.inspect(type(name)),
+        vim.inspect(name)
+      )
+      for _, line in ipairs(data) do
+        if string.len(line) > 0 then
+          table.insert(result.stdout, line)
+        end
+      end
+    end,
+    on_stderr = function(chanid, data, name)
+      logger.debug(
+        "|cmd.on_stderr| args(%s):%s, cwd(%s):%s, chanid(%s):%s, data(%s):%s, name(%s):%s",
+        vim.inspect(type(args)),
+        vim.inspect(args),
+        vim.inspect(type(cwd)),
+        vim.inspect(cwd),
+        vim.inspect(type(chanid)),
+        vim.inspect(chanid),
+        vim.inspect(type(data)),
+        vim.inspect(data),
+        vim.inspect(type(name)),
+        vim.inspect(name)
+      )
+      for _, line in ipairs(data) do
+        if string.len(line) > 0 then
+          table.insert(result.stderr, line)
+        end
+      end
+    end,
+  })
+  vim.fn.jobwait({ job })
+  logger.debug(
+    "|cmd| args(%s):%s, cwd(%s):%s, result(%s):%s",
+    vim.inspect(type(args)),
+    vim.inspect(args),
+    vim.inspect(type(cwd)),
+    vim.inspect(cwd),
+    vim.inspect(type(result)),
+    vim.inspect(result)
+  )
+  return result
 end
 
 --- @package
