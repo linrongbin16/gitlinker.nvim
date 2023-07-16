@@ -1,4 +1,5 @@
-local PathSeparator = (vim.fn.has("win32") or vim.fn.has("win64")) and "\\"
+local PathSeparator = (vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0)
+    and "\\"
   or "/"
 local LogFilePath = vim.fn.stdpath("data") .. PathSeparator .. "gitlinker.log"
 local EchoHl = {
