@@ -22,8 +22,10 @@ co-workers.
   - [vim-plug](#vim-plug)
   - [lazy.nvim](#lazynvim)
 - [Usage](#usage)
+  - [Action](#action)
   - [API](#api)
   - [Key Mappings](#key-mappings)
+  - [Customization](#customization)
 - [Configuration](#configuration)
 
 ## Break Changes & Features
@@ -106,7 +108,8 @@ EOF
   ```lua
   {
       action = ..., -- gitlinker actions: clipboard/system
-      mode = ..., -- vim mode: n/v/x
+      lstart = ..., -- selected line start, please see in [Customization](#customization).
+      lend = ..., -- selected line end, please see in [Customization](#customization).
   }
   ```
 
@@ -122,11 +125,37 @@ The above two operations are already defined with two default key mappings:
 - `<leader>gl` (normal/visual mode): copy git link to clipboard.
 - `<leader>gL` (normal/visual mode): open git link in browser.
 
+## Customization
+
 To disable the default key mappings, set `mapping = false` in `setup()` function
 (see [Configuration](#configuration)).
 
 To create your own key mappings, please specify the `mapping` option
 in `setup()` function.
+
+To create your own vim command, please use:
+
+For vim:
+
+```vim
+command! -range GitLink lua require('gitlinker').link({ action = require('gitlinker.actions').system, lstart = vim.api.nvim_buf_get_mark(0, '<')[1], lend = vim.api.nvim_buf_get_mark(0, '>')[1] })
+```
+
+For lua:
+
+```lua
+vim.api.nvim_create_user_command("GitLink", function()
+    require("gitlinker").link({
+        action = require("gitlinker.actions").system,
+        lstart = vim.api.nvim_buf_get_mark(0, '<')[1],
+        lend = vim.api.nvim_buf_get_mark(0, '>')[1]
+    })
+end, {
+    range = true,
+})
+```
+
+> Support visual mode is a little bit tricky, please read: https://github.com/linrongbin16/gitlinker.nvim/discussions/38.
 
 ## Configuration
 
