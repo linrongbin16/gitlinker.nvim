@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD034 -->
+
 # gitlinker.nvim
 
 > A fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored
@@ -13,22 +15,24 @@ An example of git permalink:
 Personally, I use this all the time to easily share code locations with my
 co-workers.
 
-- [New Features & Break Changes](#new-features--break-changes)
+- [Break Changes & Features](#break-changes--features)
   - [Lua pattern based rules](#lua-pattern-based-rules)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
   - [vim-plug](#vim-plug)
   - [lazy.nvim](#lazynvim)
-- [Key Mappings](#key-mappings)
+- [Usage](#usage)
+  - [API](#api)
+  - [Key Mappings](#key-mappings)
 - [Configuration](#configuration)
 
-## New Features & Break Changes
+## Break Changes & Features
 
-1. Bug fix: you can disable/custom the default key mappings.
+1. Bug fix: you can disable/custom default key mappings.
 2. Windows support: you can use it on Windows.
 3. Url mapping engine changed: pattern based rules instead of hard coding.
 4. Refactor: use git error message instead of self-defined error, drop off `plenary` library.
-6. Rewrittens: API re-designed, logger added, code base re-structured.
+5. Rewrittens: API re-designed, logger added, code base re-structured.
 
 ### Lua pattern based rules
 
@@ -88,9 +92,32 @@ EOF
 },
 ```
 
+# Usage
+
+## Action
+
+- `require('gitlinker.actions').clipboard`: copy git link to clipboard.
+- `require('gitlinker.actions').system`: open git link in browser.
+
+## API
+
+- `require('gitlinker').link(option)`: the main API that generate the git permalink, the `option` is a lua table that has below fields:
+
+  ```lua
+  {
+      action = ..., -- gitlinker actions: clipboard/system
+      mode = ..., -- vim mode: n/v/x
+  }
+  ```
+
+There're no pre-defined vim command, you need to use:
+
+- `require('gitlinker').link({ action = require('gitlinker.actions').clipboard })` to copy git link.
+- `require('gitlinker').link({ action = require('gitlinker.actions').system })` to open git link.
+
 ## Key Mappings
 
-There're two key mappings defined by default:
+The above two operations are already defined with two default key mappings:
 
 - `<leader>gl` (normal/visual mode): copy git link to clipboard.
 - `<leader>gL` (normal/visual mode): open git link in browser.

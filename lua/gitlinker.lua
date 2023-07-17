@@ -163,8 +163,41 @@ local function new_linker(remote_url, rev, file, lstart, lend, file_changed)
   return linker
 end
 
+local function is_visual_mode(m)
+  return type(m) == "string" and m:upper() == "V"
+    or m:upper() == "CTRL-V"
+    or m:upper() == "<C-V>"
+    or m == "\22"
+end
+
+--- @class LineRange
+--- @field lstart integer
+--- @field lend integer
+
+--- @return LineRange
+local function line_range(mode)
+  if mode:upper() == "V" or mode:upper() == "X" then
+    mode = vim.fn.visualmode()
+  else
+    mode = vim.fn.mode()
+  end
+  local pos1 = nil
+  local pos2 = nil
+  if is_visual_mode(mode) then
+    vim.cmd([[execute "normal! \<ESC>"]])
+    pos1 = vim.fn.getpos("'<")[2]
+    pos2 = vim.fn.getpos("'>")[2]
+  else
+    pos1 = vim.fn.getcurpos()[2]
+    pos2 = pos1
+  end
+  local lstart = math.min(pos1, pos2)
+  local lend = math.max(pos1, pos2)
+  return { lstart = lstart, lend = lend }
+end
+
 --- @return Linker|nil
-local function make_link_data()
+local function make_link_data(mode)
   --- @type JobResult
   local root_result = git.get_root()
   if not git.result_has_out(root_result) then
@@ -247,7 +280,7 @@ local function make_link_data()
   )
 
   --- @type LineRange
-  local range = util.line_range()
+  local range = line_range(mode)
   logger.debug(
     "[make_link_data] range(%s):%s",
     vim.inspect(type(range)),
@@ -327,7 +360,7 @@ local function link(option)
   option = vim.tbl_deep_extend("force", Configs, option or {})
   logger.debug("[make_link] after merge, option: %s", vim.inspect(option))
 
-  local linker = make_link_data()
+  local linker = make_link_data(option["mode"])
   if not linker then
     return nil
   end
