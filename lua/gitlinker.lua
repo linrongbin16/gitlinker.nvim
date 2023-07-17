@@ -163,35 +163,6 @@ local function new_linker(remote_url, rev, file, lstart, lend, file_changed)
   return linker
 end
 
-local function is_visual_mode(m)
-  return type(m) == "string" and m:upper() == "V"
-    or m:upper() == "CTRL-V"
-    or m:upper() == "<C-V>"
-    or m == "\22"
-end
-
---- @class LineRange
---- @field lstart integer
---- @field lend integer
-
---- @return LineRange
-local function line_range()
-  local mode = vim.fn.mode()
-  local pos1 = nil
-  local pos2 = nil
-  if is_visual_mode(mode) then
-    vim.cmd([[execute "normal! \<ESC>"]])
-    pos1 = vim.fn.getpos("'<")[2]
-    pos2 = vim.fn.getpos("'>")[2]
-  else
-    pos1 = vim.fn.getcurpos()[2]
-    pos2 = pos1
-  end
-  local lstart = math.min(pos1, pos2)
-  local lend = math.max(pos1, pos2)
-  return { lstart = lstart, lend = lend }
-end
-
 --- @return Linker|nil
 local function make_link_data(range)
   --- @type JobResult
@@ -277,7 +248,7 @@ local function make_link_data(range)
 
   if range == nil or range["lstart"] == nil or range["lend"] == nil then
     --- @type LineRange
-    range = line_range()
+    range = util.line_range()
     logger.debug(
       "[make_link_data] range(%s):%s",
       vim.inspect(type(range)),
