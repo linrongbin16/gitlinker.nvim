@@ -23,6 +23,14 @@ local function relative_path(cwd)
   if cwd == nil or string.len(cwd) <= 0 then
     cwd = vim.fn.getcwd()
   end
+  if cwd:find("\\") then
+    cwd = cwd:gsub("\\\\", "/")
+    cwd = cwd:gsub("\\", "/")
+  end
+  if buf_path:find("\\") then
+    buf_path = buf_path:gsub("\\\\", "/")
+    buf_path = buf_path:gsub("\\", "/")
+  end
   logger.debug(
     "|util.relative_path| buf_path(%s):%s, cwd(%s):%s",
     vim.inspect(type(buf_path)),
