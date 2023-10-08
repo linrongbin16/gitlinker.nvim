@@ -2,7 +2,8 @@ local git = require("gitlinker.git")
 local util = require("gitlinker.util")
 local logger = require("gitlinker.logger")
 
---- @type table<string, any>
+--- @alias Configs table<any, any>
+--- @type Configs
 local Defaults = {
   -- print message(git host url) in command line
   --- @type boolean
@@ -341,7 +342,7 @@ local function link(option)
   local host_url = map_remote_to_host(linker.remote_url)
 
   if type(host_url) ~= "string" or string.len(host_url) <= 0 then
-    logger.error(
+    logger.err(
       "Error! Cannot generate git link from remote url:%s",
       linker.remote_url
     )

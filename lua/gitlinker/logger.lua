@@ -1,46 +1,73 @@
-local Separator = (vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0) and "\\"
+local PATH_SEPERATOR = (vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0)
+    and "\\"
   or "/"
-local LogFilePath = vim.fn.stdpath("data") .. Separator .. "gitlinker.log"
-local EchoHl = {
-  ["ERROR"] = "ErrorMsg",
-  ["WARN"] = "ErrorMsg",
-  ["INFO"] = "None",
-  ["DEBUG"] = "Comment",
+
+local LOG_FILE_PATH = vim.fn.stdpath("data")
+  .. PATH_SEPERATOR
+  .. "gitlinker.log"
+
+-- see: `lua print(vim.inspect(vim.log.levels))`
+local LogLevels = {
+  TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  OFF = 5,
 }
+
+local LogHighlights = {
+  [1] = "Comment",
+  [2] = "None",
+  [3] = "WarningMsg",
+  [4] = "ErrorMsg",
+}
+
 local Defaults = {
-  level = "INFO",
+  level = LogLevels.INFO,
   console = true,
   file = false,
 }
+
 local Config = {}
 
+--- @param option Configs?
 local function setup(option)
   Config = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), option or {})
-  assert(type(Config.level) == "string" and EchoHl[Config.level] ~= nil)
+  assert(type(Config.level) == "number" and LogHighlights[Config.level] ~= nil)
 end
 
+--- @param level integer
+--- @param msg string
 local function log(level, msg)
-  if vim.log.levels[level] < vim.log.levels[Config.level] then
+  if level < Config.level then
     return
   end
 
-  local msg_lines = vim.split(msg, "\n")
+  local msg_lines = vim.split(msg, "\n", { plain = true })
   if Config.console then
-    vim.cmd("echohl " .. EchoHl[level])
-    for _, line in ipairs(msg_lines) do
-      vim.cmd(
-        string.format('echom "[gitlinker.nvim] %s"', vim.fn.escape(line, '"'))
-      )
+    local msg_chunks = {}
+    local prefix = ""
+    if level == LogLevels.ERROR then
+      prefix = "error! "
+    elseif level == LogLevels.WARN then
+      prefix = "warning! "
     end
-    vim.cmd("echohl None")
+    for _, line in ipairs(msg_lines) do
+      table.insert(msg_chunks, {
+        string.format("[gitlinker] %s%s", prefix, line),
+        LogHighlights[level],
+      })
+    end
+    vim.api.nvim_echo(msg_chunks, false, {})
   end
   if Config.file then
-    local fp = io.open(LogFilePath, "a")
+    local fp = io.open(LOG_FILE_PATH, "a")
     if fp then
       for _, line in ipairs(msg_lines) do
         fp:write(
           string.format(
-            "[gitlinker.nvim] %s [%s] - %s\n",
+            "%s [%s]: %s\n",
             os.date("%Y-%m-%d %H:%M:%S"),
             level,
             line
@@ -53,19 +80,19 @@ local function log(level, msg)
 end
 
 local function debug(fmt, ...)
-  log("DEBUG", string.format(fmt, ...))
+  log(LogLevels.DEBUG, string.format(fmt, ...))
 end
 
 local function info(fmt, ...)
-  log("INFO", string.format(fmt, ...))
+  log(LogLevels.INFO, string.format(fmt, ...))
 end
 
 local function warn(fmt, ...)
-  log("WARN", string.format(fmt, ...))
+  log(LogLevels.WARN, string.format(fmt, ...))
 end
 
-local function error(fmt, ...)
-  log("ERROR", string.format(fmt, ...))
+local function err(fmt, ...)
+  log(LogLevels.ERROR, string.format(fmt, ...))
 end
 
 local M = {
@@ -73,7 +100,7 @@ local M = {
   debug = debug,
   info = info,
   warn = warn,
-  error = error,
+  err = err,
 }
 
 return M

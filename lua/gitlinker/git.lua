@@ -25,9 +25,9 @@ end
 --- @return nil
 local function result_print_err(result, default)
   if result_has_err(result) and #result.stderr > 0 then
-    logger.error("%s", result.stderr[1])
+    logger.err("%s", result.stderr[1])
   else
-    logger.error("fatal: %s", default)
+    logger.err("fatal: %s", default)
   end
 end
 
@@ -247,7 +247,7 @@ local function get_closest_remote_compatible_rev(remote)
     return remote_rev
   end
 
-  logger.error(
+  logger.err(
     "fatal: failed to get closest revision in that exists in remote '%s'",
     remote
   )
@@ -302,7 +302,7 @@ local function get_branch_remote()
     upstream_branch:match("^(" .. UpstreamBranchAllowedChars .. ")%/")
 
   if not remote_from_upstream_branch then
-    logger.error(
+    logger.err(
       "fatal: cannot parse remote name from remote branch '%s'",
       upstream_branch
     )
@@ -316,7 +316,7 @@ local function get_branch_remote()
     end
   end
 
-  logger.error(
+  logger.err(
     "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
     remote_from_upstream_branch,
     upstream_branch
