@@ -29,25 +29,28 @@ local Defaults = {
     file = false,
 }
 
-local Config = {}
+local Configs = {}
 
 --- @param option Configs?
 local function setup(option)
-    Config = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), option or {})
+    Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), option or {})
+    if type(Configs.level) == "string" then
+        Configs.level = LogLevels[Configs.level]
+    end
     assert(
-        type(Config.level) == "number" and LogHighlights[Config.level] ~= nil
+        type(Configs.level) == "number" and LogHighlights[Configs.level] ~= nil
     )
 end
 
 --- @param level integer
 --- @param msg string
 local function log(level, msg)
-    if level < Config.level then
+    if level < Configs.level then
         return
     end
 
     local msg_lines = vim.split(msg, "\n", { plain = true })
-    if Config.console then
+    if Configs.console then
         local msg_chunks = {}
         local prefix = ""
         if level == LogLevels.ERROR then
@@ -63,7 +66,7 @@ local function log(level, msg)
         end
         vim.api.nvim_echo(msg_chunks, false, {})
     end
-    if Config.file then
+    if Configs.file then
         local fp = io.open(LOG_FILE_PATH, "a")
         if fp then
             for _, line in ipairs(msg_lines) do

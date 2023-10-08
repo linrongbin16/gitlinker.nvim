@@ -91,11 +91,10 @@ local Defaults = {
     file_log = false,
 }
 
---- @type table<string, any>
+--- @type Configs
 local Configs = {}
 
---- @param option table<string, any>
---- @return nil
+--- @param option Configs?
 local function setup(option)
     Configs = vim.tbl_deep_extend("force", Defaults, option or {})
 
