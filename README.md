@@ -6,7 +6,8 @@
 <a href="https://github.com/neovim/neovim/releases/v0.7.0"><img alt="Neovim-v0.7" src="https://img.shields.io/badge/Neovim-v0.7-blueviolet.svg?logo=Neovim&logoColor=green" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/search?l=lua"><img alt="Top Language" src="https://img.shields.io/github/languages/top/linrongbin16/gitlinker.nvim?label=Lua&logo=lua&logoColor=darkblue" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/linrongbin16/gitlinker.nvim?logo=GNU&label=License" /></a>
-<!-- <a href="https://github.com/linrongbin16/fzfx.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/fzfx.nvim/ci.yml?logo=GitHub&label=Luacheck" /></a> -->
+<a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?logo=GitHub&label=Luacheck" /></a>
+<a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim?logo=codecov&logoColor=magenta&label=Codecov" /></a>
 </p>
 
 > A fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored
@@ -22,7 +23,7 @@ An example of git permalink:
 Personally, I use this all the time to easily share code locations with my
 co-workers.
 
-- [Break Changes & Features](#break-changes--features)
+- [Break Changes & Updates](#break-changes--updates)
   - [Lua pattern based rules](#lua-pattern-based-rules)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
@@ -35,7 +36,7 @@ co-workers.
   - [Customization](#customization)
 - [Configuration](#configuration)
 
-## Break Changes & Features
+## Break Changes & Updates
 
 1. Bug fix: you can disable/custom default key mappings.
 2. Windows support: you can use it on Windows.
