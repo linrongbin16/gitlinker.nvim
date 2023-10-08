@@ -246,9 +246,18 @@ require('gitlinker').setup({
 
 ## Development
 
-1. Use [lua-language-server](https://github.com/LuaLS/lua-language-server) for code lint.
-2. Use [stylua](https://github.com/JohnnyMorganz/StyLua) for code formatting.
-3. Start neovim and run unit test: `lua require('gitlinker.test.test_rules')`
+To develop the project and make PR, please setup with:
+
+- [lua_ls](https://github.com/LuaLS/lua-language-server).
+- [stylua](https://github.com/JohnnyMorganz/StyLua).
+- [luarocks](https://luarocks.org/).
+- [luacheck](https://github.com/mpeterv/luacheck).
+
+To run unit tests, please install below dependencies:
+
+- [vusted](https://github.com/notomo/vusted).
+
+Then test with `vusted ./test`.
 
 ## Contribute
 
