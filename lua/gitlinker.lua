@@ -140,8 +140,6 @@ end
 --- @field lstart integer
 --- @field lend integer
 --- @field file_changed boolean
-
---- @type Linker
 local Linker = {}
 
 --- @param remote_url string
