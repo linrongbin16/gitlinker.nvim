@@ -10,8 +10,8 @@ local function is_windows()
     return vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0
 end
 
---- @param cwd string|nil
---- @return string
+--- @param cwd string?
+--- @return string?
 local function relative_path(cwd)
     logger.debug(
         "|util.relative_path| cwd1(%s):%s",
