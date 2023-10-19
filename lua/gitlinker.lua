@@ -12,7 +12,7 @@ local Defaults = {
     -- key mapping
     --
     --- @class ConfigMappingItem
-    --- @field action ActionType
+    --- @field action GitLinkerAction
     --- @field desc string|nil
     --
     --- @type table<string, ConfigMappingItem>
