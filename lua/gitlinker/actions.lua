@@ -15,9 +15,9 @@ end
 --- @param url string
 local function system(url)
     local job
-    if util.is_macos() then
+    if vim.fn.has("mac") > 0 then
         job = vim.fn.jobstart({ "open", url })
-    elseif util.is_windows() then
+    elseif vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0 then
         job = vim.fn.jobstart({ "cmd", "/C", "start", url })
     else
         job = vim.fn.jobstart({ "xdg-open", url })
