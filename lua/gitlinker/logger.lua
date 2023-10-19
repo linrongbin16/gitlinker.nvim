@@ -94,7 +94,7 @@ local function log(level, msg)
                     string.format(
                         "%s [%s]: %s\n",
                         os.date("%Y-%m-%d %H:%M:%S"),
-                        level,
+                        LogLevelNames[level],
                         line
                     )
                 )
