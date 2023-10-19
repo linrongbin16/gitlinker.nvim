@@ -38,12 +38,13 @@ co-workers.
 
 ## Break Changes & Updates
 
-1. Bug fix: you can disable/custom default key mappings.
-2. Windows support: you can use it on Windows.
-3. Url mapping engine changed: pattern based rules instead of hard coding.
-4. Refactor:
+1. Bug fix:
+   - Customize default key mappings.
+   - Windows support.
+2. Improvements:
+   - Url mapping engine migrate to lua pattern based rules from hard coding.
    - Use stderr from git command as error message.
-   - Use `uv.spawn` for more performant git command stdout/stderr.
+   - Use `uv.spawn` for performant git command stdout/stderr.
    - Drop off `plenary` library.
    - Re-designed API.
    - Logger.

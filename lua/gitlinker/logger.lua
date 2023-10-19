@@ -120,12 +120,25 @@ local function err(fmt, ...)
     log(LogLevels.ERROR, string.format(fmt, ...))
 end
 
+local function throw(fmt, ...)
+    log(LogLevels.ERROR, string.format(fmt, ...))
+    error(string.format(fmt, ...))
+end
+
+local function ensure(cond, fmt, ...)
+    if not cond then
+        throw(fmt, ...)
+    end
+end
+
 local M = {
     setup = setup,
     debug = debug,
     info = info,
     warn = warn,
     err = err,
+    throw = throw,
+    ensure = ensure,
 }
 
 return M
