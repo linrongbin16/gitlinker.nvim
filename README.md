@@ -50,8 +50,8 @@ Even lua pattern has many limitations compared with the [standard regex expressi
 
 For now supported platforms are:
 
-- github.com
-- gitlab.com
+- [github.com](https://github.com)
+- [gitlab.com](https://gitlab.com)
 
 PRs are welcomed for other git host websites!
 
@@ -59,18 +59,20 @@ PRs are welcomed for other git host websites!
 
 Requirement:
 
-- git.
-- neovim &ge; v0.7.
+- Neovim &ge; v0.7.
+- [Git](https://git-scm.com/).
 
 ### [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
-use {
+return require('packer').startup(function(use)
+  use {
     'linrongbin16/gitlinker.nvim',
     config = function()
-        require('gitlinker').setup()
+      require('gitlinker').setup()
     end,
-}
+  }
+end)
 ```
 
 ### [vim-plug](https://github.com/junegunn/vim-plug)
@@ -82,30 +84,30 @@ Plug 'linrongbin16/gitlinker.nvim'
 
 call plug#end()
 
-lua<<EOF
-require('gitlinker').setup()
-EOF
+lua require('gitlinker').setup()
 ```
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-{
+require("lazy").setup({
+  {
     'linrongbin16/gitlinker.nvim',
     config = function()
-        require('gitlinker').setup()
+      require('gitlinker').setup()
     end,
-},
+  },
+})
 ```
 
-# Usage
+## Usage
 
-## Action
+### Action
 
 - `require('gitlinker.actions').clipboard`: copy git link to clipboard.
 - `require('gitlinker.actions').system`: open git link in browser.
 
-## API
+### API
 
 - `require('gitlinker').link(option)`: the main API that generate the git permalink, the `option` is a lua table that has below fields:
 
