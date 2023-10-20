@@ -112,7 +112,7 @@ local function setup(option)
     end
 
     -- key mapping
-    if key_mappings then
+    if type(key_mappings) == "table" then
         for k, v in pairs(key_mappings) do
             local opt = {
                 noremap = true,
