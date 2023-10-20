@@ -71,8 +71,8 @@ local Defaults = {
     -- end,
     -- ```
     --
-    --- @alias CustomRulesType fun(remote_url:string):string|nil
-    --- @type CustomRulesType|nil
+    --- @alias CustomRules fun(remote_url:string):string?
+    --- @type CustomRules?
     custom_rules = nil,
 
     -- enable debug
