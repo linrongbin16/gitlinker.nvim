@@ -11,11 +11,8 @@ local Defaults = {
 
     -- key mapping
     --
-    --- @class ConfigMappingItem
-    --- @field action GitLinkerAction
-    --- @field desc string|nil
-    --
-    --- @type table<string, ConfigMappingItem>
+    --- @alias KeyMappingConfig {action:fun(url:string):nil,desc:string?}
+    --- @type table<string, KeyMappingConfig>
     mapping = {
         ["<leader>gl"] = {
             action = require("gitlinker.actions").clipboard,

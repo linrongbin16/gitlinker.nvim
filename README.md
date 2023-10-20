@@ -17,11 +17,10 @@ A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable
 file permalinks (with line ranges) for git host websites. Inspired by
 [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-An example of git permalink:
+Here's an example of git permalink:
 <https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156>
 
-Personally, I use this all the time to easily share code locations with my
-co-workers.
+## Table of Contents
 
 - [Break Changes & Updates](#break-changes--updates)
   - [Lua pattern based rules](#lua-pattern-based-rules)
@@ -44,10 +43,9 @@ co-workers.
 2. Improvements:
    - Url mapping engine migrate to lua pattern based rules from hard coding.
    - Use stderr from git command as error message.
-   - Use `uv.spawn` for performant git command stdout/stderr.
+   - Use `uv.spawn` for performant child process IO.
    - Drop off `plenary` library.
    - Re-designed API.
-   - Logger.
 
 ### Lua pattern based rules
 
