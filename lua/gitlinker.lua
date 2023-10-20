@@ -215,7 +215,7 @@ local function make_link_data(range)
         vim.inspect(file_in_rev_result)
     )
 
-    local buf_path_on_cwd = util.path_relative()
+    local buf_path_on_cwd = util.path_relative() --[[@as string]]
     logger.debug(
         "|make_link_data| buf_path_on_cwd:%s",
         vim.inspect(buf_path_on_cwd)
