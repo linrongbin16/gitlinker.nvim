@@ -2,8 +2,8 @@ local git = require("gitlinker.git")
 local util = require("gitlinker.util")
 local logger = require("gitlinker.logger")
 
---- @alias Configs table<any, any>
---- @type Configs
+--- @alias Options table<any, any>
+--- @type Options
 local Defaults = {
     -- print message(git host url) in command line
     --
@@ -89,10 +89,10 @@ local Defaults = {
     file_log = false,
 }
 
---- @type Configs
+--- @type Options
 local Configs = {}
 
---- @param option Configs?
+--- @param option Options?
 local function setup(option)
     Configs = vim.tbl_deep_extend("force", Defaults, option or {})
 
