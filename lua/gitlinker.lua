@@ -103,8 +103,10 @@ local function setup(option)
     })
 
     local key_mappings = nil
-    if type(option) == "table" and type(option["mapping"]) == "table" then
-        key_mappings = option["mapping"]
+    if type(option) == "table" and option["mapping"] ~= nil then
+        if type(option["mapping"]) == "table" then
+            key_mappings = option["mapping"]
+        end
     else
         key_mappings = Defaults.mapping
     end
