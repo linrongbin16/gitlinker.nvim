@@ -70,7 +70,7 @@ local function log(level, msg)
     end
 
     local msg_lines = vim.split(msg, "\n", { plain = true })
-    if Configs.console_log then
+    if Configs.console_log and level >= LogLevels.INFO then
         local msg_chunks = {}
         local prefix = ""
         if level == LogLevels.ERROR then
