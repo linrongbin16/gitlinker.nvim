@@ -162,8 +162,8 @@ end
 local function make_link_data(range)
     --- @type JobResult
     local root_result = git.get_root()
-    if not git.result_has_out(root_result) then
-        git.result_print_err(root_result, "not in a git repository")
+    if not root_result:has_out() then
+        root_result:print_err("not in a git repository")
         return nil
     end
     logger.debug(
@@ -185,9 +185,8 @@ local function make_link_data(range)
 
     --- @type JobResult
     local remote_url_result = git.get_remote_url(remote)
-    if not git.result_has_out(remote_url_result) then
-        git.result_print_err(
-            remote_url_result,
+    if not remote_url_result:has_out() then
+        remote_url_result:print_err(
             "failed to get remote url by remote '" .. remote .. "'"
         )
         return nil
@@ -221,9 +220,8 @@ local function make_link_data(range)
 
     --- @type JobResult
     local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev)
-    if git.result_has_err(file_in_rev_result) then
-        git.result_print_err(
-            file_in_rev_result,
+    if git.file_in_rev_result:has_err() then
+        file_in_rev_result:print_err(
             "'"
                 .. buf_path_on_root
                 .. "' does not exist in remote '"
