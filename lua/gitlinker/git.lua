@@ -97,12 +97,12 @@ local function get_remote_url(remote)
 end
 
 --- @package
---- @param revspec string|nil
+--- @param revspec string?
 --- @return string?
-local function get_rev(revspec)
+local function _get_rev(revspec)
     local result = cmd({ "git", "rev-parse", revspec })
     logger.debug(
-        "|git.get_rev| revspec(%s):%s, result(%s):%s",
+        "|git._get_rev| revspec(%s):%s, result(%s):%s",
         vim.inspect(type(revspec)),
         vim.inspect(revspec),
         vim.inspect(type(result)),
@@ -113,17 +113,19 @@ end
 
 --- @package
 --- @param revspec string
---- @return JobResult
-local function get_rev_name(revspec)
+--- @return string?
+local function _get_rev_name(revspec)
     local result = cmd({ "git", "rev-parse", "--abbrev-ref", revspec })
     logger.debug(
-        "|git.get_rev_name| revspec(%s):%s, result(%s):%s",
-        vim.inspect(type(revspec)),
+        "|git._get_rev_name| revspec:%s, result:%s",
         vim.inspect(revspec),
-        vim.inspect(type(result)),
         vim.inspect(result)
     )
-    return result
+    if not result:has_out() then
+        result:print_err("git branch has no remote")
+        return nil
+    end
+    return result.stdout[1]
 end
 
 --- @param file string
@@ -192,14 +194,14 @@ local function get_closest_remote_compatible_rev(remote)
     assert(remote, "remote cannot be nil")
 
     -- try upstream branch HEAD (a.k.a @{u})
-    local upstream_rev = get_rev("@{u}")
+    local upstream_rev = _get_rev("@{u}")
     if upstream_rev then
         return upstream_rev
     end
 
     -- try HEAD
     if is_rev_in_remote("HEAD", remote) then
-        local head_rev = get_rev("HEAD")
+        local head_rev = _get_rev("HEAD")
         if head_rev then
             return head_rev
         end
@@ -209,7 +211,7 @@ local function get_closest_remote_compatible_rev(remote)
     for i = 1, 50 do
         local revspec = "HEAD~" .. i
         if is_rev_in_remote(revspec, remote) then
-            local rev = get_rev(revspec)
+            local rev = _get_rev(revspec)
             if rev then
                 return rev
             end
@@ -217,7 +219,7 @@ local function get_closest_remote_compatible_rev(remote)
     end
 
     -- try remote HEAD
-    local remote_rev = get_rev(remote)
+    local remote_rev = _get_rev(remote)
     if remote_rev then
         return remote_rev
     end
@@ -262,23 +264,21 @@ local function get_branch_remote()
     end
 
     -- origin/linrongbin16/add-rule2
-    local upstream_branch_result = get_rev_name("@{u}")
-    if not upstream_branch_result:has_out() then
-        upstream_branch_result:print_err("git branch has no remote")
+    local upstream_branch_result = _get_rev_name("@{u}")
+    if not upstream_branch_result then
         return nil
     end
 
-    --- @type string
-    local upstream_branch = upstream_branch_result.stdout[1]
     -- origin
     --- @type string
-    local remote_from_upstream_branch =
-        upstream_branch:match("^(" .. UpstreamBranchAllowedChars .. ")%/")
+    local remote_from_upstream_branch = upstream_branch_result:match(
+        "^(" .. UpstreamBranchAllowedChars .. ")%/"
+    )
 
     if not remote_from_upstream_branch then
         logger.err(
             "fatal: cannot parse remote name from remote branch '%s'",
-            upstream_branch
+            upstream_branch_result
         )
         return nil
     end
@@ -293,7 +293,7 @@ local function get_branch_remote()
     logger.err(
         "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
         remote_from_upstream_branch,
-        upstream_branch
+        upstream_branch_result
     )
     return nil
 end
