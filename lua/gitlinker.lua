@@ -271,9 +271,10 @@ local function make_link_data(range)
     )
 end
 
+--- @package
 --- @param remote_url string
---- @return string|nil host_url
-local function map_remote_to_host(remote_url)
+--- @return string?
+local function _map_remote_to_host(remote_url)
     local custom_rules = Configs.custom_rules
     if type(custom_rules) == "function" then
         return custom_rules(remote_url)
@@ -337,7 +338,7 @@ local function link(option)
         return nil
     end
 
-    local host_url = map_remote_to_host(linker.remote_url)
+    local host_url = _map_remote_to_host(linker.remote_url)
 
     if type(host_url) ~= "string" or string.len(host_url) <= 0 then
         logger.err(
@@ -368,8 +369,7 @@ end
 local M = {
     setup = setup,
     link = link,
-    -- for unit testing
-    map_remote_to_host = map_remote_to_host,
+    _map_remote_to_host = _map_remote_to_host,
 }
 
 return M
