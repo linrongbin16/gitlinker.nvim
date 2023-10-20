@@ -10,15 +10,11 @@
 <a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim?logo=codecov&logoColor=magenta&label=Codecov" /></a>
 </p>
 
-> A fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored
-> with pattern based rule engine, Windows support and other enhancements.
+> A fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with pattern based rule engine, Windows support and other enhancements.
 
-A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable
-file permalinks (with line ranges) for git host websites. Inspired by
-[tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
+A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-Here's an example of git permalink:
-<https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156>
+Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 
 ## Table of Contents
 
@@ -41,18 +37,16 @@ Here's an example of git permalink:
    - Customize default key mappings.
    - Windows support.
 2. Improvements:
-   - Url mapping engine migrate to lua pattern based rules from hard coding.
+   - Lua pattern based rules as new url mapping engine.
    - Use stderr from git command as error message.
    - Use `uv.spawn` for performant child process IO.
    - Drop off `plenary` library.
    - Re-designed API.
 
-### Lua pattern based rules
+### Lua pattern based mapping engine
 
-[Lua pattern](https://www.lua.org/pil/20.2.html) is introduced to map git remote
-url to host url. The lua pattern has many limitations compared with the
-[standard regex expression](https://en.wikipedia.org/wiki/Regular_expression),
-but it's still the best solution in this scenario.
+[Lua pattern](https://www.lua.org/pil/20.2.html) is introduced to map git remote url to host url.
+Even lua pattern has many limitations compared with the [standard regex expression](https://en.wikipedia.org/wiki/Regular_expression), it's still the best solution in this scenario.
 
 For now supported platforms are:
 
