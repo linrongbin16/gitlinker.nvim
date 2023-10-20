@@ -263,22 +263,21 @@ local function get_branch_remote()
     end
 
     -- origin/linrongbin16/add-rule2
-    local upstream_branch_result = _get_rev_name("@{u}")
-    if not upstream_branch_result then
+    local upstream_branch = _get_rev_name("@{u}")
+    if not upstream_branch then
         return nil
     end
 
     local upstream_branch_allowed_chars = "[_%-%w%.]+"
 
     -- origin
-    local remote_from_upstream_branch = upstream_branch_result:match(
-        "^(" .. upstream_branch_allowed_chars .. ")%/"
-    )
+    local remote_from_upstream_branch =
+        upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
 
     if not remote_from_upstream_branch then
         logger.err(
             "fatal: cannot parse remote name from remote branch '%s'",
-            upstream_branch_result
+            upstream_branch
         )
         return nil
     end
@@ -293,7 +292,7 @@ local function get_branch_remote()
     logger.err(
         "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
         remote_from_upstream_branch,
-        upstream_branch_result
+        upstream_branch
     )
     return nil
 end
