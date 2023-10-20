@@ -228,6 +228,7 @@ end
 function Spawn:run()
     self.process_handle, self.process_id = vim.loop.spawn(self.cmds[1], {
         args = vim.list_slice(self.cmds, 2),
+        cwd = self.cwd,
         stdio = { nil, self.out_pipe, self.err_pipe },
         hide = true,
         -- verbatim = true,
