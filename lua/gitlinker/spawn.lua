@@ -4,7 +4,7 @@
 --- @param t string
 --- @param start integer?
 --- @return integer?
-local function _string_find(s, t, start)
+local function string_find(s, t, start)
     -- start = start or 1
     -- local result = vim.fn.stridx(s, t, start - 1)
     -- return result >= 0 and (result + 1) or nil
@@ -31,6 +31,32 @@ local function _string_find(s, t, start)
     return nil
 end
 
+--- @param filename string
+--- @param opts {trim:boolean?}|nil
+--- @return string?
+local function readfile(filename, opts)
+    opts = opts or { trim = true }
+    opts.trim = opts.trim == nil and true or opts.trim
+
+    local f = io.open(filename, "r")
+    if f == nil then
+        return nil
+    end
+    local content = vim.trim(f:read("*a"))
+    f:close()
+    return content
+end
+
+--- @param filename string
+--- @return string[]?
+local function readlines(filename)
+    local results = {}
+    for line in io.lines(filename) do
+        table.insert(results, line)
+    end
+    return results
+end
+
 --- @alias SpawnLineConsumer fun(line:string):any
 --- @class Spawn
 --- @field cmds string[]
@@ -46,9 +72,17 @@ end
 --- @field result {code:integer?,signal:integer?}?
 local Spawn = {}
 
+--- @param line string
+local function dummy_stderr_line_consumer(line)
+    -- if type(line) == "string" then
+    --     io.write(string.format("AsyncSpawn:_on_stderr:%s", vim.inspect(line)))
+    --     error(string.format("AsyncSpawn:_on_stderr:%s", vim.inspect(line)))
+    -- end
+end
+
 --- @param cmds string[]
 --- @param fn_out_line_consumer SpawnLineConsumer
---- @param fn_err_line_consumer SpawnLineConsumer
+--- @param fn_err_line_consumer SpawnLineConsumer?
 --- @return Spawn?
 function Spawn:make(cmds, fn_out_line_consumer, fn_err_line_consumer)
     local out_pipe = vim.loop.new_pipe(false) --[[@as uv_pipe_t]]
@@ -60,7 +94,8 @@ function Spawn:make(cmds, fn_out_line_consumer, fn_err_line_consumer)
     local o = {
         cmds = cmds,
         fn_out_line_consumer = fn_out_line_consumer,
-        fn_err_line_consumer = fn_err_line_consumer,
+        fn_err_line_consumer = fn_err_line_consumer
+            or dummy_stderr_line_consumer,
         out_pipe = out_pipe,
         err_pipe = err_pipe,
         out_buffer = nil,
@@ -81,7 +116,7 @@ end
 function Spawn:_consume_line(buffer, fn_line_processor)
     local i = 1
     while i <= #buffer do
-        local newline_pos = _string_find(buffer, "\n", i)
+        local newline_pos = string_find(buffer, "\n", i)
         if not newline_pos then
             break
         end
@@ -216,7 +251,9 @@ function Spawn:run()
 end
 
 local M = {
-    _string_find = _string_find,
+    string_find = string_find,
+    readfile = readfile,
+    readlines = readlines,
     Spawn = Spawn,
 }
 
