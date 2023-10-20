@@ -130,19 +130,22 @@ end
 
 --- @param file string
 --- @param revspec string
---- @return JobResult
+--- @return boolean
 local function is_file_in_rev(file, revspec)
     local result = cmd({ "git", "cat-file", "-e", revspec .. ":" .. file })
     logger.debug(
-        "|git.is_file_in_rev| file(%s):%s, revspec(%s):%s, result(%s):%s",
-        vim.inspect(type(file)),
+        "|git.is_file_in_rev| file:%s, revspec:%s, result:%s",
         vim.inspect(file),
-        vim.inspect(type(revspec)),
         vim.inspect(revspec),
-        vim.inspect(type(result)),
         vim.inspect(result)
     )
-    return result
+    if result:has_err() then
+        result:print_err(
+            "'" .. file .. "' does not exist in remote '" .. revspec .. "'"
+        )
+        return false
+    end
+    return true
 end
 
 --- @param file string
@@ -151,12 +154,9 @@ end
 local function has_file_changed(file, rev)
     local result = cmd({ "git", "diff", rev, "--", file })
     logger.debug(
-        "|git.has_file_changed| file(%s):%s, rev(%s):%s, result(%s):%s",
-        vim.inspect(type(file)),
+        "|git.has_file_changed| file:%s, rev:%s, result:%s",
         vim.inspect(file),
-        vim.inspect(type(rev)),
         vim.inspect(rev),
-        vim.inspect(type(result)),
         vim.inspect(result)
     )
     return result:has_out()
@@ -166,15 +166,12 @@ end
 --- @param revspec string
 --- @param remote string
 --- @return boolean
-local function is_rev_in_remote(revspec, remote)
+local function _is_rev_in_remote(revspec, remote)
     local result = cmd({ "git", "branch", "--remotes", "--contains", revspec })
     logger.debug(
-        "|git.is_rev_in_remote| revspec(%s):%s, remote(%s):%s, result(%s):%s",
-        vim.inspect(type(revspec)),
+        "|git.is_rev_in_remote| revspec:%s, remote:%s, result:%s",
         vim.inspect(revspec),
-        vim.inspect(type(remote)),
         vim.inspect(remote),
-        vim.inspect(type(result)),
         vim.inspect(result)
     )
     local output = result.stdout
@@ -186,10 +183,8 @@ local function is_rev_in_remote(revspec, remote)
     return false
 end
 
-local UpstreamBranchAllowedChars = "[_%-%w%.]+"
-
 --- @param remote string
---- @return string|nil
+--- @return string?
 local function get_closest_remote_compatible_rev(remote)
     assert(remote, "remote cannot be nil")
 
@@ -200,7 +195,7 @@ local function get_closest_remote_compatible_rev(remote)
     end
 
     -- try HEAD
-    if is_rev_in_remote("HEAD", remote) then
+    if _is_rev_in_remote("HEAD", remote) then
         local head_rev = _get_rev("HEAD")
         if head_rev then
             return head_rev
@@ -210,7 +205,7 @@ local function get_closest_remote_compatible_rev(remote)
     -- try last 50 parent commits
     for i = 1, 50 do
         local revspec = "HEAD~" .. i
-        if is_rev_in_remote(revspec, remote) then
+        if _is_rev_in_remote(revspec, remote) then
             local rev = _get_rev(revspec)
             if rev then
                 return rev
@@ -231,7 +226,7 @@ local function get_closest_remote_compatible_rev(remote)
     return nil
 end
 
---- @return JobResult
+--- @return string?
 local function get_root()
     local buf_path = vim.api.nvim_buf_get_name(0)
     local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
@@ -245,7 +240,11 @@ local function get_root()
         vim.inspect(type(result)),
         vim.inspect(result)
     )
-    return result
+    if not result:has_out() then
+        result:print_err("not in a git repository")
+        return nil
+    end
+    return result.stdout[1]
 end
 
 --- @return string?
@@ -269,10 +268,11 @@ local function get_branch_remote()
         return nil
     end
 
+    local upstream_branch_allowed_chars = "[_%-%w%.]+"
+
     -- origin
-    --- @type string
     local remote_from_upstream_branch = upstream_branch_result:match(
-        "^(" .. UpstreamBranchAllowedChars .. ")%/"
+        "^(" .. upstream_branch_allowed_chars .. ")%/"
     )
 
     if not remote_from_upstream_branch then
