@@ -98,8 +98,8 @@ local function setup(option)
     -- logger
     logger.setup({
         level = Configs.debug and "DEBUG" or "INFO",
-        console = Configs.console_log,
-        file = Configs.file_log,
+        console_log = Configs.console_log,
+        file_log = Configs.file_log,
     })
 
     local key_mappings = nil
