@@ -220,7 +220,7 @@ local function make_link_data(range)
 
     --- @type JobResult
     local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev)
-    if git.file_in_rev_result:has_err() then
+    if file_in_rev_result:has_err() then
         file_in_rev_result:print_err(
             "'"
                 .. buf_path_on_root
