@@ -1,8 +1,5 @@
 local logger = require("gitlinker.logger")
-
---- @class JobResult
---- @field stdout string[]
---- @field stderr string[]
+local spawn = require("gitlinker.spawn")
 
 --- @param result JobResult
 --- @return boolean
@@ -37,51 +34,23 @@ end
 --- @param cwd string|nil
 --- @return JobResult
 local function cmd(args, cwd)
+    --- @class JobResult
+    --- @field stdout string[]
+    --- @field stderr string[]
+    --- @type JobResult
     local result = { stdout = {}, stderr = {} }
-    local job = vim.fn.jobstart(args, {
-        cwd = cwd,
-        on_stdout = function(chanid, data, name)
-            logger.debug(
-                "|cmd.on_stdout| args(%s):%s, cwd(%s):%s, chanid(%s):%s, data(%s):%s, name(%s):%s",
-                vim.inspect(type(args)),
-                vim.inspect(args),
-                vim.inspect(type(cwd)),
-                vim.inspect(cwd),
-                vim.inspect(type(chanid)),
-                vim.inspect(chanid),
-                vim.inspect(type(data)),
-                vim.inspect(data),
-                vim.inspect(type(name)),
-                vim.inspect(name)
-            )
-            for _, line in ipairs(data) do
-                if string.len(line) > 0 then
-                    table.insert(result.stdout, line)
-                end
-            end
-        end,
-        on_stderr = function(chanid, data, name)
-            logger.debug(
-                "|cmd.on_stderr| args(%s):%s, cwd(%s):%s, chanid(%s):%s, data(%s):%s, name(%s):%s",
-                vim.inspect(type(args)),
-                vim.inspect(args),
-                vim.inspect(type(cwd)),
-                vim.inspect(cwd),
-                vim.inspect(type(chanid)),
-                vim.inspect(chanid),
-                vim.inspect(type(data)),
-                vim.inspect(data),
-                vim.inspect(type(name)),
-                vim.inspect(name)
-            )
-            for _, line in ipairs(data) do
-                if string.len(line) > 0 then
-                    table.insert(result.stderr, line)
-                end
-            end
-        end,
-    })
-    vim.fn.jobwait({ job })
+
+    local sp = spawn.Spawn:make(args, function(line)
+        if type(line) == "string" then
+            table.insert(result.stdout, line)
+        end
+    end, function(line)
+        if type(line) == "string" then
+            table.insert(result.stderr, line)
+        end
+    end) --[[@as Spawn]]
+    sp:run()
+
     logger.debug(
         "|cmd| args(%s):%s, cwd(%s):%s, result(%s):%s",
         vim.inspect(type(args)),
