@@ -6,6 +6,7 @@ local logger = require("gitlinker.logger")
 --- @type Configs
 local Defaults = {
     -- print message(git host url) in command line
+    --
     --- @type boolean
     message = true,
 
@@ -24,8 +25,8 @@ local Defaults = {
         },
     },
 
-    -- regex pattern based rules
-    --- @type table<string, string>[]
+    -- pattern based rules
+    --- @type {[1]:table<string,string>,[2]:table<string,string>}
     pattern_rules = {
         {
             ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
