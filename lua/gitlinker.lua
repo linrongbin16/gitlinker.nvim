@@ -5,12 +5,12 @@ local logger = require("gitlinker.logger")
 --- @alias Options table<any, any>
 --- @type Options
 local Defaults = {
-    -- print message(git host url) in command line
+    -- print permanent url in command line
     --
     --- @type boolean
     message = true,
 
-    -- key mapping
+    -- key mappings
     --
     --- @alias KeyMappingConfig {action:fun(url:string):nil,desc:string?}
     --- @type table<string, KeyMappingConfig>
