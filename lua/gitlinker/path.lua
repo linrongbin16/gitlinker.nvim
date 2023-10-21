@@ -16,7 +16,7 @@ end
 
 --- @param cwd string?
 --- @return string?
-local function path_relative_bufpath(cwd)
+local function buffer_relpath(cwd)
     cwd = cwd or vim.fn.getcwd()
     cwd = vim.fn.resolve(cwd)
     cwd = normalize(cwd)
@@ -26,7 +26,7 @@ local function path_relative_bufpath(cwd)
     bufpath = normalize(bufpath)
 
     logger.debug(
-        "|path.relative_bufpath| enter, cwd:%s, bufpath:%s",
+        "|path.buffer_relpath| enter, cwd:%s, bufpath:%s",
         vim.inspect(cwd),
         vim.inspect(bufpath)
     )
@@ -41,13 +41,13 @@ local function path_relative_bufpath(cwd)
             result = result:sub(2)
         end
     end
-    logger.debug("|path.relative_bufpath| result:%s", vim.inspect(result))
+    logger.debug("|path.buffer_relpath| result:%s", vim.inspect(result))
     return result
 end
 
 local M = {
-    path_normalize = normalize,
-    path_relative_bufpath = path_relative_bufpath,
+    normalize = normalize,
+    buffer_relpath = buffer_relpath,
 }
 
 return M
