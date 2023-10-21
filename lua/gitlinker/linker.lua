@@ -78,3 +78,9 @@ function Linker:make(line_range)
 
     return o
 end
+
+local M = {
+    Linker = Linker,
+}
+
+return M
