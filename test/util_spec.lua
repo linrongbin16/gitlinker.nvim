@@ -41,7 +41,7 @@ describe("util", function()
             }
             for i, line in ipairs(lines) do
                 vim.cmd(string.format([[ edit %s ]], line))
-                local actual = util.path_relative()
+                local actual = util.path_relative_bufpath()
                 print(string.format("path relative:%s\n", actual))
                 assert_eq(actual, line)
             end
