@@ -46,6 +46,7 @@ end
 
 local M = {
     Range = Range,
+    _is_visual_mode = _is_visual_mode,
     is_range = is_range,
 }
 
