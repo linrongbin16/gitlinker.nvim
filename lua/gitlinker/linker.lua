@@ -38,7 +38,7 @@ function Linker:make(line_range)
     end
     logger.debug("|make_link_data| rev:%s", vim.inspect(rev))
 
-    local buf_path_on_root = path.path_relative_bufpath(root) --[[@as string]]
+    local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
     logger.debug(
         "|make_link_data| root:%s, buf_path_on_root:%s",
         vim.inspect(root),
@@ -54,7 +54,7 @@ function Linker:make(line_range)
         vim.inspect(file_in_rev_result)
     )
 
-    local buf_path_on_cwd = path.path_relative_bufpath() --[[@as string]]
+    local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
     logger.debug(
         "|make_link_data| buf_path_on_cwd:%s",
         vim.inspect(buf_path_on_cwd)
