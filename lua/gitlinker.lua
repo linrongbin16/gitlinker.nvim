@@ -26,7 +26,8 @@ local Defaults = {
     },
 
     -- pattern based rules
-    --- @type {[1]:table<string,string>,[2]:table<string,string>}
+    --
+    --- @type table<string,string>[]
     pattern_rules = {
         {
             ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
@@ -72,19 +73,21 @@ local Defaults = {
     -- end,
     -- ```
     --
-    --- @alias CustomRules fun(remote_url:string):string?
-    --- @type CustomRules?
+    --- @type fun(remote_url:string):string?|nil
     custom_rules = nil,
 
     -- enable debug
+    --
     --- @type boolean
     debug = false,
 
     -- write logs to console(command line)
+    --
     --- @type boolean
     console_log = true,
 
     -- write logs to file
+    --
     --- @type boolean
     file_log = false,
 }
