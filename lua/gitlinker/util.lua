@@ -16,7 +16,7 @@ end
 
 --- @param cwd string?
 --- @return string?
-local function path_relative(cwd)
+local function path_relative_bufpath(cwd)
     cwd = cwd or vim.fn.getcwd()
     cwd = vim.fn.resolve(cwd)
     cwd = path_normalize(cwd)
@@ -74,7 +74,7 @@ end
 
 local M = {
     path_normalize = path_normalize,
-    path_relative = path_relative,
+    path_relative_bufpath = path_relative_bufpath,
     is_visual_mode = is_visual_mode,
     line_range = line_range,
 }

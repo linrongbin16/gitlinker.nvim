@@ -95,9 +95,9 @@ local Defaults = {
 --- @type Options
 local Configs = {}
 
---- @param option Options?
-local function setup(option)
-    Configs = vim.tbl_deep_extend("force", Defaults, option or {})
+--- @param opts Options?
+local function setup(opts)
+    Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
 
     -- logger
     logger.setup({
@@ -107,9 +107,9 @@ local function setup(option)
     })
 
     local key_mappings = nil
-    if type(option) == "table" and option["mapping"] ~= nil then
-        if type(option["mapping"]) == "table" then
-            key_mappings = option["mapping"]
+    if type(opts) == "table" and opts["mapping"] ~= nil then
+        if type(opts["mapping"]) == "table" then
+            key_mappings = opts["mapping"]
         end
     else
         key_mappings = Defaults.mapping
@@ -169,30 +169,25 @@ local function make_link_data(range)
         return nil
     end
 
-    --- @type string|nil
     local remote = git.get_branch_remote()
     if not remote then
         return nil
     end
     logger.debug("|make_link_data| remote:%s", vim.inspect(remote))
 
-    local remote_url_result = git.get_remote_url(remote)
-    if not remote_url_result then
+    local remote_url = git.get_remote_url(remote)
+    if not remote_url then
         return nil
     end
-    logger.debug(
-        "|make_link_data| remote_url_result:%s",
-        vim.inspect(remote_url_result)
-    )
+    logger.debug("|make_link_data| remote_url:%s", vim.inspect(remote_url))
 
-    --- @type string|nil
     local rev = git.get_closest_remote_compatible_rev(remote)
     if not rev then
         return nil
     end
     logger.debug("|make_link_data| rev:%s", vim.inspect(rev))
 
-    local buf_path_on_root = util.path_relative(root) --[[@as string]]
+    local buf_path_on_root = util.path_relative_bufpath(root) --[[@as string]]
     logger.debug(
         "|make_link_data| root:%s, buf_path_on_root:%s",
         vim.inspect(root),
@@ -208,7 +203,7 @@ local function make_link_data(range)
         vim.inspect(file_in_rev_result)
     )
 
-    local buf_path_on_cwd = util.path_relative() --[[@as string]]
+    local buf_path_on_cwd = util.path_relative_bufpath() --[[@as string]]
     logger.debug(
         "|make_link_data| buf_path_on_cwd:%s",
         vim.inspect(buf_path_on_cwd)
@@ -220,7 +215,7 @@ local function make_link_data(range)
     end
 
     return new_linker(
-        remote_url_result,
+        remote_url,
         rev,
         buf_path_on_root,
         range.lstart,
