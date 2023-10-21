@@ -121,7 +121,7 @@ There's no pre-defined vim command, this plugin provides two actions and one API
   }
   ```
 
-Finally you could use below two lua code to copy/open git link:
+You could use below two lua code to copy/open git link:
 
 - `require('gitlinker').link({ action = require('gitlinker.actions').clipboard })` to copy git link.
 - `require('gitlinker').link({ action = require('gitlinker.actions').system })` to open git link.
