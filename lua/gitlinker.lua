@@ -162,6 +162,8 @@ local function new_linker(remote_url, rev, file, lstart, lend, file_changed)
     return linker
 end
 
+--- @alias LineRange {lstart:integer,lend:integer}
+--- @param range LineRange
 --- @return Linker?
 local function make_link_data(range)
     local root = git.get_root()
