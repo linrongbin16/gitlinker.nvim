@@ -1,6 +1,6 @@
 local range = require("gitlinker.range")
 local git = require("gitlinker.git")
-local util = require("gitlinker.util")
+local path = require("gitlinker.path")
 local logger = require("gitlinker.logger")
 
 --- @class Linker
@@ -38,7 +38,7 @@ function Linker:make(line_range)
     end
     logger.debug("|make_link_data| rev:%s", vim.inspect(rev))
 
-    local buf_path_on_root = util.path_relative_bufpath(root) --[[@as string]]
+    local buf_path_on_root = path.path_relative_bufpath(root) --[[@as string]]
     logger.debug(
         "|make_link_data| root:%s, buf_path_on_root:%s",
         vim.inspect(root),
@@ -54,7 +54,7 @@ function Linker:make(line_range)
         vim.inspect(file_in_rev_result)
     )
 
-    local buf_path_on_cwd = util.path_relative_bufpath() --[[@as string]]
+    local buf_path_on_cwd = path.path_relative_bufpath() --[[@as string]]
     logger.debug(
         "|make_link_data| buf_path_on_cwd:%s",
         vim.inspect(buf_path_on_cwd)

@@ -1,6 +1,6 @@
 local cwd = vim.fn.getcwd()
 
-describe("util", function()
+describe("path", function()
     local assert_eq = assert.is_equal
     local assert_true = assert.is_true
     local assert_false = assert.is_false
@@ -12,7 +12,7 @@ describe("util", function()
 
     local logger = require("gitlinker.logger")
     logger.setup()
-    local util = require("gitlinker.util")
+    local path = require("gitlinker.path")
     describe("[path_normalize]", function()
         it("normalize", function()
             local lines = {
@@ -20,7 +20,7 @@ describe("util", function()
                 "~/github/linrongbin16/gitlinker.nvim/lua/gitlinker.lua",
             }
             for i, line in ipairs(lines) do
-                local actual = util.path_normalize(line)
+                local actual = path.path_normalize(line)
                 local expect = vim.fn.expand(line)
                 print(
                     string.format(
@@ -37,11 +37,11 @@ describe("util", function()
             local lines = {
                 "README.md",
                 "lua/gitlinker.lua",
-                "lua/gitlinker/util.lua",
+                "lua/gitlinker/path.lua",
             }
             for i, line in ipairs(lines) do
                 vim.cmd(string.format([[ edit %s ]], line))
-                local actual = util.path_relative_bufpath()
+                local actual = path.path_relative_bufpath()
                 print(string.format("path relative:%s\n", actual))
                 assert_eq(actual, line)
             end

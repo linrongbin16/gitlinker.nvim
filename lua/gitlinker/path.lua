@@ -3,7 +3,7 @@ local logger = require("gitlinker.logger")
 -- normalize path slash from '\\' to '/'
 --- @param p string
 --- @return string
-local function path_normalize(p)
+local function normalize(p)
     local result = vim.fn.expand(p)
     if string.match(result, [[\\]]) then
         result = string.gsub(result, [[\\]], [[/]])
@@ -19,14 +19,14 @@ end
 local function path_relative_bufpath(cwd)
     cwd = cwd or vim.fn.getcwd()
     cwd = vim.fn.resolve(cwd)
-    cwd = path_normalize(cwd)
+    cwd = normalize(cwd)
 
     local bufpath = vim.api.nvim_buf_get_name(0)
     bufpath = vim.fn.resolve(bufpath)
-    bufpath = path_normalize(bufpath)
+    bufpath = normalize(bufpath)
 
     logger.debug(
-        "|util.path_relative| enter, cwd:%s, bufpath:%s",
+        "|path.relative_bufpath| enter, cwd:%s, bufpath:%s",
         vim.inspect(cwd),
         vim.inspect(bufpath)
     )
@@ -41,12 +41,12 @@ local function path_relative_bufpath(cwd)
             result = result:sub(2)
         end
     end
-    logger.debug("|util.path_relative| result:%s", vim.inspect(result))
+    logger.debug("|path.relative_bufpath| result:%s", vim.inspect(result))
     return result
 end
 
 local M = {
-    path_normalize = path_normalize,
+    path_normalize = normalize,
     path_relative_bufpath = path_relative_bufpath,
 }
 
