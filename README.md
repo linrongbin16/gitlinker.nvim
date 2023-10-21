@@ -19,7 +19,7 @@ Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a
 ## Table of Contents
 
 - [Break Changes & Updates](#break-changes--updates)
-  - [Lua pattern based rules](#lua-pattern-based-rules)
+  - [Lua pattern based mapping engine](#lua-pattern-based-mapping-engine)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
   - [vim-plug](#vim-plug)
