@@ -57,7 +57,7 @@ describe("gitlinker", function()
                 print(
                     string.format("make permalink3:%s\n", vim.inspect(actual3))
                 )
-                assert_eq(type(actual3), "string")
+                assert_eq(type(actual3),                  "string")
                 assert_true(string.len(actual3) > 0)
             else
                 assert_true(lk3 == nil)
