@@ -7,11 +7,42 @@ describe("gitlinker", function()
 
     before_each(function()
         vim.api.nvim_command("cd " .. cwd)
+        vim.opt.swapfile = false
+        local logger = require("gitlinker.logger")
+        logger.setup()
+        vim.cmd([[ edit lua/gitlinker.lua ]])
     end)
 
     local gitlinker = require("gitlinker")
     gitlinker.setup()
+    local Linker = require("gitlinker.linker").Linker
     describe("[gitlinker]", function()
+        it("_make_sharable_permalinks", function()
+            local lk1 = Linker:make({ lstart = 10, lend = 23 }) --[[@as Linker]]
+            local lk2 = Linker:make({ lstart = 17, lend = 17 }) --[[@as Linker]]
+            local lk3 = Linker:make() --[[@as Linker]]
+            local actual1 = gitlinker._make_sharable_permalinks(
+                "https://github.com/linrongbin16/gitlinker.nvim/blob/",
+                lk1
+            )
+            assert_eq(type(actual1), "string")
+            assert_true(string.len(actual1) > 0)
+            print(string.format("make permalink1:%s\n", vim.inspect(actual1)))
+            local actual2 = gitlinker._make_sharable_permalinks(
+                "https://github.com/linrongbin16/gitlinker.nvim/blob/",
+                lk2
+            )
+            assert_eq(type(actual2), "string")
+            assert_true(string.len(actual2) > 0)
+            print(string.format("make permalink2:%s\n", vim.inspect(actual2)))
+            local actual3 = gitlinker._make_sharable_permalinks(
+                "https://github.com/linrongbin16/gitlinker.nvim/blob/",
+                lk3
+            )
+            print(string.format("make permalink3:%s\n", vim.inspect(actual3)))
+            assert_eq(type(actual3), "string")
+            assert_true(string.len(actual3) > 0)
+        end)
         it("_map_remote_to_host", function()
             local test_cases = {
                 -- [1]
