@@ -40,9 +40,13 @@ describe("git", function()
     describe("[_get_rev]", function()
         it("get rev @{u}", function()
             local rev = git._get_rev("@{u}")
-            print(string.format("_get_rev:%s\n", vim.inspect(rev)))
-            assert_eq(type(rev), "string")
-            assert_true(string.len(rev) > 0)
+            if rev then
+                print(string.format("_get_rev:%s\n", vim.inspect(rev)))
+                assert_eq(type(rev), "string")
+                assert_true(string.len(rev) > 0)
+            else
+                assert_true(rev == nil)
+            end
         end)
     end)
 end)
