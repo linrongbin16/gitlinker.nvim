@@ -294,6 +294,7 @@ local function get_branch_remote()
 end
 
 local M = {
+    CmdResult = CmdResult,
     get_root = get_root,
     get_remote_url = get_remote_url,
     is_file_in_rev = is_file_in_rev,
