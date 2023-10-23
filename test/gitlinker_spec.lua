@@ -26,6 +26,7 @@ describe("gitlinker", function()
                 )
                 assert_eq(type(actual1), "string")
                 assert_true(string.len(actual1) > 0)
+                assert_eq(actual1:sub(#actual1 - 7), "#L10-L23")
                 print(
                     string.format("make permalink1:%s\n", vim.inspect(actual1))
                 )
@@ -41,6 +42,7 @@ describe("gitlinker", function()
                 )
                 assert_eq(type(actual2), "string")
                 assert_true(string.len(actual2) > 0)
+                assert_eq(actual2:sub(#actual2 - 3), "#L17")
                 print(
                     string.format("make permalink2:%s\n", vim.inspect(actual2))
                 )
@@ -57,8 +59,9 @@ describe("gitlinker", function()
                 print(
                     string.format("make permalink3:%s\n", vim.inspect(actual3))
                 )
-                assert_eq(type(actual3),                  "string")
+                assert_eq(type(actual3), "string")
                 assert_true(string.len(actual3) > 0)
+                assert_eq(actual3:sub(#actual3 - 2), "#L1")
             else
                 assert_true(lk3 == nil)
             end
