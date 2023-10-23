@@ -82,6 +82,9 @@ describe("git", function()
                 assert_true(rev == nil)
                 return
             end
+            assert_eq(type(rev), "string")
+            assert_true(string.len(rev) > 0)
+
             local bufpath = path.buffer_relpath() --[[@as string]]
             if not bufpath then
                 assert_true(bufpath == nil)
