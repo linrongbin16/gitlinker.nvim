@@ -301,6 +301,7 @@ local M = {
     CmdResult = CmdResult,
     _get_remote = _get_remote,
     _get_rev = _get_rev,
+    _get_rev_name = _get_rev_name,
     get_root = get_root,
     get_remote_url = get_remote_url,
     is_file_in_rev = is_file_in_rev,

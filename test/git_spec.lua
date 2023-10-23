@@ -16,15 +16,13 @@ describe("git", function()
         file_log = true,
     })
     local git = require("gitlinker.git")
-    describe("[_get_remote]", function()
-        it("get remote", function()
+    describe("[git]", function()
+        it("_get_remote", function()
             local r = git._get_remote()
             print(string.format("_get_remote:%s\n", vim.inspect(r)))
             assert_eq(type(r), "table")
         end)
-    end)
-    describe("[get_remote_url]", function()
-        it("get remote url", function()
+        it("get_remote_url", function()
             local remote = git.get_branch_remote()
             print(string.format("get_branch_remote:%s\n", vim.inspect(remote)))
             if remote then
@@ -34,14 +32,24 @@ describe("git", function()
                 print(string.format("get_remote_url:%s\n", vim.inspect(r)))
                 assert_eq(type(r), "string")
                 assert_true(string.len(r) > 0)
+            else
+                assert_true(remote == nil)
             end
         end)
-    end)
-    describe("[_get_rev]", function()
-        it("get rev @{u}", function()
+        it("_get_rev(@{u})", function()
             local rev = git._get_rev("@{u}")
             if rev then
                 print(string.format("_get_rev:%s\n", vim.inspect(rev)))
+                assert_eq(type(rev), "string")
+                assert_true(string.len(rev) > 0)
+            else
+                assert_true(rev == nil)
+            end
+        end)
+        it("_get_rev_name(@{u})", function()
+            local rev = git._get_rev_name("@{u}")
+            if rev then
+                print(string.format("_get_rev_name:%s\n", vim.inspect(rev)))
                 assert_eq(type(rev), "string")
                 assert_true(string.len(rev) > 0)
             else
