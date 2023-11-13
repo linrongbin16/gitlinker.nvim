@@ -202,7 +202,7 @@ end
 --- @return string?
 local function link(opts)
     opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
-    logger.debug("[link] merged opts: %s", vim.inspect(opts))
+    -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
     local range = (
         type(opts.lstart) == "number" and type(opts.lend) == "number"
