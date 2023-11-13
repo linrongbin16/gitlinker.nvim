@@ -209,7 +209,8 @@ local function _map_remote_to_host_deprecated(pattern_rules, remote_url)
 end
 
 --- @param pattern_rules table
-local function _is_deprecated_pattern_rules_schema(pattern_rules)
+--- @return boolean
+local function _has_deprecated_pattern_rules(pattern_rules)
     if type(pattern_rules) ~= "table" then
         return false
     end
@@ -241,7 +242,7 @@ local function _map_remote_to_host(remote_url)
     end
 
     local pattern_rules = Configs.pattern_rules
-    if _is_deprecated_pattern_rules_schema(pattern_rules) then
+    if _has_deprecated_pattern_rules(pattern_rules) then
         local function notify()
             local function impl()
                 local msg = string.format(
@@ -256,8 +257,13 @@ local function _map_remote_to_host(remote_url)
         end
         notify()
 
-        logger.debug("|_map_remote_to_host| use old pattern rules schema")
-        return _map_remote_to_host_deprecated(pattern_rules, remote_url)
+        logger.debug(
+            "|_map_remote_to_host| use deprecated pattern rules schema"
+        )
+        local result = _map_remote_to_host_deprecated(pattern_rules, remote_url)
+        if result then
+            return result
+        end
     end
 
     logger.debug("|_map_remote_to_host| use new pattern rules schema")
