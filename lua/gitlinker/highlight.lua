@@ -1,4 +1,4 @@
-local logger = require("fzfx.logger")
+local logger = require("gitlinker.logger")
 
 local M = {}
 
@@ -22,9 +22,6 @@ M.hl_group_exists = function(name)
 end
 
 local hl_namespace = "NvimGitLinker"
-
--- highlight groups
-M.hlgroups = { NvimGitLinkerHighlightTextObject = "Search" }
 
 -- Highlights the text selected by the specified range.
 --- @param range Range?

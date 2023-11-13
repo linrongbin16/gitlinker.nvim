@@ -140,11 +140,7 @@ local function setup(opts)
     if Configs.highlight_duration > 0 then
         local hl_name = "NvimGitLinkerHighlightTextObject"
         if not highlight.hl_group_exists(hl_name) then
-            vim.api.nvim_set_hl(
-                0,
-                hl_name,
-                { link = highlight.hlgroups[hl_name] }
-            )
+            vim.api.nvim_set_hl(0, hl_name, { link = "Search" })
         end
     end
 
