@@ -27,7 +27,9 @@ Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a
   - [Action](#action)
   - [API](#api)
   - [Key Mappings](#key-mappings)
-  - [Customization](#customization)
+- [Customization](#customization)
+  - [Vim Command](#vim-command)
+  - [Highlight](#highlight)
 - [Configuration](#configuration)
   - [Highlight Group](#highlight-group)
 - [Development](#development)
@@ -132,7 +134,7 @@ You could use below lua code to copy/open git link:
   }
   ```
 
-## Key Mappings
+### Key Mappings
 
 The above two operations are already defined with two default key mappings:
 
@@ -141,45 +143,49 @@ The above two operations are already defined with two default key mappings:
 
 ## Customization
 
-- To disable the default key mappings, set `mapping = false` in `setup()` function (see [Configuration](#configuration)).
+- To disable the default key mappings, set `mapping = false` in `setup()` function (also see [Configuration](#configuration)).
 
 - To create your own key mappings, please specify the `mapping` option in `setup()` function.
 
-- To create your own vim command, please use:
+### Vim Command
 
-  ```vim
-  " vimscript
-  command! -range GitLink lua require('gitlinker').link({ action = require('gitlinker.actions').system, lstart = vim.api.nvim_buf_get_mark(0, '<')[1], lend = vim.api.nvim_buf_get_mark(0, '>')[1] })
-  ```
+To create your own vim command, please use:
 
-  ```lua
-  -- lua
-  vim.api.nvim_create_user_command("GitLink", function()
-    require("gitlinker").link({
-      action = require("gitlinker.actions").system,
-      lstart = vim.api.nvim_buf_get_mark(0, '<')[1],
-      lend = vim.api.nvim_buf_get_mark(0, '>')[1]
-    })
-  end, {
-    range = true,
-  })
-  ```
+```vim
+" vimscript
+command! -range GitLink lua require('gitlinker').link({ action = require('gitlinker.actions').system, lstart = vim.api.nvim_buf_get_mark(0, '<')[1], lend = vim.api.nvim_buf_get_mark(0, '>')[1] })
+```
 
-  > Support command range is a little bit tricky, since you need to pass line range from command line to the `link` API.
+```lua
+-- lua
+vim.api.nvim_create_user_command("GitLink", function()
+require("gitlinker").link({
+  action = require("gitlinker.actions").system,
+  lstart = vim.api.nvim_buf_get_mark(0, '<')[1],
+  lend = vim.api.nvim_buf_get_mark(0, '>')[1]
+})
+end, {
+range = true,
+})
+```
 
-- To create your own highlight, please use:
+> Support command range is a little bit tricky, since you need to pass line range from command line to the `link` API.
 
-  ```lua
-  -- lua
-  vim.api.nvim_set_hl( 0, "NvimGitLinkerHighlightTextObject", { link = "Constant" })
-  ```
+### Highlight
 
-  ```vim
-  " vimscript
-  hi link NvimGitLinkerHighlightTextObject Constant
-  ```
+To create your own highlight, please use:
 
-  > Please see [Highlight Group](#highlight-group).
+```lua
+-- lua
+vim.api.nvim_set_hl( 0, "NvimGitLinkerHighlightTextObject", { link = "Constant" })
+```
+
+```vim
+" vimscript
+hi link NvimGitLinkerHighlightTextObject Constant
+```
+
+> Also see [Highlight Group](#highlight-group).
 
 ## Configuration
 
