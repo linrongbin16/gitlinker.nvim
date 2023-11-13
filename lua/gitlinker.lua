@@ -138,10 +138,8 @@ local function setup(opts)
 
     -- Configure highlight group
     if Configs.highlight_duration > 0 then
-        local hl_group = vim.api.nvim_get_hl(
-            0,
-            { name = "NvimGitLinkerHighlightTextObject" }
-        )
+        local hl_name = "NvimGitLinkerHighlightTextObject"
+        local hl_group = vim.api.nvim_get_hl(0, { name = hl_name })
         -- logger.debug(
         --     "|setup| get hl:%s, is empty:%s",
         --     vim.inspect(hl_group),
@@ -150,14 +148,11 @@ local function setup(opts)
         if vim.tbl_isempty(hl_group) then
             vim.api.nvim_set_hl(
                 0,
-                "NvimGitLinkerHighlightTextObject",
-                { link = highlight.hlgroups.NvimGitLinkerHighlightTextObject }
+                hl_name,
+                { link = highlight.hlgroups[hl_name] }
             )
         end
-        hl_group = vim.api.nvim_get_hl(
-            0,
-            { name = "NvimGitLinkerHighlightTextObject" }
-        )
+        hl_group = vim.api.nvim_get_hl(0, { name = hl_name })
         -- logger.debug(
         --     "|setup| again get hl:%s, is empty:%s",
         --     vim.inspect(hl_group),
