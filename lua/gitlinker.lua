@@ -246,9 +246,9 @@ local function _map_remote_to_host(remote_url)
         local function notify()
             local function impl()
                 local msg = string.format(
-                    "[gitlinker] warning! 'config.pattern_rules' schema is deprecated, please migrate to latest schema."
+                    "[gitlinker] warning! detect deprecated 'config.pattern_rules', please migrate to latest schema."
                 )
-                local chunks = { msg, "WarningMsg" }
+                local chunks = { { msg, "WarningMsg" } }
                 vim.api.nvim_echo(chunks, false, {})
             end
 
