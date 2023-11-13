@@ -142,11 +142,11 @@ local function setup(opts)
             0,
             { name = "NvimGitLinkerHighlightTextObject" }
         )
-        logger.debug(
-            "|setup| get hl:%s, is empty:%s",
-            vim.inspect(hl_group),
-            vim.inspect(vim.tbl_isempty(hl_group))
-        )
+        -- logger.debug(
+        --     "|setup| get hl:%s, is empty:%s",
+        --     vim.inspect(hl_group),
+        --     vim.inspect(vim.tbl_isempty(hl_group))
+        -- )
         if vim.tbl_isempty(hl_group) then
             vim.api.nvim_set_hl(
                 0,
@@ -158,11 +158,11 @@ local function setup(opts)
             0,
             { name = "NvimGitLinkerHighlightTextObject" }
         )
-        logger.debug(
-            "|setup| again get hl:%s, is empty:%s",
-            vim.inspect(hl_group),
-            vim.inspect(vim.tbl_isempty(hl_group))
-        )
+        -- logger.debug(
+        --     "|setup| again get hl:%s, is empty:%s",
+        --     vim.inspect(hl_group),
+        --     vim.inspect(vim.tbl_isempty(hl_group))
+        -- )
     end
 
     -- logger.debug("|setup| Configs:%s", vim.inspect(Configs))
