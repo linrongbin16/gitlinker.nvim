@@ -120,10 +120,15 @@ You could use below lua code to copy/open git link:
 
   ```lua
   {
-      lstart = ..., -- (optional) line range start, please see in [Customization](#customization).
-      lend = ..., -- (optional) line range end, please see in [Customization](#customization).
-      action = ..., -- actions
-      highlight_duration = ..., -- highlight
+    -- (mandatory) gitlinker actions
+    action = ...,
+
+    -- (optional) highlight duration ms
+    highlight_duration = ...,
+
+    -- (optional) line range, please see in [Customization](#customization).
+    lstart = ...,
+    lend = ...,
   }
   ```
 
