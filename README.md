@@ -207,18 +207,47 @@ require('gitlinker').setup({
   },
 
   -- regex pattern based rules
+  --- @type table<{[1]:string,[2]:string}>[]
   pattern_rules = {
+    -- 'git@github' end with '.git' suffix
     {
-      ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
-      ["^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
-      ["^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://gitlab.%1/%2/%3/blob/",
-      ["^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$"] = "https://gitlab.%1/%2/%3/blob/",
+      "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
+      "https://github.%1/%2/%3/blob/",
     },
+    -- 'git@github' end without '.git' suffix
     {
-      ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
-      ["^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
-      ["^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$"] = "https://gitlab.%1/%2/%3/blob/",
-      ["^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$"] = "https://gitlab.%1/%2/%3/blob/",
+      "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
+      "https://github.%1/%2/%3/blob/",
+    },
+    -- 'http(s)?://github' end with '.git' suffix
+    {
+      "^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$",
+      "https://github.%1/%2/%3/blob/",
+    },
+    -- 'http(s)?://github' end without '.git' suffix
+    {
+      "^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$",
+      "https://github.%1/%2/%3/blob/",
+    },
+    -- 'git@gitlab' end with '.git' suffix
+    {
+      "^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
+      "https://gitlab.%1/%2/%3/blob/",
+    },
+    -- 'git@gitlab' end without '.git' suffix
+    {
+      "^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
+      "https://gitlab.%1/%2/%3/blob/",
+    },
+    -- 'http(s)?://gitlab' end with '.git' suffix
+    {
+      "^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$",
+      "https://gitlab.%1/%2/%3/blob/",
+    },
+    -- 'http(s)?://gitlab' end without '.git' suffix
+    {
+      "^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$",
+      "https://gitlab.%1/%2/%3/blob/",
     },
   },
 
@@ -226,25 +255,26 @@ require('gitlinker').setup({
   -- this function will override the `pattern_rules`.
   -- here's an example of custom_rules:
   --
-  -- ```
+  -- ```lua
   -- custom_rules = function(remote_url)
-  --   local pattern_rules = {
+  --   local rules = {
+  --     -- 'git@github' end with '.git' suffix
   --     {
-  --       ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
-  --       ["^https://github%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)%.git$"] = "https://github.%1/%2/%3/blob/",
+  --       "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
+  --       "https://github.%1/%2/%3/blob/",
   --     },
-  --     -- http(s)://github.(com|*)/linrongbin16/gitlinker.nvim(.git)? -> https://github.com/linrongbin16/gitlinker.nvim(.git)?
+  --     -- 'git@github' end without '.git' suffix
   --     {
-  --       ["^git@github%.([_%.%-%w]+):([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
-  --       ["^https://github%.([_%.%-%w]+)/([%.%-%w]+)/([%.%-%w]+)$"] = "https://github.%1/%2/%3/blob/",
+  --       "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
+  --       "https://github.%1/%2/%3/blob/",
   --     },
   --   }
-  --   for _, group in ipairs(pattern_rules) do
-  --     for pattern, replace in pairs(group) do
-  --       if string.match(remote_url, pattern) then
-  --         local result = string.gsub(remote_url, pattern, replace)
-  --         return result
-  --       end
+  --   for _, rule in ipairs(rules) do
+  --     local pattern = rule[1]
+  --     local replace = rule[2]
+  --     if string.match(remote_url, pattern) then
+  --       local result = string.gsub(remote_url, pattern, replace)
+  --       return result
   --     end
   --   end
   --   return nil
