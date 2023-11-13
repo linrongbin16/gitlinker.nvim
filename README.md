@@ -104,7 +104,10 @@ require("lazy").setup({
 
 ## Usage
 
-There's no pre-defined vim command, this plugin provides two actions and one API to achieve the goal.
+You could use below lua code to copy/open git link:
+
+- `require('gitlinker').link({ action = require('gitlinker.actions').clipboard })` to copy git link.
+- `require('gitlinker').link({ action = require('gitlinker.actions').system })` to open git link.
 
 ### Action
 
@@ -119,15 +122,10 @@ There's no pre-defined vim command, this plugin provides two actions and one API
   {
       lstart = ..., -- (optional) line range start, please see in [Customization](#customization).
       lend = ..., -- (optional) line range end, please see in [Customization](#customization).
-      action = ..., -- gitlinker actions
-      highlight_duration = ..., -- highlight group
+      action = ..., -- actions
+      highlight_duration = ..., -- highlight
   }
   ```
-
-You could use below lua code to copy/open git link:
-
-- `require('gitlinker').link({ action = require('gitlinker.actions').clipboard })` to copy git link.
-- `require('gitlinker').link({ action = require('gitlinker.actions').system })` to open git link.
 
 ## Key Mappings
 
