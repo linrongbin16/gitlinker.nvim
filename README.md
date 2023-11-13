@@ -117,9 +117,10 @@ There's no pre-defined vim command, this plugin provides two actions and one API
 
   ```lua
   {
-      action = ..., -- gitlinker actions: clipboard/system
       lstart = ..., -- (optional) line range start, please see in [Customization](#customization).
       lend = ..., -- (optional) line range end, please see in [Customization](#customization).
+      action = ..., -- gitlinker actions
+      highlight_duration = ..., -- highlight group
   }
   ```
 

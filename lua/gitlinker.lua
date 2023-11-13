@@ -140,17 +140,28 @@ local function setup(opts)
     if Configs.highlight_duration > 0 then
         local hl_group = vim.api.nvim_get_hl(
             0,
-            { name = highlight.NvimGitLinkerHighlightTextObject }
+            { name = "NvimGitLinkerHighlightTextObject" }
         )
         logger.debug(
-            "|gitlinker - setup| get hl:%s, is empty:%s",
+            "|setup| get hl:%s, is empty:%s",
             vim.inspect(hl_group),
             vim.inspect(vim.tbl_isempty(hl_group))
         )
-        vim.api.nvim_set_hl(
+        if vim.tbl_isempty(hl_group) then
+            vim.api.nvim_set_hl(
+                0,
+                "NvimGitLinkerHighlightTextObject",
+                { link = highlight.hlgroups.NvimGitLinkerHighlightTextObject }
+            )
+        end
+        hl_group = vim.api.nvim_get_hl(
             0,
-            highlight.NvimGitLinkerHighlightTextObject,
-            { link = "Search" }
+            { name = "NvimGitLinkerHighlightTextObject" }
+        )
+        logger.debug(
+            "|setup| again get hl:%s, is empty:%s",
+            vim.inspect(hl_group),
+            vim.inspect(vim.tbl_isempty(hl_group))
         )
     end
 
@@ -235,7 +246,7 @@ local function link(opts)
     if opts.action then
         opts.action(url)
     end
-    if opts.highlight_duration >= 0 then
+    if opts.highlight_duration > 0 then
         highlight.show({ lstart = lk.lstart, lend = lk.lend })
         vim.defer_fn(highlight.clear, opts.highlight_duration)
     end
