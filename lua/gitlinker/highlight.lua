@@ -1,4 +1,25 @@
+local logger = require("fzfx.logger")
+
 local M = {}
+
+--- @param name string
+M.hl_group_exists = function(name)
+    if
+        vim.fn.has("nvim-0.9") > 0
+        and type(vim.api.nvim_get_hl) == "function"
+    then
+        local hl = vim.api.nvim_get_hl(0, { name = name })
+        logger.debug("|highlight.hl_group_exists| hl:%s", vim.inspect(hl))
+        return type(hl) == "table" and not vim.tbl_isempty(hl)
+    else
+        local result = vim.fn.hlID(name)
+        logger.debug(
+            "|highlight.hl_group_exists| hl id:%s",
+            vim.inspect(result)
+        )
+        return result > 0
+    end
+end
 
 local hl_namespace = "NvimGitLinker"
 
