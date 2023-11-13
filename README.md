@@ -253,7 +253,7 @@ require('gitlinker').setup({
 
   -- function based rules: function(remote_url) => host_url.
   -- this function will override the `pattern_rules`.
-  -- here's an example of custom_rules:
+  -- here's an example:
   --
   -- ```lua
   -- custom_rules = function(remote_url)
