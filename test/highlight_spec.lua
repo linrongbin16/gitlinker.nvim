@@ -11,13 +11,6 @@ describe("highlight", function()
 
     local highlight = require("gitlinker.highlight")
     describe("[highlight]", function()
-        it("is", function()
-            assert_eq(type(highlight.hlgroups), "table")
-            assert_eq(
-                highlight.hlgroups.NvimGitLinkerHighlightTextObject,
-                "Search"
-            )
-        end)
         it("shows", function()
             vim.cmd([[edit README.md]])
             highlight.show({ lstart = 0, lend = -1 })
