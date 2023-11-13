@@ -260,6 +260,16 @@ require('gitlinker').setup({
 | -------------------------------- | ------------- | ----------- |
 | NvimGitLinkerHighlightTextObject | Search        | lines range |
 
+To customize the highlight group:
+
+```lua
+vim.api.nvim_set_hl(
+  0,
+  "NvimGitLinkerHighlightTextObject",
+  { link = "Label" } -- put your hl group here
+)
+```
+
 ## Development
 
 To develop the project and make PR, please setup with:
