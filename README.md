@@ -267,7 +267,7 @@ require('gitlinker').setup({
   -- but 'override_rules' will only prepend your own rules before 'pattern_rules', e.g. override.
   override_rules = nil,
 
-  -- higher priority rules to override the default pattern_rules.
+  -- function based rules to override the default pattern_rules.
   -- function(remote_url) => host_url
   --
   -- here's an example:
