@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v1.0.2...v1.1.0) (2023-11-13)
+
+
+### Features
+
+* add highlighting of selected region ([#88](https://github.com/linrongbin16/gitlinker.nvim/issues/88)) ([2e97768](https://github.com/linrongbin16/gitlinker.nvim/commit/2e97768594dd3b540eaf77761f3274dfc564bc94))
+
 ## [1.0.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v1.0.1...v1.0.2) (2023-10-23)
 
 
