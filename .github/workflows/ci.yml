@@ -19,7 +19,7 @@ jobs:
         with:
           task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","break"]'
   luacheck:
-    name: Type check
+    name: Lua check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,20 +31,12 @@ jobs:
           level: Information
           configpath: ".luarc.json"
           neodev-version: stable
-    name: Lua check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Luacheck linter
+      - name: Lua check
         uses: lunarmodules/luacheck@v1
         with:
           args: lua --config .luacheckrc
-    name: Stylua
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: JohnnyMorganz/stylua-action@v3
+      - name: Stylua
+        uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
