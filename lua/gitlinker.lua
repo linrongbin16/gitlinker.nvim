@@ -82,6 +82,11 @@ local Defaults = {
     },
 
     -- override 'pattern_rules' with your own rules here.
+    --
+    -- **note**:
+    --
+    -- if you directly add your own rules in 'pattern_rules', it will remove other rules.
+    -- but 'override_rules' will only prepend your own rules before 'pattern_rules'.
     override_rules = nil,
 
     -- higher priority rules to override the default pattern_rules.
