@@ -1,5 +1,8 @@
 local M = {}
 
+-- highlight groups
+M.NvimGitLinkerHighlightTextObject = "NvimGitLinkerHighlightTextObject"
+
 -- Highlights the text selected by the specified range.
 --- @param range Range?
 M.show = function(range)

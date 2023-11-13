@@ -137,10 +137,19 @@ local function setup(opts)
     end
 
     -- Configure highlight group
-    if Configs.highlight_duration >= 0 then
+    if Configs.highlight_duration > 0 then
+        local hl_group = vim.api.nvim_get_hl(
+            0,
+            { name = highlight.NvimGitLinkerHighlightTextObject }
+        )
+        logger.debug(
+            "|gitlinker - setup| get hl:%s, is empty:%s",
+            vim.inspect(hl_group),
+            vim.inspect(vim.tbl_isempty(hl_group))
+        )
         vim.api.nvim_set_hl(
             0,
-            "NvimGitLinkerHighlightTextObject",
+            highlight.NvimGitLinkerHighlightTextObject,
             { link = "Search" }
         )
     end
