@@ -198,6 +198,9 @@ require('gitlinker').setup({
   -- disable highlight by setting a value equal or less than 0
   highlight_duration = 500,
 
+  -- add '?plain=1' for '*.md' (markdown) files
+  add_plain_for_markdown = true,
+
   -- key mapping
   mapping = {
     ["<leader>gl"] = {
