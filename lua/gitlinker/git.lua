@@ -320,6 +320,33 @@ local function get_branch_remote()
   return nil
 end
 
+--- @param host string
+--- @return string?
+local function resolve_host_alias(host)
+  logger.ensure(vim.fn.executable("ssh") > 0, "cannot find 'ssh' command!")
+  local args = { "ssh", "-G", host }
+  local result = cmd(args)
+  if not result:has_out() then
+    result:print_err("fatal: failed to resolve host via ssh")
+    return nil
+  end
+  logger.debug(
+    "|git.resolve_host| %s: %s",
+    vim.inspect(args),
+    vim.inspect(result.stdout)
+  )
+  local hostname = "hostname"
+  if
+    #result.stdout >= 3
+    and string.len(result.stdout[3]) >= string.len(hostname)
+    and result.stdout[3]:sub(1, #hostname) == hostname
+  then
+    local alias_host = result.stdout[3]
+    return vim.trim(alias_host:sub(#hostname + 1))
+  end
+  return nil
+end
+
 local M = {
   CmdResult = CmdResult,
   _get_remote = _get_remote,
@@ -331,6 +358,7 @@ local M = {
   file_has_changed = file_has_changed,
   get_closest_remote_compatible_rev = get_closest_remote_compatible_rev,
   get_branch_remote = get_branch_remote,
+  resolve_host_alias = resolve_host_alias,
 }
 
 return M

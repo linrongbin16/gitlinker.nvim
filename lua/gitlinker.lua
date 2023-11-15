@@ -280,7 +280,7 @@ local function _map_remote_to_host(remote_url)
     end
   end
 
-  logger.debug("|_map_remote_to_host| use new pattern rules schema")
+  -- logger.debug("|_map_remote_to_host| use new pattern rules schema")
   pattern_rules = vim.list_extend(
     vim.deepcopy(Configs.override_rules or {}),
     vim.deepcopy(pattern_rules)
@@ -350,7 +350,7 @@ end
 --- @return string?
 local function link(opts)
   opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
-  logger.debug("[link] merged opts: %s", vim.inspect(opts))
+  -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
   local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
       and { lstart = opts.lstart, lend = opts.lend }

@@ -4,13 +4,117 @@ local path = require("gitlinker.path")
 local logger = require("gitlinker.logger")
 
 --- @class Linker
---- @field remote_url string
+--- @field remote_url string e.g. git@github.com:linrongbin16/gitlinker.nvim.git
+--- @field protocol string
+--- @field host string
+--- @field user string
+--- @field repo string
 --- @field rev string
 --- @field file string
 --- @field lstart integer
 --- @field lend integer
 --- @field file_changed boolean
 local Linker = {}
+
+--- @param s string
+--- @param t string
+--- @return boolean
+local function _startswith(s, t)
+  local start_pos = 1
+  local end_pos = string.len(t)
+  if start_pos > end_pos then
+    return false
+  end
+  if string.len(s) < string.len(t) then
+    return false
+  end
+  return s:sub(start_pos, end_pos) == t
+end
+
+--- @param s string
+--- @param t string
+--- @return boolean
+local function _endswith(s, t)
+  local start_pos = string.len(s) - string.len(t) + 1
+  local end_pos = string.len(s)
+  if start_pos > end_pos then
+    return false
+  end
+  if string.len(s) < string.len(t) then
+    return false
+  end
+  return s:sub(start_pos, end_pos) == t
+end
+
+--- @param s string
+--- @param t string
+--- @param start integer?
+--- @return integer?
+local function _find(s, t, start)
+  start = start or 1
+  local result = vim.fn.stridx(s, t, start - 1)
+  return result >= 0 and (result + 1) or nil
+end
+
+-- example:
+-- git@github.com:linrongbin16/gitlinker.nvim.git
+-- https://github.com/linrongbin16/gitlinker.nvim.git
+--- @param remote_url string
+--- @return {protocol:string?,host:string?,user:string?,repo:string?}
+local function _parse_remote_url(remote_url)
+  local GIT = "git"
+  local HTTP = "http"
+  local HTTPS = "https"
+  local GIT_PROTO = "git@"
+  local HTTP_PROTO = "http://"
+  local HTTPS_PROTO = "https://"
+
+  local protocol = nil
+  local protocol_end_pos = nil
+  local host = nil
+  local host_end_pos = nil
+  local user = nil
+  local repo = nil
+  if _startswith(remote_url, GIT_PROTO) then
+    protocol = GIT
+    protocol_end_pos = string.len(GIT_PROTO)
+    host_end_pos = _find(remote_url, ":", protocol_end_pos + 1)
+    logger.ensure(
+      type(host_end_pos) == "number" and host_end_pos > protocol_end_pos + 1,
+      "failed to parse remote url host:%s",
+      vim.inspect(remote_url)
+    )
+    host = remote_url:sub(protocol_end_pos + 1, host_end_pos - 1)
+  elseif
+    _startswith(remote_url, HTTP_PROTO) or _startswith(remote_url, HTTPS_PROTO)
+  then
+    protocol = _startswith(remote_url, HTTP_PROTO) and HTTP or HTTPS
+    protocol_end_pos = _startswith(remote_url, HTTP_PROTO)
+        and string.len(HTTP_PROTO)
+      or string.len(HTTPS_PROTO)
+    host_end_pos = _find(remote_url, "/", protocol_end_pos + 1)
+    logger.ensure(
+      type(host_end_pos) == "number" and host_end_pos > protocol_end_pos + 1,
+      "failed to parse remote url host:%s",
+      vim.inspect(remote_url)
+    )
+    host = remote_url:sub(protocol_end_pos + 1, host_end_pos - 1)
+  else
+    logger.ensure(
+      false,
+      "failed to parse remote url:%s",
+      vim.inspect(remote_url)
+    )
+  end
+
+  local user_end_pos = _find(remote_url, "/", host_end_pos + 1)
+  logger.ensure(
+    type(user_end_pos) == "number" and user_end_pos > host_end_pos + 1
+  )
+  user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
+  repo = remote_url:sub(user_end_pos + 1)
+  return { protocol = protocol, host = host, user = user, repo = repo }
+end
 
 --- @param r Range?
 --- @return Linker?
@@ -69,8 +173,14 @@ function Linker:make(r)
     -- logger.debug("[linker - Linker:make] range:%s", vim.inspect(r))
   end
 
+  local parsed_remote_url = _parse_remote_url(remote_url)
+
   local o = {
     remote_url = remote_url,
+    protocol = parsed_remote_url.protocol,
+    host = parsed_remote_url.host,
+    user = parsed_remote_url.user,
+    repo = parsed_remote_url.repo,
     rev = rev,
     file = buf_path_on_root,
     ---@diagnostic disable-next-line: need-check-nil
