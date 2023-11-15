@@ -9,16 +9,17 @@
 <a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim?logo=codecov&logoColor=F01F7A&label=Codecov" /></a>
 </p>
 
-> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with lua pattern based rule engine, Windows support and other enhancements.
+> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with ssh-alias, `/blame` url support and other improvements.
 
 A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
 Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 
+It also support the `/blame` url (instead of `/blob`): https://github.com/neovim/neovim/blame/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
+
 ## Table of Contents
 
 - [Break Changes & Updates](#break-changes--updates)
-  - [Lua pattern based mapping engine](#lua-pattern-based-mapping-engine)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
   - [vim-plug](#vim-plug)
