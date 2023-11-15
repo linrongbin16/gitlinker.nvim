@@ -243,6 +243,34 @@ To link to the `/blame` url, please specify the `router` option in `link` API:
 - `require('gitlinker').link({ action = require('gitlinker.actions').clipboard, router = require('gitlinker.routers').blame })`: copy to clipboard.
 - `require('gitlinker').link({ action = require('gitlinker.actions').system, router = require('gitlinker.routers').blame })`: open in browser.
 
+Or just add new key mappings in `setup`:
+
+```lua
+require('gitlinker').setup({
+  mapping = {
+    ["<leader>gl"] = {
+      action = require("gitlinker.actions").clipboard,
+      desc = "Copy git link to clipboard",
+    },
+    ["<leader>gL"] = {
+      action = require("gitlinker.actions").system,
+      desc = "Open git link in browser",
+    },
+    -- add new keys for `/blame`
+    ["<leader>gb"] = {
+      action = require("gitlinker.actions").clipboard,
+      router = require("gitlinker.routers").blame,
+      desc = "Copy git link to clipboard",
+    },
+    ["<leader>gB"] = {
+      action = require("gitlinker.actions").system,
+      router = require("gitlinker.routers").blame,
+      desc = "Open git link in browser",
+    },
+  },
+})
+```
+
 ## Highlight Group
 
 | Highlight Group                  | Default Group | Description                          |
