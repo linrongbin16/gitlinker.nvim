@@ -40,9 +40,9 @@ It support below urls:
 ## Break Changes & Updates
 
 1. Bug fix:
-   - Customize default key mappings.
-   - Windows support.
+   - Customize/disable default key mappings.
 2. New Features:
+   - Windows support.
    - Respect ssh config alias host.
    - Support `/blame` (by default is `/blob`, todo).
    - Add `?plain=1` for markdown files.
