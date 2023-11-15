@@ -13,7 +13,7 @@
 
 A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-It support below routers:
+It support below urls:
 
 - `/blob`: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 - `/blame`: https://github.com/neovim/neovim/blame/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
@@ -44,13 +44,13 @@ It support below routers:
    - Windows support.
 2. New Features:
    - Respect ssh config alias host.
-   - Support `/blame` (instead of `/blob`) via routers.
+   - Support `/blame` (by default is `/blob`).
    - Add `?plain=1` for markdown files.
    - Support column numbers (e.g. `#L152C2-L167C20`, todo).
 3. Improvements:
    - Use stderr from git command as error message.
    - Performant child process IO via `uv.spawn`.
-   - Drop off `plenary` dependencies.
+   - Drop off `plenary` dependency.
 
 ## Installation
 
@@ -235,6 +235,13 @@ hi link NvimGitLinkerHighlightTextObject Constant
 ```
 
 > Also see [Highlight Group](#highlight-group).
+
+### Blame (todo)
+
+To link to the `/blame` url, please specify the `router` option in `link` API:
+
+- `require('gitlinker').link({ action = require('gitlinker.actions').clipboard, router = require('gitlinker.routers').blame })`: copy to clipboard.
+- `require('gitlinker').link({ action = require('gitlinker.actions').system, router = require('gitlinker.routers').blame })`: open in browser.
 
 ## Highlight Group
 
