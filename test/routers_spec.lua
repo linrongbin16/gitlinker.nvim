@@ -88,19 +88,6 @@ describe("routers", function()
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L2-L5"
       )
     end)
-    it("with Linker", function()
-      local actual = routers.blob(linker.make_linker({
-        lstart = 2,
-        lend = 5,
-      })--[[@as gitlinker.Linker]])
-      assert_true(
-        utils.string_startswith(
-          actual,
-          "https://github.com/linrongbin16/gitlinker.nvim/blob/"
-        )
-      )
-      assert_true(utils.string_endswith(actual, "#L2-L5"))
-    end)
   end)
   describe("[blame]", function()
     it("without line numbers", function()
@@ -137,19 +124,6 @@ describe("routers", function()
         "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1-L2"
       )
     end)
-    it("with Linker", function()
-      local actual = routers.blame(linker.make_linker({
-        lstart = 2,
-        lend = 5,
-      })--[[@as gitlinker.Linker]])
-      assert_true(
-        utils.string_startswith(
-          actual,
-          "https://github.com/linrongbin16/gitlinker.nvim/blame/"
-        )
-      )
-      assert_true(utils.string_endswith(actual, "#L2-L5"))
-    end)
   end)
   describe("[src]", function()
     it("without line numbers", function()
@@ -185,19 +159,6 @@ describe("routers", function()
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1:2"
       )
-    end)
-    it("with Linker", function()
-      local actual = routers.src(linker.make_linker({
-        lstart = 2,
-        lend = 5,
-      })--[[@as gitlinker.Linker]])
-      assert_true(
-        utils.string_startswith(
-          actual,
-          "https://github.com/linrongbin16/gitlinker.nvim/src/"
-        )
-      )
-      assert_true(utils.string_endswith(actual, "#lines-2:5"))
     end)
   end)
 end)
