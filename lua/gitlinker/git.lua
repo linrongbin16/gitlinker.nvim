@@ -186,11 +186,6 @@ local function _is_rev_in_remote(revspec, remote)
       return true
     end
   end
-  logger.debug(
-    "|git._is_rev_in_remote| remote (%s) not match: %s",
-    vim.inspect(remote),
-    vim.inspect(result.stdout)
-  )
   return false
 end
 
