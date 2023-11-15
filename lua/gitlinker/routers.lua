@@ -104,9 +104,14 @@ local function blame(lk)
 end
 
 local M = {
+  -- routers
   blob = blob,
   blame = blame,
   src = src,
+
+  -- line ranges
+  LC_range = LC_range,
+  lines_range = lines_range,
 }
 
 return M
