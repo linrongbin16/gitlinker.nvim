@@ -16,7 +16,7 @@ A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable
 It support below urls:
 
 - `/blob`: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
-- `/blame`: https://github.com/neovim/neovim/blame/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
+- `/blame` (todo): https://github.com/neovim/neovim/blame/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 
 ## Table of Contents
 
@@ -44,7 +44,7 @@ It support below urls:
    - Windows support.
 2. New Features:
    - Respect ssh config alias host.
-   - Support `/blame` (by default is `/blob`).
+   - Support `/blame` (by default is `/blob`, todo).
    - Add `?plain=1` for markdown files.
    - Support column numbers (e.g. `#L152C2-L167C20`, todo).
 3. Improvements:
