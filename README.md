@@ -259,12 +259,12 @@ require('gitlinker').setup({
     -- add new keys for `/blame`
     ["<leader>gb"] = {
       action = require("gitlinker.actions").clipboard,
-      router = require("gitlinker.routers").blame,
+      router = require("gitlinker.routers").blame, -- specify router
       desc = "Copy git link to clipboard",
     },
     ["<leader>gB"] = {
       action = require("gitlinker.actions").system,
-      router = require("gitlinker.routers").blame,
+      router = require("gitlinker.routers").blame, -- specify router
       desc = "Open git link in browser",
     },
   },
