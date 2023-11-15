@@ -15,113 +15,22 @@ local Defaults = {
   --- @type integer
   highlight_duration = 500,
 
-  -- add '?plain=1' for '*.md' (markdown) files
-  --
-  --- @type boolean
-  add_plain_for_markdown = true,
-
   -- key mappings
   --
   --- @alias KeyMappingConfig {action:fun(url:string):nil,desc:string?}
   --- @type table<string, KeyMappingConfig>
   mapping = {
     ["<leader>gl"] = {
+      router = require("gitlinker.routers").blob,
       action = require("gitlinker.actions").clipboard,
       desc = "Copy git link to clipboard",
     },
     ["<leader>gL"] = {
+      router = require("gitlinker.routers").blob,
       action = require("gitlinker.actions").system,
       desc = "Open git link in browser",
     },
   },
-
-  -- pattern based rules, mapping url from 'host' to 'remote'.
-  --
-  --- @type table<{[1]:string,[2]:string}>[]
-  pattern_rules = {
-    -- 'git@github' with '.git' suffix
-    {
-      "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
-      "https://github.%1/%2/%3/blob/",
-    },
-    -- 'git@github' without '.git' suffix
-    {
-      "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
-      "https://github.%1/%2/%3/blob/",
-    },
-    -- 'http(s)?://github' with '.git' suffix
-    {
-      "^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$",
-      "https://github.%1/%2/%3/blob/",
-    },
-    -- 'http(s)?://github' without '.git' suffix
-    {
-      "^https?://github%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$",
-      "https://github.%1/%2/%3/blob/",
-    },
-    -- 'git@gitlab' with '.git' suffix
-    {
-      "^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
-      "https://gitlab.%1/%2/%3/blob/",
-    },
-    -- 'git@gitlab' without '.git' suffix
-    {
-      "^git@gitlab%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
-      "https://gitlab.%1/%2/%3/blob/",
-    },
-    -- 'http(s)?://gitlab' with '.git' suffix
-    {
-      "^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)%.git$",
-      "https://gitlab.%1/%2/%3/blob/",
-    },
-    -- 'http(s)?://gitlab' without '.git' suffix
-    {
-      "^https?://gitlab%.([_%.%-%w]+)/([%.%-%w]+)/([_%.%-%w]+)$",
-      "https://gitlab.%1/%2/%3/blob/",
-    },
-  },
-
-  -- override 'pattern_rules' with your own rules here.
-  --
-  -- **note**:
-  --
-  -- if you directly add your own rules in 'pattern_rules', it will remove other rules.
-  -- but 'override_rules' will only prepend your own rules before 'pattern_rules', e.g. override.
-  override_rules = nil,
-
-  -- function based rules to override the default pattern_rules.
-  -- function(remote_url) => host_url
-  --
-  -- here's an example:
-  --
-  -- ```
-  -- custom_rules = function(remote_url)
-  --     local rules = {
-  --         -- 'git@github' end with '.git' suffix
-  --         {
-  --             "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)%.git$",
-  --             "https://github.%1/%2/%3/blob/",
-  --         },
-  --         -- 'git@github' end without '.git' suffix
-  --         {
-  --             "^git@github%.([_%.%-%w]+):([%.%-%w]+)/([_%.%-%w]+)$",
-  --             "https://github.%1/%2/%3/blob/",
-  --         },
-  --     }
-  --     for _, rule in ipairs(rules) do
-  --         local pattern = rule[1]
-  --         local replace = rule[2]
-  --         if string.match(remote_url, pattern) then
-  --             local result = string.gsub(remote_url, pattern, replace)
-  --             return result
-  --         end
-  --     end
-  --     return nil
-  -- end,
-  -- ```
-  --
-  --- @type fun(remote_url:string):string?|nil
-  custom_rules = nil,
 
   -- enable debug
   --
@@ -173,7 +82,7 @@ local function setup(opts)
         opt.desc = v.desc
       end
       vim.keymap.set({ "n", "v" }, k, function()
-        require("gitlinker").link({ action = v.action })
+        require("gitlinker").link({ action = v.action, router = v.router })
       end, opt)
     end
   end
@@ -360,21 +269,22 @@ local function link(opts)
     return nil
   end
 
-  local host_url = _map_remote_to_host(lk.remote_url) --[[@as string]]
+  local url = opts.router(lk)
   logger.ensure(
-    type(host_url) == "string" and string.len(host_url) > 0,
+    type(url) == "string" and string.len(url) > 0,
     "fatal: failed to generate permanent url from remote url:%s",
     lk.remote_url
   )
 
-  local url = _make_sharable_permalinks(host_url, lk, opts)
   if opts.action then
     opts.action(url)
   end
+
   if opts.highlight_duration > 0 then
     highlight.show({ lstart = lk.lstart, lend = lk.lend })
     vim.defer_fn(highlight.clear, opts.highlight_duration)
   end
+
   if opts.message then
     local msg = lk.file_changed
         and string.format("%s (lines can be wrong due to file change)", url)

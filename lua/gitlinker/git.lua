@@ -322,7 +322,7 @@ end
 
 --- @param host string
 --- @return string?
-local function resolve_host_alias(host)
+local function resolve_host(host)
   logger.ensure(vim.fn.executable("ssh") > 0, "cannot find 'ssh' command!")
   local args = { "ssh", "-G", host }
   local result = cmd(args)
@@ -358,7 +358,7 @@ local M = {
   file_has_changed = file_has_changed,
   get_closest_remote_compatible_rev = get_closest_remote_compatible_rev,
   get_branch_remote = get_branch_remote,
-  resolve_host_alias = resolve_host_alias,
+  resolve_host = resolve_host,
 }
 
 return M
