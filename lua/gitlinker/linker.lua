@@ -58,6 +58,7 @@ function Linker:make(r)
   -- )
 
   local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
+  local file_changed = git.file_has_changed(buf_path_on_cwd, rev)
   -- logger.debug(
   --     "|linker - Linker:make| buf_path_on_cwd:%s",
   --     vim.inspect(buf_path_on_cwd)
@@ -76,8 +77,10 @@ function Linker:make(r)
     lstart = r.lstart,
     ---@diagnostic disable-next-line: need-check-nil
     lend = r.lend,
-    file_changed = git.has_file_changed(buf_path_on_cwd, rev),
+    file_changed = file_changed,
   }
+
+  logger.debug("|linker.Linker:make| o:%s", vim.inspect(o))
   return o
 end
 
