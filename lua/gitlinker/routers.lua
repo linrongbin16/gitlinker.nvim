@@ -13,10 +13,11 @@ local Builder = {}
 
 --- @param r Range?
 --- @return string?
-local function _range_LC(r)
+local function LC_range(r)
   if not range.is_range(r) then
     return nil
   end
+  assert(r ~= nil)
   local tmp = string.format([[#L%d]], r.lstart)
   if type(r.lend) == "number" and r.lend > r.lstart then
     tmp = tmp .. string.format([[-L%d]], r.lend)
@@ -26,10 +27,11 @@ end
 
 --- @param r Range?
 --- @return string?
-local function _range_lines(r)
+local function lines_range(r)
   if not range.is_range(r) then
     return nil
   end
+  assert(r ~= nil)
   local tmp = string.format([[#lines-%d]], r.lstart)
   if type(r.lend) == "number" and r.lend > r.lstart then
     tmp = tmp .. string.format([[:%d]], r.lend)
@@ -41,7 +43,7 @@ end
 --- @param range_maker fun(r:Range?):string?|nil
 --- @return Builder
 function Builder:new(lk, range_maker)
-  range_maker = range_maker or _range_LC
+  range_maker = range_maker or LC_range
   local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
   local o = {
     protocol = lk.protocol == "git" and "https://" or (lk.protocol .. "://"),
@@ -90,7 +92,7 @@ end
 --- @param lk Linker
 --- @return string
 local function src(lk)
-  local builder = Builder:new(lk, _range_lines)
+  local builder = Builder:new(lk, lines_range)
   return builder:build("src")
 end
 

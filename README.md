@@ -50,7 +50,6 @@ Supported platforms are:
    - Respect ssh config alias host.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
-   - Support column numbers (e.g. `#L152C2-L167C20`, todo).
 3. Improvements:
    - Use stderr from git command as error message.
    - Performant child process IO via `uv.spawn`.
