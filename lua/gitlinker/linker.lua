@@ -141,7 +141,7 @@ function Linker:make(r)
   -- )
 
   if not range.is_range(r) then
-    r = range.Range:make()
+    r = range.make_range()
     -- logger.debug("[linker - Linker:make] range:%s", vim.inspect(r))
   end
 

@@ -10,9 +10,9 @@ local utils = require("gitlinker.utils")
 --- @field range string?
 local Builder = {}
 
---- @param r {lstart:integer?,lend:integer?,cstart:integer?,cend:integer?}?
+--- @param r Range?
 --- @return string?
-local function _range_tostring(r)
+local function _range_LC(r)
   if type(r) ~= "table" or type(r.lstart) ~= "number" then
     return nil
   end
@@ -23,14 +23,28 @@ local function _range_tostring(r)
   return tmp
 end
 
+--- @param r {lstart:integer?,lend:integer?,cstart:integer?,cend:integer?}?
+--- @return string?
+local function _range_lines(r)
+  if type(r) ~= "table" or type(r.lstart) ~= "number" then
+    return nil
+  end
+  local tmp = string.format([[#lines-%d]], r.lstart)
+  if type(r.lend) == "number" and r.lend > r.lstart then
+    tmp = tmp .. string.format([[:%d]], r.lend)
+  end
+  return tmp
+end
+
 --- @param lk Linker
+--- @param range_maker fun()
 --- @return Builder
 function Builder:new(lk)
-  local r = _range_tostring({ lstart = lk.lstart, lend = lk.lend })
+  local r = _range_LC({ lstart = lk.lstart, lend = lk.lend })
   local o = {
     protocol = lk.protocol == "git" and "https://" or (lk.protocol .. "://"),
     host = lk.host .. "/",
-    user = lk.host .. "/",
+    user = lk.user .. "/",
     repo = (utils.string_endswith(lk.repo, ".git") and lk.repo:sub(
       1,
       #lk.repo - 4
@@ -58,6 +72,7 @@ function Builder:build(url)
     self.user,
     self.repo,
     url .. "/",
+    self.rev,
     self.file,
     self.range,
   }, "")
