@@ -197,7 +197,7 @@ local function resolve_host(host)
   end
   local errmsg =
     string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
-  local args = { "ssh", "-G", host }
+  local args = { "ssh", "-ttG", host }
   local result = cmd(args)
 
   if not result:has_out() then
