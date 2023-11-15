@@ -52,6 +52,25 @@ local Defaults = {
 --- @type Options
 local Configs = {}
 
+--- @param opts Options
+local function deprecated_notification(opts)
+  if type(opts) == "table" and opts.pattern_rules ~= nil then
+    deprecation.notify(
+      "'pattern_rules' is deprecated! please migrate to latest configs."
+    )
+  end
+  if type(opts) == "table" and opts.override_rules ~= nil then
+    deprecation.notify(
+      "'override_rules' is deprecated! please migrate to latest configs."
+    )
+  end
+  if type(opts) == "table" and opts.custom_rules ~= nil then
+    deprecation.notify(
+      "'custom_rules' is deprecated! please migrate to latest configs."
+    )
+  end
+end
+
 --- @param opts Options?
 local function setup(opts)
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
@@ -98,21 +117,7 @@ local function setup(opts)
 
   -- logger.debug("|setup| Configs:%s", vim.inspect(Configs))
 
-  if Configs.pattern_rules ~= nil then
-    deprecation.notify(
-      "'pattern_rules' is deprecated! please migrate to latest configs."
-    )
-  end
-  if Configs.override_rules ~= nil then
-    deprecation.notify(
-      "'override_rules' is deprecated! please migrate to latest configs."
-    )
-  end
-  if Configs.custom_rules ~= nil then
-    deprecation.notify(
-      "'custom_rules' is deprecated! please migrate to latest configs."
-    )
-  end
+  deprecated_notification(Configs)
 end
 
 --- @param opts Options?
@@ -120,6 +125,7 @@ end
 local function link(opts)
   opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
+  deprecated_notification(opts)
 
   local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
       and { lstart = opts.lstart, lend = opts.lend }
