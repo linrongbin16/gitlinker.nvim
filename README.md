@@ -30,6 +30,7 @@ Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a
   - [Key Mappings](#key-mappings)
   - [Vim Command](#vim-command)
   - [Highlighting](#highlighting)
+  - [Blame](#blame)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -42,7 +43,7 @@ Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a
    - Windows support.
    - Respect ssh config alias host.
    - Add `?plain=1` for markdown files.
-   - Support `/blame` (by default is `/blob`, todo).
+   - Support `/blame` (by default is `/blob`).
    - Support column numbers (e.g. `#L152C2-L167C20`, todo).
 3. Improvements:
    - Use stderr from git command as error message.
@@ -115,7 +116,8 @@ These two operations are already defined in key mappings:
 ### Routers
 
 - `require('gitlinker.routers').blob`: generate the `/blob` url, by default `link` API will use this router.
-- `require('gitlinker.routers').blame` (todo): generate the `/blame` url.
+- `require('gitlinker.routers').blame`: generate the `/blame` url.
+- `require('gitlinker.routers').src`: generate the `/src` url (for [BitBucket.org](https://bitbucket.org/)).
 
 ### API
 
@@ -233,7 +235,7 @@ hi link NvimGitLinkerHighlightTextObject Constant
 
 > Also see [Highlight Group](#highlight-group).
 
-### Blame (todo)
+### Blame
 
 To link to the `/blame` url, please specify the `router` option in `link` API:
 
