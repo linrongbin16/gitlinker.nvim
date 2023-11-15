@@ -33,6 +33,14 @@ local Defaults = {
     },
   },
 
+  -- different git web hosts will have different urls
+  -- github.com: /blob
+  -- bitbucket.org: /src
+  url_binding = {
+    ["^github"] = require("gitlinker.routers").blob,
+    ["^gitlab"] = require("gitlinker.routers").blob,
+  },
+
   -- enable debug
   --
   --- @type boolean
