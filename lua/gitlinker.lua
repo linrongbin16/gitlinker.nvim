@@ -150,7 +150,10 @@ local function link(opts)
   if router == nil then
     if type(opts.router_binding) == "table" then
       for pat, rout in pairs(opts.router_binding) do
-          if 
+        if string.match(lk.host, pat) then
+          router = rout
+          break
+        end
       end
     end
     router = router or require("gitlinker.routers").blob
