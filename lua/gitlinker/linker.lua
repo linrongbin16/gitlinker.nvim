@@ -20,6 +20,7 @@ local Linker = {}
 -- example:
 -- git@github.com:linrongbin16/gitlinker.nvim.git
 -- https://github.com/linrongbin16/gitlinker.nvim.git
+--
 --- @param remote_url string
 --- @return {protocol:string?,host:string?,user:string?,repo:string?}
 local function _parse_remote_url(remote_url)
@@ -164,6 +165,7 @@ function Linker:make(r)
 end
 
 local M = {
+  _parse_remote_url = _parse_remote_url,
   Linker = Linker,
 }
 

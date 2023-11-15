@@ -9,8 +9,11 @@ local function blob(lk)
     or (lk.protocol .. "://")
   builder = builder .. lk.host .. "/"
   builder = builder .. lk.user .. "/"
-  builder = builder .. lk.repo .. "/"
+  builder = builder
+    .. (utils.string_endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo)
+    .. "/"
   builder = builder .. "blob/"
+  builder = builder .. lk.rev .. "/"
   builder = builder
     .. lk.file
     .. (
