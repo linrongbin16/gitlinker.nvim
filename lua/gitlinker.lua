@@ -135,7 +135,8 @@ local function link(opts)
     return nil
   end
 
-  local url = opts.router(lk)
+  local url = type(opts.router) == "function" and opts.router(lk)
+    or require("gitlinker.routers").blob(lk)
   logger.ensure(
     type(url) == "string" and string.len(url) > 0,
     "fatal: failed to generate permanent url from remote url:%s",
