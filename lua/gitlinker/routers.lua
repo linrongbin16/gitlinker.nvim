@@ -107,6 +107,9 @@ local function blame(lk)
 end
 
 local M = {
+  -- Builder
+  Builder = Builder,
+
   -- routers
   blob = blob,
   blame = blame,
