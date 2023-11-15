@@ -7,7 +7,7 @@ local function _is_visual_mode(m)
     or m == "\22"
 end
 
---- @alias Range {lstart:integer?,lend:integer?,cstart:integer?,cend:integer?}
+--- @alias Range {lstart:integer,lend:integer,cstart:integer?,cend:integer?}
 --- @return Range
 local function make_range()
   local m = vim.fn.mode()
@@ -36,7 +36,8 @@ local function is_range(r)
   return type(r) == "table"
     and type(r.lstart) == "number"
     and r.lstart >= 0
-    and ((type(r.lend) == "number" and r.lend > 0) or (r.lend == nil))
+    and type(r.lend) == "number"
+    and r.lend > 0
 end
 
 local M = {
