@@ -102,4 +102,102 @@ describe("routers", function()
       assert_true(utils.string_endswith(actual, "#L2-L5"))
     end)
   end)
+  describe("[blame]", function()
+    it("without line numbers", function()
+      local actual = routers.blame({
+        remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
+        protocol = "git",
+        host = "github.com",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        file_changed = false,
+      } --[[@as Linker]])
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua"
+      )
+    end)
+    it("with line start", function()
+      local actual = routers.blame({
+        remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
+        protocol = "git",
+        host = "github.com",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 1,
+        lend = 2,
+        file_changed = false,
+      }--[[@as Linker]])
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1-L2"
+      )
+    end)
+    it("with Linker", function()
+      local actual = routers.blame(Linker:make({
+        lstart = 2,
+        lend = 5,
+      })--[[@as Linker]])
+      assert_true(
+        utils.string_startswith(
+          actual,
+          "https://github.com/linrongbin16/gitlinker.nvim/blame/"
+        )
+      )
+      assert_true(utils.string_endswith(actual, "#L2-L5"))
+    end)
+  end)
+  describe("[src]", function()
+    it("without line numbers", function()
+      local actual = routers.src({
+        remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
+        protocol = "git",
+        host = "github.com",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        file_changed = false,
+      } --[[@as Linker]])
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua"
+      )
+    end)
+    it("with line start", function()
+      local actual = routers.src({
+        remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
+        protocol = "git",
+        host = "github.com",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 1,
+        lend = 2,
+        file_changed = false,
+      }--[[@as Linker]])
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1:2"
+      )
+    end)
+    it("with Linker", function()
+      local actual = routers.src(Linker:make({
+        lstart = 2,
+        lend = 5,
+      })--[[@as Linker]])
+      assert_true(
+        utils.string_startswith(
+          actual,
+          "https://github.com/linrongbin16/gitlinker.nvim/src/"
+        )
+      )
+      assert_true(utils.string_endswith(actual, "#lines-2:5"))
+    end)
+  end)
 end)
