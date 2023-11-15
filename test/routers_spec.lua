@@ -11,7 +11,7 @@ describe("routers", function()
   end)
 
   local utils = require("gitlinker.utils")
-  local Linker = require("gitlinker.linker").Linker
+  local linker = require("gitlinker.linker")
   local routers = require("gitlinker.routers")
   require("gitlinker").setup({
     debug = true,
@@ -28,7 +28,7 @@ describe("routers", function()
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
         file_changed = false,
-      } --[[@as Linker]])
+      } --[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua"
@@ -46,7 +46,7 @@ describe("routers", function()
         lstart = 1,
         lend = 1,
         file_changed = false,
-      }--[[@as Linker]])
+      }--[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1"
@@ -64,7 +64,7 @@ describe("routers", function()
         lstart = 1,
         lend = 1,
         file_changed = false,
-      }--[[@as Linker]])
+      }--[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1"
@@ -82,17 +82,17 @@ describe("routers", function()
         lstart = 2,
         lend = 5,
         file_changed = false,
-      }--[[@as Linker]])
+      }--[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L2-L5"
       )
     end)
     it("with Linker", function()
-      local actual = routers.blob(Linker:make({
+      local actual = routers.blob(linker.make_linker({
         lstart = 2,
         lend = 5,
-      })--[[@as Linker]])
+      })--[[@as gitlinker.Linker]])
       assert_true(
         utils.string_startswith(
           actual,
@@ -113,7 +113,7 @@ describe("routers", function()
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
         file_changed = false,
-      } --[[@as Linker]])
+      } --[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua"
@@ -131,17 +131,17 @@ describe("routers", function()
         lstart = 1,
         lend = 2,
         file_changed = false,
-      }--[[@as Linker]])
+      }--[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1-L2"
       )
     end)
     it("with Linker", function()
-      local actual = routers.blame(Linker:make({
+      local actual = routers.blame(linker.make_linker({
         lstart = 2,
         lend = 5,
-      })--[[@as Linker]])
+      })--[[@as gitlinker.Linker]])
       assert_true(
         utils.string_startswith(
           actual,
@@ -162,7 +162,7 @@ describe("routers", function()
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
         file_changed = false,
-      } --[[@as Linker]])
+      } --[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua"
@@ -180,17 +180,17 @@ describe("routers", function()
         lstart = 1,
         lend = 2,
         file_changed = false,
-      }--[[@as Linker]])
+      }--[[@as gitlinker.Linker]])
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1:2"
       )
     end)
     it("with Linker", function()
-      local actual = routers.src(Linker:make({
+      local actual = routers.src(linker.make_linker({
         lstart = 2,
         lend = 5,
-      })--[[@as Linker]])
+      })--[[@as gitlinker.Linker]])
       assert_true(
         utils.string_startswith(
           actual,

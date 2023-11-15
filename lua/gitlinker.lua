@@ -1,5 +1,5 @@
 local logger = require("gitlinker.logger")
-local Linker = require("gitlinker.linker").Linker
+local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
 local deprecation = require("gitlinker.deprecation")
 
@@ -143,7 +143,7 @@ local function link(opts)
   local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
       and { lstart = opts.lstart, lend = opts.lend }
     or nil
-  local lk = Linker:make(range)
+  local lk = linker.make_linker(range)
   if not lk then
     return nil
   end

@@ -7,8 +7,8 @@ local function _is_visual_mode(m)
     or m == "\22"
 end
 
---- @alias Range {lstart:integer,lend:integer,cstart:integer?,cend:integer?}
---- @return Range
+--- @alias gitlinker.Range {lstart:integer,lend:integer,cstart:integer?,cend:integer?}
+--- @return gitlinker.Range
 local function make_range()
   local m = vim.fn.mode()
   local l1 = nil

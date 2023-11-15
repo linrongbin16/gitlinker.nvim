@@ -1,8 +1,8 @@
 local utils = require("gitlinker.utils")
 local range = require("gitlinker.range")
-local logger = require("gitlinker.logger")
+-- local logger = require("gitlinker.logger")
 
---- @class Builder
+--- @class gitlinker.Builder
 --- @field protocol string?
 --- @field host string?
 --- @field user string?
@@ -12,7 +12,7 @@ local logger = require("gitlinker.logger")
 --- @field range string?
 local Builder = {}
 
---- @param r Range?
+--- @param r gitlinker.Range?
 --- @return string?
 local function LC_range(r)
   if not range.is_range(r) then
@@ -26,7 +26,7 @@ local function LC_range(r)
   return tmp
 end
 
---- @param r Range?
+--- @param r gitlinker.Range?
 --- @return string?
 local function lines_range(r)
   if not range.is_range(r) then
@@ -40,9 +40,9 @@ local function lines_range(r)
   return tmp
 end
 
---- @param lk Linker
---- @param range_maker fun(r:Range?):string?|nil
---- @return Builder
+--- @param lk gitlinker.Linker
+--- @param range_maker fun(r:gitlinker.Range?):string?|nil
+--- @return gitlinker.Builder
 function Builder:new(lk, range_maker)
   range_maker = range_maker or LC_range
   local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
@@ -83,7 +83,7 @@ function Builder:build(url)
   }, "")
 end
 
---- @param lk Linker
+--- @param lk gitlinker.Linker
 --- @return string
 local function blob(lk)
   -- logger.debug("|routers.blob|lk:%s", vim.inspect(lk))
@@ -92,14 +92,14 @@ local function blob(lk)
   return builder:build("blob")
 end
 
---- @param lk Linker
+--- @param lk gitlinker.Linker
 --- @return string
 local function src(lk)
   local builder = Builder:new(lk, lines_range)
   return builder:build("src")
 end
 
---- @param lk Linker
+--- @param lk gitlinker.Linker
 --- @return string
 local function blame(lk)
   local builder = Builder:new(lk)
