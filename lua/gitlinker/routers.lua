@@ -86,9 +86,9 @@ end
 --- @param lk Linker
 --- @return string
 local function blob(lk)
-  logger.debug("|routers.blob|lk:%s", vim.inspect(lk))
+  -- logger.debug("|routers.blob|lk:%s", vim.inspect(lk))
   local builder = Builder:new(lk)
-  logger.debug("|routers.blob|builder:%s", vim.inspect(builder))
+  -- logger.debug("|routers.blob|builder:%s", vim.inspect(builder))
   return builder:build("blob")
 end
 
