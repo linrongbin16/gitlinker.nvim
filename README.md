@@ -168,8 +168,10 @@ require('gitlinker').setup({
     },
   },
 
-  -- different git web hosts use different urls, so we want to auto bind these routers
-  -- note: the auto bindings will only work when `router=nil` in `link` API.
+  -- different web sites use different urls, so we want to auto bind these routers
+  --
+  -- **note**:
+  -- auto bindings only work when `router=nil` in `link` API.
   --
   -- github.com: `/blob`
   -- gitlab.com: `/blob`
