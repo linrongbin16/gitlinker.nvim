@@ -206,6 +206,40 @@ local function _is_rev_in_remote(revspec, remote)
   return false
 end
 
+--- @param host string
+--- @return string?
+local function resolve_host(host)
+  if vim.fn.executable("ssh") <= 0 then
+    return host
+  end
+  local errmsg =
+    string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
+  local args = { "ssh", "-G", host }
+  local result = cmd(args)
+
+  if not result:has_out() then
+    result:print_err(errmsg)
+    return nil
+  end
+  logger.debug(
+    "|git.resolve_host| %s: %s",
+    vim.inspect(args),
+    vim.inspect(result.stdout)
+  )
+  local hostname = "hostname"
+  if
+    #result.stdout >= 3
+    and string.len(result.stdout[3]) >= string.len(hostname)
+    and result.stdout[3]:sub(1, #hostname) == hostname
+  then
+    local alias_host = result.stdout[3]
+    return vim.trim(alias_host:sub(#hostname + 1))
+  end
+
+  result:print_err(errmsg)
+  return nil
+end
+
 --- @param remote string
 --- @return string?
 local function get_closest_remote_compatible_rev(remote)
@@ -317,33 +351,6 @@ local function get_branch_remote()
     remote_from_upstream_branch,
     upstream_branch
   )
-  return nil
-end
-
---- @param host string
---- @return string?
-local function resolve_host(host)
-  logger.ensure(vim.fn.executable("ssh") > 0, "cannot find 'ssh' command!")
-  local args = { "ssh", "-G", host }
-  local result = cmd(args)
-  if not result:has_out() then
-    result:print_err("fatal: failed to resolve host via ssh")
-    return nil
-  end
-  logger.debug(
-    "|git.resolve_host| %s: %s",
-    vim.inspect(args),
-    vim.inspect(result.stdout)
-  )
-  local hostname = "hostname"
-  if
-    #result.stdout >= 3
-    and string.len(result.stdout[3]) >= string.len(hostname)
-    and result.stdout[3]:sub(1, #hostname) == hostname
-  then
-    local alias_host = result.stdout[3]
-    return vim.trim(alias_host:sub(#hostname + 1))
-  end
   return nil
 end
 

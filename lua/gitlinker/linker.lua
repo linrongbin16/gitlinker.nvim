@@ -75,7 +75,9 @@ local function _parse_remote_url(remote_url)
   )
   user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
   repo = remote_url:sub(user_end_pos + 1)
-  return { protocol = protocol, host = host, user = user, repo = repo }
+  local result = { protocol = protocol, host = host, user = user, repo = repo }
+  logger.debug("linker._parse_remote_url| result:%s", vim.inspect(result))
+  return result
 end
 
 --- @param r Range?
@@ -96,6 +98,13 @@ function Linker:make(r)
   if not remote_url then
     return nil
   end
+
+  local parsed_remote_url = _parse_remote_url(remote_url)
+  local resolved_host = git.resolve_host(parsed_remote_url.host)
+  if not resolved_host then
+    return nil
+  end
+
   -- logger.debug(
   --     "|linker - Linker:make| remote_url:%s",
   --     vim.inspect(remote_url)
@@ -134,9 +143,6 @@ function Linker:make(r)
     r = range.Range:make()
     -- logger.debug("[linker - Linker:make] range:%s", vim.inspect(r))
   end
-
-  local parsed_remote_url = _parse_remote_url(remote_url)
-  local resolved_host = git.resolve_host(parsed_remote_url.host)
 
   local o = {
     remote_url = remote_url,
