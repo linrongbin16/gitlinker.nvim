@@ -44,8 +44,8 @@ It support below urls:
 2. New Features:
    - Windows support.
    - Respect ssh config alias host.
-   - Support `/blame` (by default is `/blob`, todo).
    - Add `?plain=1` for markdown files.
+   - Support `/blame` (by default is `/blob`, todo).
    - Support column numbers (e.g. `#L152C2-L167C20`, todo).
 3. Improvements:
    - Use stderr from git command as error message.
