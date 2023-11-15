@@ -35,9 +35,8 @@ end
 local function is_range(r)
   return type(r) == "table"
     and type(r.lstart) == "number"
-    and type(r.lend) == "number"
     and r.lstart >= 0
-    and r.lend >= 0
+    and ((type(r.lend) == "number" and r.lend > 0) or (r.lend == nil))
 end
 
 local M = {

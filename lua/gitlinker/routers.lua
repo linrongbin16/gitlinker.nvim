@@ -1,4 +1,5 @@
 local utils = require("gitlinker.utils")
+local range = require("gitlinker.range")
 
 --- @class Builder
 --- @field protocol string?
@@ -13,7 +14,7 @@ local Builder = {}
 --- @param r Range?
 --- @return string?
 local function _range_LC(r)
-  if type(r) ~= "table" or type(r.lstart) ~= "number" then
+  if not range.is_range(r) then
     return nil
   end
   local tmp = string.format([[#L%d]], r.lstart)
@@ -23,10 +24,10 @@ local function _range_LC(r)
   return tmp
 end
 
---- @param r {lstart:integer?,lend:integer?,cstart:integer?,cend:integer?}?
+--- @param r Range?
 --- @return string?
 local function _range_lines(r)
-  if type(r) ~= "table" or type(r.lstart) ~= "number" then
+  if not range.is_range(r) then
     return nil
   end
   local tmp = string.format([[#lines-%d]], r.lstart)
@@ -37,10 +38,11 @@ local function _range_lines(r)
 end
 
 --- @param lk Linker
---- @param range_maker fun()
+--- @param range_maker fun(r:Range?):string?|nil
 --- @return Builder
-function Builder:new(lk)
-  local r = _range_LC({ lstart = lk.lstart, lend = lk.lend })
+function Builder:new(lk, range_maker)
+  range_maker = range_maker or _range_LC
+  local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
   local o = {
     protocol = lk.protocol == "git" and "https://" or (lk.protocol .. "://"),
     host = lk.host .. "/",
@@ -88,7 +90,7 @@ end
 --- @param lk Linker
 --- @return string
 local function src(lk)
-  local builder = Builder:new(lk)
+  local builder = Builder:new(lk, _range_lines)
   return builder:build("src")
 end
 
