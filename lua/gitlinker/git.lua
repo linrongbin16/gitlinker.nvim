@@ -209,14 +209,17 @@ local function resolve_host(host)
     vim.inspect(args),
     vim.inspect(result.stdout)
   )
+
+  local stdout_map = {}
+  for _, item in ipairs(result.stdout) do
+    local key, value = item:match("(%S+)%s+(%S+)")
+    stdout_map[key] = value
+  end
+  logger.debug("|git.resolve_host| stdout_map: %s", vim.inspect(stdout_map))
   local hostname = "hostname"
-  if
-    #result.stdout >= 3
-    and string.len(result.stdout[3]) >= string.len(hostname)
-    and result.stdout[3]:sub(1, #hostname) == hostname
-  then
-    local alias_host = result.stdout[3]
-    return vim.trim(alias_host:sub(#hostname + 1))
+  if stdout_map[hostname] ~= nil then
+    local alias_host = stdout_map[hostname]
+    return vim.trim(alias_host)
   end
 
   result:print_err(errmsg)
