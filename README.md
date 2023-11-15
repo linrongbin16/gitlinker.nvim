@@ -150,16 +150,29 @@ require('gitlinker').setup({
 
   -- key mapping
   mapping = {
+    -- copy git link to clipboard
     ["<leader>gl"] = {
-      -- copy git link to clipboard
       action = require("gitlinker.actions").clipboard,
       desc = "Copy git link to clipboard",
     },
+    -- open git link in browser
     ["<leader>gL"] = {
-      -- open git link in browser
       action = require("gitlinker.actions").system,
       desc = "Open git link in browser",
     },
+  },
+
+  -- different git web hosts use different urls, so we want to auto bind these routers
+  -- note: the auto bindings will only work when `router=nil` in `link` API.
+  --
+  -- github.com: `/blob`
+  -- gitlab.com: `/blob`
+  -- bitbucket.org: `/src`
+  --
+  router_binding = {
+    ["^github"] = require("gitlinker.routers").blob,
+    ["^gitlab"] = require("gitlinker.routers").blob,
+    ["^bitbucket"] = require("gitlinker.routers").src,
   },
 
   -- enable debug
