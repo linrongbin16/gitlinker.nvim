@@ -258,6 +258,7 @@ Or just add new key mappings in `setup`:
 ```lua
 require('gitlinker').setup({
   mapping = {
+    -- don't remove `<leader>gl`/`<leader>gL` keys or they will not been mapped.
     ["<leader>gl"] = {
       action = require("gitlinker.actions").clipboard,
       desc = "Copy git link to clipboard",
