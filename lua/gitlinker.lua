@@ -8,13 +8,9 @@ local utils = require("gitlinker.utils")
 --- @type gitlinker.Options
 local Defaults = {
   -- print permanent url in command line
-  --
-  --- @type boolean
   message = true,
 
   -- highlight the linked region
-  --
-  --- @type integer
   highlight_duration = 500,
 
   -- highlight group, by default link to `Search`
@@ -24,13 +20,21 @@ local Defaults = {
 
   -- user command
   command = {
+    -- by default 'GitLink' will copy link to clipboard with browse router
+    -- to open link in browser, use bang: 'GitLink!'
+    -- to use blame router, use: 'GitLink router=blame'.
+    -- to use browse router, use: 'GitLink router=browse' (which is the default router).
     name = "GitLink",
     desc = "Generate git permanent link",
+
+    -- to fully customize the generated url, please override below routers.
+    router = {
+      browse = require("gitlinker.routers").browse,
+      blame = require("gitlinker.routers").blame,
+    },
   },
 
   -- key mappings
-  --
-  --- @type table<string, {action:gitlinker.Action,desc:string?}>
   mapping = {
     ["<leader>gl"] = {
       action = require("gitlinker.actions").clipboard,
@@ -43,8 +47,6 @@ local Defaults = {
   },
 
   -- router bindings
-  --
-  --- @type table<"browse"|"blame", table<string, gitlinker.Router>>
   router_binding = {
     browse = {
       ["^github%.com"] = require("gitlinker.routers").github_browse,
@@ -59,18 +61,12 @@ local Defaults = {
   },
 
   -- enable debug
-  --
-  --- @type boolean
   debug = false,
 
   -- write logs to console(command line)
-  --
-  --- @type boolean
   console_log = true,
 
   -- write logs to file
-  --
-  --- @type boolean
   file_log = false,
 }
 
