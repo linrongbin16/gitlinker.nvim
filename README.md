@@ -9,7 +9,7 @@
 <a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim?logo=codecov&logoColor=F01F7A&label=Codecov" /></a>
 </p>
 
-> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, alias-host, `/blame` url support and other improvements.
+> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, git alias host, `/blame` url support and other improvements.
 
 A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
@@ -49,7 +49,7 @@ PRs are welcomed for other git host websites!
    - Customize/disable default key mappings.
 2. New Features:
    - Windows support.
-   - Respect ssh config alias host.
+   - Respect git alias host.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
 3. Improvements:
@@ -122,9 +122,13 @@ These two operations are already defined in key mappings:
 
 ### Routers
 
-- `require('gitlinker.routers').blob`: generate the `/blob` url, by default `link` API will use this router.
+- `require('gitlinker.routers').browse`: generate the `/blob` url, by default `link` API will use this router.
 - `require('gitlinker.routers').blame`: generate the `/blame` url.
-- `require('gitlinker.routers').src`: generate the `/src` url (for [BitBucket.org](https://bitbucket.org/)).
+
+> Note:
+>
+> - `browse` could generate other urls for other git host websites, e.g., `/src` for bitbucket.org.
+> - `blame` could generate other urls for other git host websites, e.g., `/annotation` for bitbucket.org.
 
 ### API
 
@@ -167,21 +171,19 @@ require('gitlinker').setup({
       action = require("gitlinker.actions").system,
       desc = "Open git link in browser",
     },
-  },
 
-  -- different web sites use different urls, so we want to auto bind these routers
-  --
-  -- **note**:
-  -- auto bindings only work when `router=nil` in `link` API.
-  --
-  -- github.com: `/blob`
-  -- gitlab.com: `/blob`
-  -- bitbucket.org: `/src`
-  --
-  router_binding = {
-    ["^github"] = require("gitlinker.routers").blob,
-    ["^gitlab"] = require("gitlinker.routers").blob,
-    ["^bitbucket"] = require("gitlinker.routers").src,
+    -- you can also specify the `blame` router to open blame url.
+
+    -- ["<leader>gb"] = {
+    --   action = require("gitlinker.actions").clipboard,
+    --   router = require("gitlinker.routers").blame, -- blame router
+    --   desc = "Copy git link to clipboard",
+    -- },
+    -- ["<leader>gB"] = {
+    --   action = require("gitlinker.actions").system,
+    --   router = require("gitlinker.routers").blame, -- blame router
+    --   desc = "Open git link in browser",
+    -- },
   },
 
   -- enable debug
