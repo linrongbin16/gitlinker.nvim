@@ -94,12 +94,23 @@ end
 
 --- @param args string
 --- @return {router:"browse"|"blame"}?
-local function parse_command_input(args)
+local function _parse_command_input(args)
   if type(args) ~= "string" or string.len(args) == 0 then
     return nil
   end
   local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
-  for _, a in ipairs9
+  for _, a in ipairs(args_splits) do
+    if utils.string_startswith(a, "router=", { ignorecase = true }) then
+      local router = a:sub(string.len("router=") + 1)
+      assert(
+        router == "browse" or router == "blame",
+        "unknown args %s!",
+        vim.inspect(router)
+      )
+      return { router = router }
+    end
+  end
+  return nil
 end
 
 --- @param opts gitlinker.Options?
@@ -142,7 +153,20 @@ local function setup(opts)
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
     logger.debug("command opts:%s", vim.insepct(command_opts))
-    local args = command_opts.args
+    local parsed_args = _parse_command_input(command_opts.args)
+    local router = Configs.command.router.browse
+    if type(parsed_args) == "table" then
+      if parsed_args.router == "browse" then
+        router = Configs.command.router.browse
+      elseif parsed_args.router == "blame" then
+        router = Configs.command.router.blame
+      end
+    end
+    local action = require("gitlinker.actions").clipboard
+    if command_opts.bang then
+      action = require("gitlinker.actions").system
+    end
+    require("gitlinker").link({ action = action, router = router })
   end, {
     args = "*",
     range = true,
