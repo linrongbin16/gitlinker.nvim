@@ -2,32 +2,6 @@
 
 local utils = require("gitlinker.utils")
 
---- @param filename string
---- @param opts {trim:boolean?}|nil
---- @return string?
-local function readfile(filename, opts)
-  opts = opts or { trim = true }
-  opts.trim = opts.trim == nil and true or opts.trim
-
-  local f = io.open(filename, "r")
-  if f == nil then
-    return nil
-  end
-  local content = vim.trim(f:read("*a"))
-  f:close()
-  return content
-end
-
---- @param filename string
---- @return string[]?
-local function readlines(filename)
-  local results = {}
-  for line in io.lines(filename) do
-    table.insert(results, line)
-  end
-  return results
-end
-
 --- @alias SpawnLineConsumer fun(line:string):any
 --- @class Spawn
 --- @field cmds string[]
@@ -221,8 +195,6 @@ function Spawn:run()
 end
 
 local M = {
-  readfile = readfile,
-  readlines = readlines,
   Spawn = Spawn,
 }
 

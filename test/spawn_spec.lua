@@ -10,6 +10,7 @@ describe("spawn", function()
   end)
 
   local spawn = require("gitlinker.spawn")
+  local utils = require("gitlinker.utils")
 
   describe("[Spawn]", function()
     it("open", function()
@@ -26,8 +27,8 @@ describe("spawn", function()
       assert_eq(type(sp.err_pipe), "userdata")
     end)
     it("consume line", function()
-      local content = spawn.readfile("README.md") --[[@as string]]
-      local lines = spawn.readlines("README.md") --[[@as table]]
+      local content = utils.readfile("README.md") --[[@as string]]
+      local lines = utils.readlines("README.md") --[[@as table]]
 
       local i = 1
       local function process_line(line)
@@ -48,8 +49,8 @@ describe("spawn", function()
       end
     end)
     it("stdout on newline", function()
-      local content = spawn.readfile("README.md") --[[@as string]]
-      local lines = spawn.readlines("README.md") --[[@as table]]
+      local content = utils.readfile("README.md") --[[@as string]]
+      local lines = utils.readlines("README.md") --[[@as table]]
 
       local i = 1
       local function process_line(line)
@@ -74,8 +75,8 @@ describe("spawn", function()
       assert_true(sp.out_pipe:is_closing())
     end)
     it("stdout on whitespace", function()
-      local content = spawn.readfile("README.md") --[[@as string]]
-      local lines = spawn.readlines("README.md") --[[@as table]]
+      local content = utils.readfile("README.md") --[[@as string]]
+      local lines = utils.readlines("README.md") --[[@as table]]
 
       local i = 1
       local function process_line(line)
@@ -103,8 +104,8 @@ describe("spawn", function()
       -- lower case: a
       local lower_char = string.char(97 + delimiter_i)
       it(string.format("stdout on %s", lower_char), function()
-        local content = spawn.readfile("README.md") --[[@as string]]
-        local lines = spawn.readlines("README.md") --[[@as table]]
+        local content = utils.readfile("README.md") --[[@as string]]
+        local lines = utils.readlines("README.md") --[[@as table]]
 
         local i = 1
         local function process_line(line)
@@ -131,8 +132,8 @@ describe("spawn", function()
       -- upper case: A
       local upper_char = string.char(65 + delimiter_i)
       it(string.format("stdout on %s", upper_char), function()
-        local content = spawn.readfile("README.md") --[[@as string]]
-        local lines = spawn.readlines("README.md") --[[@as table]]
+        local content = utils.readfile("README.md") --[[@as string]]
+        local lines = utils.readlines("README.md") --[[@as table]]
 
         local i = 1
         local function process_line(line)
@@ -166,7 +167,7 @@ describe("spawn", function()
       assert_true(sp.err_pipe:is_closing())
     end)
     it("iterate on README.md", function()
-      local lines = spawn.readlines("README.md") --[[@as table]]
+      local lines = utils.readlines("README.md") --[[@as table]]
 
       local i = 1
       local function process_line(line)
@@ -183,7 +184,7 @@ describe("spawn", function()
       sp:run()
     end)
     it("iterate on lua/gitlinker.lua", function()
-      local lines = spawn.readlines("lua/gitlinker.lua") --[[@as table]]
+      local lines = utils.readlines("lua/gitlinker.lua") --[[@as table]]
 
       local i = 1
       local function process_line(line)

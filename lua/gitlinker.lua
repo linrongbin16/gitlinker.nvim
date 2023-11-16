@@ -93,7 +93,14 @@ local function deprecated_notification(opts)
 end
 
 --- @param args string
-local function parse_command_input(args) end
+--- @return {router:"browse"|"blame"}?
+local function parse_command_input(args)
+  if type(args) ~= "string" or string.len(args) == 0 then
+    return nil
+  end
+  local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
+  for _, a in ipairs9
+end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
