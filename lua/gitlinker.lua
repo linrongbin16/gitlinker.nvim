@@ -12,11 +12,6 @@ local Defaults = {
   -- highlight the linked region
   highlight_duration = 500,
 
-  -- highlight group
-  highlight_group = {
-    NvimGitLinkerHighlightTextObject = { link = "Search" },
-  },
-
   -- key mappings
   mapping = {
     ["<leader>gl"] = {
@@ -141,11 +136,7 @@ local function setup(opts)
   if Configs.highlight_duration > 0 then
     local hl_group = "NvimGitLinkerHighlightTextObject"
     if not highlight.hl_group_exists(hl_group) then
-      vim.api.nvim_set_hl(
-        0,
-        hl_group,
-        Configs.highlight_group.NvimGitLinkerHighlightTextObject
-      )
+      vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
     end
   end
 
