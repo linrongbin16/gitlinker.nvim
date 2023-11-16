@@ -212,8 +212,17 @@ local function resolve_host(host)
 
   local stdout_map = {}
   for _, item in ipairs(result.stdout) do
-    local key, value = item:match("(%S+)%s+(%S+)")
-    stdout_map[key] = value
+    if type(item) == "string" then
+      local key, value = item:match("(%S+)%s+(%S+)")
+      -- logger.debug(
+      --   "|git.resolve_host| ssh key:%s, value:%s",
+      --   vim.inspect(key),
+      --   vim.inspect(value)
+      -- )
+      if type(key) == "string" and type(value) == "string" then
+        stdout_map[key] = value
+      end
+    end
   end
   logger.debug("|git.resolve_host| stdout_map: %s", vim.inspect(stdout_map))
   local hostname = "hostname"
