@@ -111,7 +111,11 @@ local function bitbucket_browse(lk)
   return builder:build("src")
 end
 
-local BROWSE_BINDING = {}
+local BROWSE_BINDING = {
+  ["^github%.com"] = github_browse,
+  ["^gitlab%.com"] = gitlab_browse,
+  ["^bitbucket%.org"] = bitbucket_browse,
+}
 
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @param lk gitlinker.Linker
@@ -147,7 +151,11 @@ local function bitbucket_blame(lk)
   return builder:build("annotation")
 end
 
-local BLAME_BINDING = {}
+local BLAME_BINDING = {
+  ["^github%.com"] = github_blame,
+  ["^gitlab%.com"] = gitlab_blame,
+  ["^bitbucket%.org"] = bitbucket_blame,
+}
 
 --- @param lk gitlinker.Linker
 --- @return string?
@@ -163,8 +171,10 @@ end
 
 --- @param router_binding gitlinker.Options
 local function setup(router_binding)
-  BROWSE_BINDING = router_binding.browse
-  BLAME_BINDING = router_binding.blame
+  BROWSE_BINDING =
+    vim.list_extend(vim.deepcopy(BROWSE_BINDING), router_binding.browse or {})
+  BLAME_BINDING =
+    vim.list_extend(vim.deepcopy(BLAME_BINDING), router_binding.blame or {})
 end
 
 local M = {

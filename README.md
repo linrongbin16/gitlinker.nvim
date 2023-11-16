@@ -39,6 +39,8 @@ PRs are welcomed for other git host websites!
   - [Vim Command](#vim-command)
   - [Highlighting](#highlighting)
   - [Blame](#blame)
+  - [Self-Host Git Hosts](#self-host-git-hosts)
+  - [Fully Customize Urls](#fully-customize-urls)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -173,6 +175,19 @@ require('gitlinker').setup({
     },
   },
 
+  -- router bindings
+  --
+  router_binding = {
+    browse = {
+      -- -- add your host here
+      -- ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
+    },
+    blame = {
+      -- -- add your host here
+      -- ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
+    },
+  },
+
   -- enable debug
   debug = false,
 
@@ -258,7 +273,7 @@ Or just add new key mappings in `setup`:
 ```lua
 require('gitlinker').setup({
   mapping = {
-    -- don't remove `<leader>gl`/`<leader>gL` keys or they will not been mapped.
+    -- don't remove the default keys or they will not been mapped.
     ["<leader>gl"] = {
       action = require("gitlinker.actions").clipboard,
       desc = "Copy git link to clipboard",
@@ -281,6 +296,72 @@ require('gitlinker').setup({
   },
 })
 ```
+
+### Self-Host Git Hosts
+
+To generate url for self-host git host websites, please specify bindings in `router_binding` option.
+
+Below example shows how to apply the github style routers to a self-host github websites, e.g. `github.your.host`:
+
+```lua
+require('gitlinker').setup({
+  router_binding = {
+    browse = {
+      -- add your host here
+      ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
+    },
+    blame = {
+      -- add your host here
+      ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
+    },
+  },
+})
+```
+
+> Note: the [lua pattern](https://www.lua.org/pil/20.2.html) needs to escape the `.` to `%.`.
+
+### Fully Customize Urls
+
+To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct a string from below components:
+
+- Protocol: "git", "https", etc.
+- Host: "github.com", "gitlab.com", "bitbucket.org", etc.
+- User: "linrongbin16" (for this plugin), "neovim" (for [neovim](https://github.com/neovim/neovim)), etc.
+- Repo: "gitlinker.nvim" (for this plugin), "neovim" (for [neovim](https://github.com/neovim/neovim)), etc.
+- Rev: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
+- File name: file path, e.g. `lua/gitlinker/routers.lua`.
+- Line range: start/end line numbers, e.g. `#L37-L156`.
+
+For example you can customize the line numbers in form `&line=1&lines-count=2` like this:
+
+```lua
+-- @param range {lstart:integer,lend:integer}
+local function your_lines(range)
+  if type(range) ~= 'table' or type(range.lstart) ~= 'number' then
+    return nil
+  end
+  local tmp = string.format([[&lines=%d]], range.lstart)
+  if type(range.lend) == "number" and range.lend > range.lstart then
+    tmp = tmp .. string.format([[&lines-count=%d]], r.lend)
+  end
+  return tmp
+end
+
+require('gitlinker').setup({
+  mapping = {
+    ["<leader>gl"] = {
+      action = require("gitlinker.actions").clipboard,
+      desc = "Copy git link to clipboard",
+      router = function(lk)
+        local builder = require('gitlinker.routers').Builder:new(lk, your_lines)
+        return builder:build("blob")
+      end,
+    },
+  },
+})
+```
+
+> Note: the `Builder` is an internal string helper class, but there's no guarantee the internal class/function signature is stable.
 
 ## Highlight Group
 
