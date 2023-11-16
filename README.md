@@ -118,7 +118,8 @@ You could use below command:
 > - `browse` router could generate for other git host websites, e.g., `/src` for bitbucket.org.
 > - `blame` router could generate for other git host websites, e.g., `/annotate` for bitbucket.org.
 
-To create key mappings, please use:
+<details>
+<summary><i>Click here to see recommended key mappings</i></summary>
 
 ```lua
 -- browse
@@ -148,6 +149,8 @@ vim.keymap.set(
   { silent = true, noremap = true, desc = "Open git blame link in browser" }
 )
 ```
+
+</details>
 
 ## Configuration
 
