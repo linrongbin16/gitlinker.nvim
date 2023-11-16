@@ -171,19 +171,6 @@ require('gitlinker').setup({
       action = require("gitlinker.actions").system,
       desc = "Open git link in browser",
     },
-
-    -- you can also specify the `blame` router to open blame url.
-
-    -- ["<leader>gb"] = {
-    --   action = require("gitlinker.actions").clipboard,
-    --   router = require("gitlinker.routers").blame, -- blame router
-    --   desc = "Copy git link to clipboard",
-    -- },
-    -- ["<leader>gB"] = {
-    --   action = require("gitlinker.actions").system,
-    --   router = require("gitlinker.routers").blame, -- blame router
-    --   desc = "Open git link in browser",
-    -- },
   },
 
   -- enable debug
