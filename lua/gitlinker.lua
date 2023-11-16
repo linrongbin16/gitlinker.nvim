@@ -31,21 +31,6 @@ local Defaults = {
     },
   },
 
-  -- different web sites use different urls, so we want to auto bind these routers
-  --
-  -- **note**:
-  -- auto bindings only work when `router=nil` in `link` API.
-  --
-  -- github.com: `/blob`
-  -- gitlab.com: `/blob`
-  -- bitbucket.org: `/src`
-  --
-  router_binding = {
-    ["^github"] = require("gitlinker.routers").blob,
-    ["^gitlab"] = require("gitlinker.routers").blob,
-    ["^bitbucket"] = require("gitlinker.routers").src,
-  },
-
   -- enable debug
   --
   --- @type boolean
@@ -148,18 +133,7 @@ local function link(opts)
     return nil
   end
 
-  local router = opts.router
-  if router == nil then
-    if type(opts.router_binding) == "table" then
-      for pat, rout in pairs(opts.router_binding) do
-        if string.match(lk.host, pat) then
-          router = rout
-          break
-        end
-      end
-    end
-    router = router or require("gitlinker.routers").blob
-  end
+  local router = opts.router or require("gitlinker.routers").browse
   local ok, url = pcall(router, lk)
   logger.ensure(
     ok and type(url) == "string" and string.len(url) > 0,
