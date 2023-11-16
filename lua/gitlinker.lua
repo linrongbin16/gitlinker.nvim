@@ -179,7 +179,7 @@ local function link(opts)
     return nil
   end
 
-  local ok, url = pcall(router, lk)
+  local ok, url = pcall(router, lk, true)
   logger.ensure(
     ok and type(url) == "string" and string.len(url) > 0,
     "fatal: failed to generate permanent url from remote url (%s): %s",

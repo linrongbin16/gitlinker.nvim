@@ -115,12 +115,17 @@ local BROWSE_BINDING = {}
 
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @param lk gitlinker.Linker
+--- @param _placeholder boolean
 --- @return string?
-local function browse(lk)
+local function browse(lk, _placeholder)
   -- logger.debug(
   --   "|routers.browse| BROWSE_BINDING:%s",
   --   vim.inspect(BROWSE_BINDING)
   -- )
+  assert(
+    type(_placeholder) == "boolean" and _placeholder,
+    string.format("the second param %s must be true", vim.inspect(_placeholder))
+  )
   for pattern, route in pairs(BROWSE_BINDING) do
     if string.match(lk.host, pattern) then
       logger.debug(
@@ -163,9 +168,14 @@ end
 local BLAME_BINDING = {}
 
 --- @param lk gitlinker.Linker
+--- @param _placeholder boolean
 --- @return string?
-local function blame(lk)
-  logger.debug("|routers.blame| BLAME_BINDING:%s", vim.inspect(BLAME_BINDING))
+local function blame(lk, _placeholder)
+  -- logger.debug("|routers.blame| BLAME_BINDING:%s", vim.inspect(BLAME_BINDING))
+  assert(
+    type(_placeholder) == "boolean" and _placeholder,
+    string.format("the second param %s must be true", vim.inspect(_placeholder))
+  )
   for pattern, route in pairs(BLAME_BINDING) do
     if string.match(lk.host, pattern) then
       return route(lk)
