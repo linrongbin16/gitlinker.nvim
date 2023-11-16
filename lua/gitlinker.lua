@@ -179,7 +179,7 @@ local function setup(opts)
   if Configs.highlight_duration > 0 then
     local hl_group = "NvimGitLinkerHighlightTextObject"
     if not highlight.hl_group_exists(hl_group) then
-      vim.api.nvim_set_hl(0, hl_group, Configs.highlight_group[hl_group])
+      vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
     end
   end
 
@@ -208,7 +208,7 @@ local function link(opts)
     return nil
   end
 
-  local ok, url = pcall(router, lk)
+  local ok, url = pcall(router, lk, true)
   logger.ensure(
     ok and type(url) == "string" and string.len(url) > 0,
     "fatal: failed to generate permanent url from remote url (%s): %s",
