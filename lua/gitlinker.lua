@@ -13,11 +13,6 @@ local Defaults = {
   -- highlight the linked region
   highlight_duration = 500,
 
-  -- highlight group, by default link to `Search`
-  highlight_group = {
-    NvimGitLinkerHighlightTextObject = { link = "Search" },
-  },
-
   -- user command
   command = {
     -- by default 'GitLink' will copy link to clipboard with browse router
@@ -92,6 +87,53 @@ local function deprecated_notification(opts)
   end
 end
 
+--- @param opts gitlinker.Options?
+--- @return string?
+local function link(opts)
+  opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
+  -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
+  deprecated_notification(opts)
+
+  local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
+      and { lstart = opts.lstart, lend = opts.lend }
+    or nil
+  local lk = linker.make_linker(range)
+  if not lk then
+    return nil
+  end
+
+  local router = opts.router or require("gitlinker.routers").browse
+  if not router then
+    return nil
+  end
+
+  local ok, url = pcall(router, lk, true)
+  logger.ensure(
+    ok and type(url) == "string" and string.len(url) > 0,
+    "fatal: failed to generate permanent url from remote url (%s): %s",
+    vim.inspect(lk.remote_url),
+    vim.inspect(url)
+  )
+
+  if opts.action then
+    opts.action(url)
+  end
+
+  if opts.highlight_duration > 0 then
+    highlight.show({ lstart = lk.lstart, lend = lk.lend })
+    vim.defer_fn(highlight.clear, opts.highlight_duration)
+  end
+
+  if opts.message then
+    local msg = lk.file_changed
+        and string.format("%s (lines can be wrong due to file change)", url)
+      or url
+    logger.info(msg)
+  end
+
+  return url
+end
+
 --- @param args string
 --- @return {router:"browse"|"blame"}?
 local function _parse_command_input(args)
@@ -152,7 +194,7 @@ local function setup(opts)
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
-    logger.debug("command opts:%s", vim.insepct(command_opts))
+    logger.debug("command opts:%s", vim.inspect(command_opts))
     local parsed_args = _parse_command_input(command_opts.args)
     local router = Configs.command.router.browse
     if type(parsed_args) == "table" then
@@ -166,9 +208,14 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     end
-    require("gitlinker").link({ action = action, router = router })
+    link({
+      action = action,
+      router = router,
+      lstart = command_opts.line1,
+      lend = command_opts.line2,
+    })
   end, {
-    args = "*",
+    nargs = "*",
     range = true,
     bang = true,
     desc = Configs.command.desc,
@@ -197,7 +244,7 @@ local function setup(opts)
         deprecation.notify(
           "'mapping' option is deprecated! please migrate to 'GitLink' command."
         )
-        require("gitlinker").link({ action = v.action, router = v.router })
+        link({ action = v.action, router = v.router })
       end, opt)
     end
   end
@@ -213,53 +260,6 @@ local function setup(opts)
   -- logger.debug("|setup| Configs:%s", vim.inspect(Configs))
 
   deprecated_notification(Configs)
-end
-
---- @param opts gitlinker.Options?
---- @return string?
-local function link(opts)
-  opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
-  -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
-  deprecated_notification(opts)
-
-  local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
-      and { lstart = opts.lstart, lend = opts.lend }
-    or nil
-  local lk = linker.make_linker(range)
-  if not lk then
-    return nil
-  end
-
-  local router = opts.router or require("gitlinker.routers").browse
-  if not router then
-    return nil
-  end
-
-  local ok, url = pcall(router, lk, true)
-  logger.ensure(
-    ok and type(url) == "string" and string.len(url) > 0,
-    "fatal: failed to generate permanent url from remote url (%s): %s",
-    vim.inspect(lk.remote_url),
-    vim.inspect(url)
-  )
-
-  if opts.action then
-    opts.action(url)
-  end
-
-  if opts.highlight_duration > 0 then
-    highlight.show({ lstart = lk.lstart, lend = lk.lend })
-    vim.defer_fn(highlight.clear, opts.highlight_duration)
-  end
-
-  if opts.message then
-    local msg = lk.file_changed
-        and string.format("%s (lines can be wrong due to file change)", url)
-      or url
-    logger.info(msg)
-  end
-
-  return url
 end
 
 local M = {
