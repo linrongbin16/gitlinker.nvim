@@ -53,6 +53,7 @@ PRs are welcomed for other git host websites!
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
+   - Provide `GitLink` command and drop off default key mappings.
 3. Improvements:
    - Use stderr from git command as error message.
    - Performant child process IO via `uv.spawn`.
