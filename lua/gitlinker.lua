@@ -34,16 +34,8 @@ local Defaults = {
   --
   --- @type table<"browse"|"blame", table<string, gitlinker.Router>>
   router_binding = {
-    browse = {
-      ["^github%.com"] = require("gitlinker.routers").github_browse,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
-    },
-    blame = {
-      ["^github%.com"] = require("gitlinker.routers").github_blame,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
-    },
+    browse = {},
+    blame = {},
   },
 
   -- enable debug
