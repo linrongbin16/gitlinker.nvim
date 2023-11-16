@@ -224,7 +224,7 @@ local function resolve_host(host)
       end
     end
   end
-  logger.debug("|git.resolve_host| stdout_map: %s", vim.inspect(stdout_map))
+  -- logger.debug("|git.resolve_host| stdout_map: %s", vim.inspect(stdout_map))
   local hostname = "hostname"
   if stdout_map[hostname] ~= nil then
     local alias_host = stdout_map[hostname]
