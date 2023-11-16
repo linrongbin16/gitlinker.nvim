@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v3.0.0...v3.0.1) (2023-11-16)
+
+
+### Performance Improvements
+
+* **routers:** add placeholder to avoid loop call ([#121](https://github.com/linrongbin16/gitlinker.nvim/issues/121)) ([e605210](https://github.com/linrongbin16/gitlinker.nvim/commit/e605210941057849491cca4d7f44c0e09f363a69))
+
 ## [3.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v2.1.0...v3.0.0) (2023-11-16)
 
 
