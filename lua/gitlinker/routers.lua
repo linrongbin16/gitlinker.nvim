@@ -111,11 +111,7 @@ local function bitbucket_browse(lk)
   return builder:build("src")
 end
 
-local BROWSE_BINDING = {
-  ["^github%.com"] = github_browse,
-  ["^gitlab%.com"] = gitlab_browse,
-  ["^bitbucket%.org"] = bitbucket_browse,
-}
+local BROWSE_BINDING = {}
 
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @param lk gitlinker.Linker
@@ -126,7 +122,11 @@ local function browse(lk)
       return route(lk)
     end
   end
-  logger.ensure(false, "browse host %s not supported!", vim.inspect(lk.host))
+  logger.ensure(
+    false,
+    "%s not support, please bind it in 'router_binding'!",
+    vim.inspect(lk.host)
+  )
   return nil
 end
 
@@ -165,16 +165,26 @@ local function blame(lk)
       return route(lk)
     end
   end
-  logger.ensure(false, "blame host %s not supported!", vim.inspect(lk.host))
+  logger.ensure(
+    false,
+    "%s not support, please bind it in 'router_binding'!",
+    vim.inspect(lk.host)
+  )
   return nil
 end
 
 --- @param router_binding gitlinker.Options
 local function setup(router_binding)
-  BROWSE_BINDING =
-    vim.list_extend(vim.deepcopy(BROWSE_BINDING), router_binding.browse or {})
-  BLAME_BINDING =
-    vim.list_extend(vim.deepcopy(BLAME_BINDING), router_binding.blame or {})
+  BROWSE_BINDING = vim.tbl_extend(
+    "force",
+    vim.deepcopy(BROWSE_BINDING),
+    router_binding.browse or {}
+  )
+  BLAME_BINDING = vim.tbl_extend(
+    "force",
+    vim.deepcopy(BLAME_BINDING),
+    router_binding.blame or {}
+  )
 end
 
 local M = {

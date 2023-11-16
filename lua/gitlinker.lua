@@ -34,8 +34,16 @@ local Defaults = {
   --
   --- @type table<"browse"|"blame", table<string, gitlinker.Router>>
   router_binding = {
-    browse = {},
-    blame = {},
+    browse = {
+      ["^github%.com"] = require("gitlinker.routers").github_browse,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
+    },
+    blame = {
+      ["^github%.com"] = require("gitlinker.routers").github_blame,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
+    },
   },
 
   -- enable debug
@@ -78,7 +86,30 @@ end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
+  local browse_bindings = vim.deepcopy(Defaults.router_binding.browse)
+  local blame_bindings = vim.deepcopy(Defaults.router_binding.blame)
+  local user_browse_bindings = (
+    type(opts) == "table"
+    and type(opts.router_binding) == "table"
+    and type(opts.router_binding.browse) == "table"
+  )
+      and vim.deepcopy(opts.router_binding.browse)
+    or {}
+  local user_blame_bindings = (
+    type(opts) == "table"
+    and type(opts.router_binding) == "table"
+    and type(opts.router_binding.blame) == "table"
+  )
+      and vim.deepcopy(opts.router_binding.blame)
+    or {}
+  browse_bindings =
+    vim.tbl_extend("force", browse_bindings, user_browse_bindings)
+  blame_bindings = vim.tbl_extend("force", blame_bindings, user_blame_bindings)
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
+  Configs.router_binding = {
+    browse = browse_bindings,
+    blame = blame_bindings,
+  }
 
   -- logger
   logger.setup({
@@ -144,6 +175,10 @@ local function link(opts)
   end
 
   local router = opts.router or require("gitlinker.routers").browse
+  if not router then
+    return nil
+  end
+
   local ok, url = pcall(router, lk)
   logger.ensure(
     ok and type(url) == "string" and string.len(url) > 0,

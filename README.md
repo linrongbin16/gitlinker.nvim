@@ -178,15 +178,16 @@ require('gitlinker').setup({
   },
 
   -- router bindings
-  --
   router_binding = {
     browse = {
-      -- -- add your host here
-      -- ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
+      ["^github%.com"] = require("gitlinker.routers").github_browse,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
     },
     blame = {
-      -- -- add your host here
-      -- ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
+      ["^github%.com"] = require("gitlinker.routers").github_blame,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
     },
   },
 
