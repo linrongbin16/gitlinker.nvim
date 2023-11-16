@@ -92,28 +92,32 @@ end
 
 --- @param lk gitlinker.Linker
 --- @return string
-local function _github_browse(lk)
+local function github_browse(lk)
   local builder = Builder:new(lk, LC_range)
   return builder:build("blob")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
-local function _bitbucket_browse(lk)
+local function gitlab_browse(lk)
+  local builder = Builder:new(lk, LC_range)
+  return builder:build("blob")
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function bitbucket_browse(lk)
   local builder = Builder:new(lk, lines_range)
   return builder:build("src")
 end
 
-local BROWSE_MAP = {
-  ["^github"] = _github_browse,
-  ["^gitlab"] = _github_browse,
-  ["^bitbucket"] = _bitbucket_browse,
-}
+local BROWSE_BINDING = {}
 
+--- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @param lk gitlinker.Linker
 --- @return string?
 local function browse(lk)
-  for pattern, route in pairs(BROWSE_MAP) do
+  for pattern, route in pairs(BROWSE_BINDING) do
     if string.match(lk.host, pattern) then
       return route(lk)
     end
@@ -124,28 +128,31 @@ end
 
 --- @param lk gitlinker.Linker
 --- @return string
-local function _github_blame(lk)
+local function github_blame(lk)
   local builder = Builder:new(lk, LC_range)
   return builder:build("blame")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
-local function _bitbucket_blame(lk)
+local function gitlab_blame(lk)
+  local builder = Builder:new(lk, LC_range)
+  return builder:build("blame")
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function bitbucket_blame(lk)
   local builder = Builder:new(lk, lines_range)
   return builder:build("annotation")
 end
 
-local BLAME_MAP = {
-  ["^github"] = _github_blame,
-  ["^gitlab"] = _github_blame,
-  ["^bitbucket"] = _bitbucket_blame,
-}
+local BLAME_BINDING = {}
 
 --- @param lk gitlinker.Linker
 --- @return string?
 local function blame(lk)
-  for pattern, route in pairs(BLAME_MAP) do
+  for pattern, route in pairs(BLAME_BINDING) do
     if string.match(lk.host, pattern) then
       return route(lk)
     end
@@ -154,7 +161,15 @@ local function blame(lk)
   return nil
 end
 
+--- @param router_binding gitlinker.Options
+local function setup(router_binding)
+  BROWSE_BINDING = router_binding.browse
+  BLAME_BINDING = router_binding.blame
+end
+
 local M = {
+  setup = setup,
+
   -- Builder
   Builder = Builder,
 
@@ -162,8 +177,16 @@ local M = {
   LC_range = LC_range,
   lines_range = lines_range,
 
-  -- routers
+  -- browse: /blob, /src
+  github_browse = github_browse,
+  gitlab_browse = gitlab_browse,
+  bitbucket_browse = bitbucket_browse,
   browse = browse,
+
+  -- blame: /blame, /annotation
+  github_blame = github_blame,
+  gitlab_blame = gitlab_blame,
+  bitbucket_blame = bitbucket_blame,
   blame = blame,
 }
 

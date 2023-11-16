@@ -3,8 +3,8 @@ local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
 local deprecation = require("gitlinker.deprecation")
 
---- @alias Options table<any, any>
---- @type Options
+--- @alias gitlinker.Options table<any, any>
+--- @type gitlinker.Options
 local Defaults = {
   -- print permanent url in command line
   --
@@ -18,8 +18,7 @@ local Defaults = {
 
   -- key mappings
   --
-  --- @alias KeyMappingConfig {action:fun(url:string):nil,desc:string?}
-  --- @type table<string, KeyMappingConfig>
+  --- @type table<string, {action:gitlinker.Action,desc:string?}>
   mapping = {
     ["<leader>gl"] = {
       action = require("gitlinker.actions").clipboard,
@@ -28,6 +27,22 @@ local Defaults = {
     ["<leader>gL"] = {
       action = require("gitlinker.actions").system,
       desc = "Open git link in browser",
+    },
+  },
+
+  -- router bindings
+  --
+  --- @type table<"browse"|"blame", table<string, gitlinker.Router>>
+  router_binding = {
+    browse = {
+      ["^github%.com"] = require("gitlinker.routers").github_browse,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
+    },
+    blame = {
+      ["^github%.com"] = require("gitlinker.routers").github_blame,
+      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
+      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
     },
   },
 
@@ -47,10 +62,10 @@ local Defaults = {
   file_log = false,
 }
 
---- @type Options
+--- @type gitlinker.Options
 local Configs = {}
 
---- @param opts Options
+--- @param opts gitlinker.Options
 local function deprecated_notification(opts)
   if type(opts) == "table" and opts.pattern_rules ~= nil then
     deprecation.notify(
@@ -69,7 +84,7 @@ local function deprecated_notification(opts)
   end
 end
 
---- @param opts Options?
+--- @param opts gitlinker.Options?
 local function setup(opts)
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
 
@@ -79,6 +94,9 @@ local function setup(opts)
     console_log = Configs.console_log,
     file_log = Configs.file_log,
   })
+
+  -- router binding
+  require("gitlinker.routers").setup(Configs.router_binding or {})
 
   local key_mappings = nil
   if type(opts) == "table" and opts["mapping"] ~= nil then
@@ -118,7 +136,7 @@ local function setup(opts)
   deprecated_notification(Configs)
 end
 
---- @param opts Options?
+--- @param opts gitlinker.Options?
 --- @return string?
 local function link(opts)
   opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
