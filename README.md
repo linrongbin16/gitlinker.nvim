@@ -228,7 +228,7 @@ hi link NvimGitLinkerHighlightTextObject Constant
 
 ### Self-Host Git Hosts
 
-For self-host git host websites, please specify bindings in `router` option.
+For self-host git host websites, please add more bindings in `router` option.
 
 Below example shows how to apply the github style routers to a self-host github websites, e.g. `github.your.host`:
 
