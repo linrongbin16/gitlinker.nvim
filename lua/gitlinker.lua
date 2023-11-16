@@ -15,20 +15,15 @@ local Defaults = {
 
   -- user command
   command = {
-    -- by default 'GitLink' will copy link to clipboard with browse router
+    -- to copy link to clipboard, use: 'GitLink'
     -- to open link in browser, use bang: 'GitLink!'
-    -- to use blame router, use: 'GitLink router=blame'.
-    -- to use browse router, use: 'GitLink router=browse' (which is the default router).
+    -- to use blame router, use: 'GitLink blame'
+    -- to use browse router, use: 'GitLink browse' (which is the default router)
     name = "GitLink",
     desc = "Generate git permanent link",
-
-    -- to fully customize the generated url, please override below routers.
-    router = {
-      browse = require("gitlinker.routers").browse,
-      blame = require("gitlinker.routers").blame,
-    },
   },
 
+  --- @deprecated please use to 'GitLink'
   -- key mappings
   mapping = {
     ["<leader>gl"] = {
@@ -42,7 +37,7 @@ local Defaults = {
   },
 
   -- router bindings
-  router_binding = {
+  router = {
     browse = {
       ["^github%.com"] = require("gitlinker.routers").github_browse,
       ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
@@ -156,31 +151,75 @@ local function _parse_command_input(args)
 end
 
 --- @param opts gitlinker.Options?
-local function setup(opts)
-  local browse_bindings = vim.deepcopy(Defaults.router_binding.browse)
-  local blame_bindings = vim.deepcopy(Defaults.router_binding.blame)
-  local user_browse_bindings = (
+--- @return gitlinker.Options
+local function _merge_routers(opts)
+  -- browse
+  local browse_routers = vim.deepcopy(Defaults.router.browse)
+  local browse_router_binding_opts = {}
+  if
     type(opts) == "table"
     and type(opts.router_binding) == "table"
     and type(opts.router_binding.browse) == "table"
+  then
+    deprecation.notify(
+      "'router_binding' is renamed to 'router', please update to latest configs!"
+    )
+    browse_router_binding_opts = vim.deepcopy(opts.router_binding.browse)
+  end
+  local browse_router_opts = (
+    type(opts) == "table"
+    and type(opts.router) == "table"
+    and type(opts.router.browse) == "table"
   )
-      and vim.deepcopy(opts.router_binding.browse)
+      and vim.deepcopy(opts.router.browse)
     or {}
-  local user_blame_bindings = (
+  browse_routers = vim.tbl_extend(
+    "force",
+    vim.deepcopy(browse_routers),
+    browse_router_binding_opts
+  )
+  browse_routers =
+    vim.tbl_extend("force", vim.deepcopy(browse_routers), browse_router_opts)
+
+  -- blame
+  local blame_routers = vim.deepcopy(Defaults.router.blame)
+  local blame_router_binding_opts = {}
+  if
     type(opts) == "table"
     and type(opts.router_binding) == "table"
     and type(opts.router_binding.blame) == "table"
+  then
+    deprecation.notify(
+      "'router_binding' is renamed to 'router', please update to latest configs!"
+    )
+    blame_router_binding_opts = vim.deepcopy(opts.router_binding.blame)
+  end
+  local blame_router_opts = (
+    type(opts) == "table"
+    and type(opts.router) == "table"
+    and type(opts.router.blame) == "table"
   )
-      and vim.deepcopy(opts.router_binding.blame)
+      and vim.deepcopy(opts.router.blame)
     or {}
-  browse_bindings =
-    vim.tbl_extend("force", browse_bindings, user_browse_bindings)
-  blame_bindings = vim.tbl_extend("force", blame_bindings, user_blame_bindings)
-  Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
-  Configs.router_binding = {
-    browse = browse_bindings,
-    blame = blame_bindings,
+  blame_routers = vim.tbl_extend(
+    "force",
+    vim.deepcopy(blame_routers),
+    blame_router_binding_opts
+  )
+  blame_routers =
+    vim.tbl_extend("force", vim.deepcopy(blame_routers), blame_router_opts)
+
+  return {
+    browse = browse_routers,
+    blame = blame_routers,
   }
+end
+
+--- @param opts gitlinker.Options?
+local function setup(opts)
+  local router_configs = _merge_routers(opts)
+  Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
+  Configs.router = router_configs
 
   -- logger
   logger.setup({
@@ -194,15 +233,20 @@ local function setup(opts)
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
-    logger.debug("command opts:%s", vim.inspect(command_opts))
-    local parsed_args = _parse_command_input(command_opts.args)
-    local router = Configs.command.router.browse
-    if type(parsed_args) == "table" then
-      if parsed_args.router == "browse" then
-        router = Configs.command.router.browse
-      elseif parsed_args.router == "blame" then
-        router = Configs.command.router.blame
-      end
+    local parsed_args = (
+      type(command_opts.args) == "string"
+      and string.len(command_opts.args) > 0
+    )
+        and vim.trim(command_opts.args)
+      or nil
+    logger.debug(
+      "command opts:%s, parsed:%s",
+      vim.inspect(command_opts),
+      vim.inspect(parsed_args)
+    )
+    local router = require("gitlinker.routers").browse
+    if parsed_args == "blame" then
+      router = require("gitlinker.routers").blame
     end
     local action = require("gitlinker.actions").clipboard
     if command_opts.bang then
