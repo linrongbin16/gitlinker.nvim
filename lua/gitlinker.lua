@@ -120,7 +120,7 @@ local function link(opts)
     vim.defer_fn(highlight.clear, Configs.highlight_duration)
   end
 
-  if opts.message then
+  if Configs.message then
     local msg = lk.file_changed
         and string.format("%s (lines can be wrong due to file change)", url)
       or url
@@ -128,27 +128,6 @@ local function link(opts)
   end
 
   return url
-end
-
---- @param args string
---- @return {router:"browse"|"blame"}?
-local function _parse_command_input(args)
-  if type(args) ~= "string" or string.len(args) == 0 then
-    return nil
-  end
-  local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
-  for _, a in ipairs(args_splits) do
-    if utils.string_startswith(a, "router=", { ignorecase = true }) then
-      local router = a:sub(string.len("router=") + 1)
-      assert(
-        router == "browse" or router == "blame",
-        "unknown args %s!",
-        vim.inspect(router)
-      )
-      return { router = router }
-    end
-  end
-  return nil
 end
 
 --- @param opts gitlinker.Options?
@@ -253,7 +232,6 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     end
-    logger.debug("|setup| keymap v:%s", vim.inspect(v))
     link({ action = action, router = router })
   end, {
     nargs = "*",
@@ -269,6 +247,7 @@ local function setup(opts)
       key_mappings = opts["mapping"]
     end
   else
+    ---@diagnostic disable-next-line: deprecated
     key_mappings = Defaults.mapping
   end
 
