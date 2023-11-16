@@ -2,6 +2,7 @@ local logger = require("gitlinker.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
 local deprecation = require("gitlinker.deprecation")
+local utils = require("gitlinker.utils")
 
 --- @alias gitlinker.Options table<any, any>
 --- @type gitlinker.Options
@@ -15,6 +16,17 @@ local Defaults = {
   --
   --- @type integer
   highlight_duration = 500,
+
+  -- highlight group, by default link to `Search`
+  highlight_group = {
+    NvimGitLinkerHighlightTextObject = { link = "Search" },
+  },
+
+  -- user command
+  command = {
+    name = "GitLink",
+    desc = "Generate git permanent link",
+  },
 
   -- key mappings
   --
@@ -84,6 +96,9 @@ local function deprecated_notification(opts)
   end
 end
 
+--- @param args string
+local function parse_command_input(args) end
+
 --- @param opts gitlinker.Options?
 local function setup(opts)
   local browse_bindings = vim.deepcopy(Defaults.router_binding.browse)
@@ -121,6 +136,18 @@ local function setup(opts)
   -- router binding
   require("gitlinker.routers").setup(Configs.router_binding or {})
 
+  -- command
+  vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
+    logger.debug("command opts:%s", vim.insepct(command_opts))
+    local args = command_opts.args
+  end, {
+    args = "*",
+    range = true,
+    bang = true,
+    desc = Configs.command.desc,
+  })
+
+  -- key mappings
   local key_mappings = nil
   if type(opts) == "table" and opts["mapping"] ~= nil then
     if type(opts["mapping"]) == "table" then
@@ -130,7 +157,6 @@ local function setup(opts)
     key_mappings = Defaults.mapping
   end
 
-  -- key mapping
   if type(key_mappings) == "table" then
     for k, v in pairs(key_mappings) do
       local opt = {
@@ -148,9 +174,9 @@ local function setup(opts)
 
   -- Configure highlight group
   if Configs.highlight_duration > 0 then
-    local hl_name = "NvimGitLinkerHighlightTextObject"
-    if not highlight.hl_group_exists(hl_name) then
-      vim.api.nvim_set_hl(0, hl_name, { link = "Search" })
+    local hl_group = "NvimGitLinkerHighlightTextObject"
+    if not highlight.hl_group_exists(hl_group) then
+      vim.api.nvim_set_hl(0, hl_group, Configs.highlight_group[hl_group])
     end
   end
 

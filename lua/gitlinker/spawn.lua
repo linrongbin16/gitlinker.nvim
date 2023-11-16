@@ -1,35 +1,6 @@
 -- port from: https://github.com/linrongbin16/fzfx.nvim/main/lua/fzfx/utils.lua
 
---- @param s string
---- @param t string
---- @param start integer?
---- @return integer?
-local function string_find(s, t, start)
-  -- start = start or 1
-  -- local result = vim.fn.stridx(s, t, start - 1)
-  -- return result >= 0 and (result + 1) or nil
-
-  start = start or 1
-  for i = start, #s do
-    local match = true
-    for j = 1, #t do
-      if i + j - 1 > #s then
-        match = false
-        break
-      end
-      local a = string.byte(s, i + j - 1)
-      local b = string.byte(t, j)
-      if a ~= b then
-        match = false
-        break
-      end
-    end
-    if match then
-      return i
-    end
-  end
-  return nil
-end
+local utils = require("gitlinker.utils")
 
 --- @param filename string
 --- @param opts {trim:boolean?}|nil
@@ -116,7 +87,7 @@ end
 function Spawn:_consume_line(buffer, fn_line_processor)
   local i = 1
   while i <= #buffer do
-    local newline_pos = string_find(buffer, "\n", i)
+    local newline_pos = utils.string_find(buffer, "\n", i)
     if not newline_pos then
       break
     end
@@ -250,7 +221,6 @@ function Spawn:run()
 end
 
 local M = {
-  string_find = string_find,
   readfile = readfile,
   readlines = readlines,
   Spawn = Spawn,
