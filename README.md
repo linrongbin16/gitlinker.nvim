@@ -130,7 +130,7 @@ These two operations are already defined in key mappings:
 > Note:
 >
 > - `browse` could generate other urls for other git host websites, e.g., `/src` for bitbucket.org.
-> - `blame` could generate other urls for other git host websites, e.g., `/annotation` for bitbucket.org.
+> - `blame` could generate other urls for other git host websites, e.g., `/annotate` for bitbucket.org.
 
 ### API
 

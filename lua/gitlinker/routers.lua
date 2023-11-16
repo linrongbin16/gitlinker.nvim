@@ -77,7 +77,7 @@ function Builder:new(lk, range_maker)
   return o
 end
 
---- @param url "blob"|"blame"|"src"|"annotation"
+--- @param url "blob"|"blame"|"src"|"annotate"
 --- @return string
 function Builder:build(url)
   return table.concat({
@@ -148,7 +148,7 @@ end
 --- @return string
 local function bitbucket_blame(lk)
   local builder = Builder:new(lk, lines_range)
-  return builder:build("annotation")
+  return builder:build("annotate")
 end
 
 local BLAME_BINDING = {
@@ -193,7 +193,7 @@ local M = {
   bitbucket_browse = bitbucket_browse,
   browse = browse,
 
-  -- blame: /blame, /annotation
+  -- blame: /blame, /annotate
   github_blame = github_blame,
   gitlab_blame = gitlab_blame,
   bitbucket_blame = bitbucket_blame,
