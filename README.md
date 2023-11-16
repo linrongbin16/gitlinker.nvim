@@ -324,7 +324,7 @@ require('gitlinker').setup({
 
 ### Fully Customize Urls
 
-To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct a string from below components:
+To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
 
 - Protocol: "git", "https", etc.
 - Host: "github.com", "gitlab.com", "bitbucket.org", etc.
