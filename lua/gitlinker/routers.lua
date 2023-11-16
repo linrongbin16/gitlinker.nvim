@@ -139,10 +139,12 @@ local function browse(lk, _placeholder)
       return route(lk)
     end
   end
-  logger.ensure(
+  assert(
     false,
-    "%s not support, please bind it in 'router_binding'!",
-    vim.inspect(lk.host)
+    string.format(
+      "%s not support, please bind it in 'router_binding'!",
+      vim.inspect(lk.host)
+    )
   )
   return nil
 end
@@ -187,10 +189,12 @@ local function blame(lk, _placeholder)
       return route(lk)
     end
   end
-  logger.ensure(
+  assert(
     false,
-    "%s not support, please bind it in 'router_binding'!",
-    vim.inspect(lk.host)
+    string.format(
+      "%s not support, please bind it in 'router_binding'!",
+      vim.inspect(lk.host)
+    )
   )
   return nil
 end
@@ -202,23 +206,11 @@ local function setup(router_binding)
     vim.deepcopy(BROWSE_BINDING),
     router_binding.browse or {}
   )
-  for _, route in pairs(BROWSE_BINDING) do
-    logger.ensure(
-      route ~= browse,
-      "must not use 'browse' itself in 'router_binding.browse'! please use other implementations e.g. github_browse, bitbucket_browse, etc."
-    )
-  end
   BLAME_BINDING = vim.tbl_extend(
     "force",
     vim.deepcopy(BLAME_BINDING),
     router_binding.blame or {}
   )
-  for _, route in pairs(BLAME_BINDING) do
-    logger.ensure(
-      route ~= blame,
-      "must not use 'blame' itself in 'router_binding.blame'! please use other implementations e.g. github_blame, bitbucket_blame, etc."
-    )
-  end
 end
 
 local M = {
