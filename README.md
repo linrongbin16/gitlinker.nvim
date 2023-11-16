@@ -364,7 +364,7 @@ require('gitlinker').setup({
 })
 ```
 
-> Note: the `Builder` is an internal string helper class, but there's no guarantee the internal class/function signature is stable.
+> Note: the `Builder` is an internal string helper class, there's no guarantee the internal class/function signature is stable.
 
 ## Highlight Group
 
