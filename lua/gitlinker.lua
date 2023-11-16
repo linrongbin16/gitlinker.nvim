@@ -82,17 +82,12 @@ local function deprecated_notification(opts)
   end
 end
 
---- @param opts gitlinker.Options?
+--- @param opts {action:gitlinker.Action,router:gitlinker.Router?}
 --- @return string?
 local function link(opts)
-  opts = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
-  deprecated_notification(opts)
 
-  local range = (type(opts.lstart) == "number" and type(opts.lend) == "number")
-      and { lstart = opts.lstart, lend = opts.lend }
-    or nil
-  local lk = linker.make_linker(range)
+  local lk = linker.make_linker()
   if not lk then
     return nil
   end
@@ -103,6 +98,12 @@ local function link(opts)
   end
 
   local ok, url = pcall(router, lk, true)
+  logger.debug(
+    "|link| ok:%s, url:%s, router:%s",
+    vim.inspect(ok),
+    vim.inspect(url),
+    vim.inspect(router)
+  )
   logger.ensure(
     ok and type(url) == "string" and string.len(url) > 0,
     "fatal: failed to generate permanent url from remote url (%s): %s",
@@ -111,12 +112,12 @@ local function link(opts)
   )
 
   if opts.action then
-    opts.action(url)
+    opts.action(url --[[@as string]])
   end
 
-  if opts.highlight_duration > 0 then
+  if Configs.highlight_duration > 0 then
     highlight.show({ lstart = lk.lstart, lend = lk.lend })
-    vim.defer_fn(highlight.clear, opts.highlight_duration)
+    vim.defer_fn(highlight.clear, Configs.highlight_duration)
   end
 
   if opts.message then
@@ -252,6 +253,7 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     end
+    logger.debug("|setup| keymap v:%s", vim.inspect(v))
     link({ action = action, router = router })
   end, {
     nargs = "*",
@@ -283,6 +285,7 @@ local function setup(opts)
         deprecation.notify(
           "'mapping' option is deprecated! please migrate to 'GitLink' command."
         )
+        logger.debug("|setup| keymap v:%s", vim.inspect(v))
         link({ action = v.action, router = v.router })
       end, opt)
     end
