@@ -49,7 +49,7 @@ PRs are welcomed for other git host websites!
    - Customize/disable default key mappings.
 2. New Features:
    - Windows support.
-   - Respect git alias host.
+   - Respect ssh config alias host.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
 3. Improvements:
