@@ -15,7 +15,7 @@ A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable
 
 Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156.
 
-![gitlinker](https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/31735f33-a59f-42b1-9274-875817ac1406)
+![gitlinker](https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/0d83fd82-4726-4dae-a70d-2c07236981b6)
 
 For now supported platforms are:
 
