@@ -208,12 +208,7 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     end
-    link({
-      action = action,
-      router = router,
-      lstart = command_opts.line1,
-      lend = command_opts.line2,
-    })
+    link({ action = action, router = router })
   end, {
     nargs = "*",
     range = true,
