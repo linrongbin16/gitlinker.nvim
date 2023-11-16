@@ -273,7 +273,7 @@ local function string_endswith(s, t)
 end
 
 --- @param lk gitlinker.Linker
-local function asdf(lk)
+local function your_router(lk)
   local builder = ""
   -- protocol: 'git', 'http', 'https'
   builder = builder
@@ -301,6 +301,12 @@ local function asdf(lk)
   end
   return builder
 end
+
+require('gitlinker').setup({
+  router = {
+    ["^github%.your%.host"] = your_router,
+  }
+})
 ```
 
 ## Highlight Group
