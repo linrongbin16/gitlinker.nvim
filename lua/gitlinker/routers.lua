@@ -77,7 +77,7 @@ function Builder:new(lk, range_maker)
   return o
 end
 
---- @param url "blob"|"blame"|"src"
+--- @param url "blob"|"blame"|"src"|"annotation"
 --- @return string
 function Builder:build(url)
   return table.concat({
