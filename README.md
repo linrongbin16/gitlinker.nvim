@@ -13,7 +13,7 @@
 
 A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-Here's an example of git permalink: [https://github.com/linrongbin16/gitlinker.nvim/blob/dbe1b9356fb683e83b467311b5ab1adf5c604279/lua/gitlinker.lua#L1-L9](https://github.com/linrongbin16/gitlinker.nvim/blob/dbe1b9356fb683e83b467311b5ab1adf5c604279/lua/gitlinker.lua#L1-L9).
+Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156.
 
 ![gitlinker](https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/31735f33-a59f-42b1-9274-875817ac1406)
 
