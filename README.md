@@ -326,10 +326,10 @@ require('gitlinker').setup({
 
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
 
-- Protocol: "git", "https", etc.
-- Host: "github.com", "gitlab.com", "bitbucket.org", etc.
-- User: "linrongbin16" (for this plugin), "neovim" (for [neovim](https://github.com/neovim/neovim)), etc.
-- Repo: "gitlinker.nvim" (for this plugin), "neovim" (for [neovim](https://github.com/neovim/neovim)), etc.
+- Protocol: `git`, `https`, etc.
+- Host: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
+- User: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
+- Repo: `gitlinker.nvim`, `neovim`, etc.
 - Rev: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - File name: file path, e.g. `lua/gitlinker/routers.lua`.
 - Line range: start/end line numbers, e.g. `#L37-L156`.
