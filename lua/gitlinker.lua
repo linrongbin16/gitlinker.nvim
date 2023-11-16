@@ -77,17 +77,17 @@ local Configs = {}
 local function deprecated_notification(opts)
   if type(opts) == "table" and opts.pattern_rules ~= nil then
     deprecation.notify(
-      "'pattern_rules' is deprecated! please migrate to latest configs."
+      "'pattern_rules' option is deprecated! please migrate to latest configs."
     )
   end
   if type(opts) == "table" and opts.override_rules ~= nil then
     deprecation.notify(
-      "'override_rules' is deprecated! please migrate to latest configs."
+      "'override_rules' option is deprecated! please migrate to latest configs."
     )
   end
   if type(opts) == "table" and opts.custom_rules ~= nil then
     deprecation.notify(
-      "'custom_rules' is deprecated! please migrate to latest configs."
+      "'custom_rules' option is deprecated! please migrate to latest configs."
     )
   end
 end
@@ -194,6 +194,9 @@ local function setup(opts)
         opt.desc = v.desc
       end
       vim.keymap.set({ "n", "v" }, k, function()
+        deprecation.notify(
+          "'mapping' option is deprecated! please migrate to 'GitLink' command."
+        )
         require("gitlinker").link({ action = v.action, router = v.router })
       end, opt)
     end
