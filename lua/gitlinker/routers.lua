@@ -124,7 +124,10 @@ local function browse(lk, _placeholder)
   -- )
   assert(
     type(_placeholder) == "boolean" and _placeholder,
-    string.format("the second param %s must be true", vim.inspect(_placeholder))
+    string.format(
+      "%s must be true, make sure you didn't set this function in 'router_binding'",
+      vim.inspect(_placeholder)
+    )
   )
   for pattern, route in pairs(BROWSE_BINDING) do
     if string.match(lk.host, pattern) then
@@ -174,7 +177,10 @@ local function blame(lk, _placeholder)
   -- logger.debug("|routers.blame| BLAME_BINDING:%s", vim.inspect(BLAME_BINDING))
   assert(
     type(_placeholder) == "boolean" and _placeholder,
-    string.format("the second param %s must be true", vim.inspect(_placeholder))
+    string.format(
+      "%s must be true, make sure you didn't set this function in 'router_binding'",
+      vim.inspect(_placeholder)
+    )
   )
   for pattern, route in pairs(BLAME_BINDING) do
     if string.match(lk.host, pattern) then
