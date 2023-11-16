@@ -117,8 +117,17 @@ local BROWSE_BINDING = {}
 --- @param lk gitlinker.Linker
 --- @return string?
 local function browse(lk)
+  -- logger.debug(
+  --   "|routers.browse| BROWSE_BINDING:%s",
+  --   vim.inspect(BROWSE_BINDING)
+  -- )
   for pattern, route in pairs(BROWSE_BINDING) do
     if string.match(lk.host, pattern) then
+      logger.debug(
+        "|routers.browse| match router:%s with pattern:%s",
+        vim.inspect(route),
+        vim.inspect(pattern)
+      )
       return route(lk)
     end
   end
@@ -151,15 +160,12 @@ local function bitbucket_blame(lk)
   return builder:build("annotate")
 end
 
-local BLAME_BINDING = {
-  ["^github%.com"] = github_blame,
-  ["^gitlab%.com"] = gitlab_blame,
-  ["^bitbucket%.org"] = bitbucket_blame,
-}
+local BLAME_BINDING = {}
 
 --- @param lk gitlinker.Linker
 --- @return string?
 local function blame(lk)
+  logger.debug("|routers.blame| BLAME_BINDING:%s", vim.inspect(BLAME_BINDING))
   for pattern, route in pairs(BLAME_BINDING) do
     if string.match(lk.host, pattern) then
       return route(lk)
@@ -180,11 +186,23 @@ local function setup(router_binding)
     vim.deepcopy(BROWSE_BINDING),
     router_binding.browse or {}
   )
+  for _, route in pairs(BROWSE_BINDING) do
+    logger.ensure(
+      route ~= browse,
+      "must not use 'browse' itself in 'router_binding.browse'! please use other implementations e.g. github_browse, bitbucket_browse, etc."
+    )
+  end
   BLAME_BINDING = vim.tbl_extend(
     "force",
     vim.deepcopy(BLAME_BINDING),
     router_binding.blame or {}
   )
+  for _, route in pairs(BLAME_BINDING) do
+    logger.ensure(
+      route ~= blame,
+      "must not use 'blame' itself in 'router_binding.blame'! please use other implementations e.g. github_blame, bitbucket_blame, etc."
+    )
+  end
 end
 
 local M = {
