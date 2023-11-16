@@ -44,8 +44,25 @@ end
 --- @return integer?
 local function string_find(s, t, start)
   start = start or 1
-  local result = vim.fn.stridx(s, t, start - 1)
-  return result >= 0 and (result + 1) or nil
+  for i = start, #s do
+    local match = true
+    for j = 1, #t do
+      if i + j - 1 > #s then
+        match = false
+        break
+      end
+      local a = string.byte(s, i + j - 1)
+      local b = string.byte(t, j)
+      if a ~= b then
+        match = false
+        break
+      end
+    end
+    if match then
+      return i
+    end
+  end
+  return nil
 end
 
 --- @param filename string
