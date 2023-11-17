@@ -26,44 +26,45 @@ local Defaults = {
   -- router bindings
   router = {
     browse = {
+      -- example: https://github.com/linrongbin16/gitlinker.nvim.git/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blob/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
       ["^gitlab%.com"] = "https://github.com/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blob/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/src/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/src/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
     },
     blame = {
       ["^github%.com"] = "https://github.com/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blame/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blame/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
       ["^gitlab%.com"] = "https://github.com/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blame/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blame/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{{_A.USER}}/"
-        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/annotate/"
-        .. "{{_A.REV}}/"
-        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
-        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+        .. "{_A.USER}/"
+        .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/annotate/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
     },
   },
 
@@ -103,8 +104,8 @@ end
 --- @param template string
 --- @return string
 local function _url_template_engine(lk, template)
-  local OPEN_BRACE = "{{"
-  local CLOSE_BRACE = "}}"
+  local OPEN_BRACE = "{"
+  local CLOSE_BRACE = "}"
   if type(template) ~= "string" or string.len(template) == 0 then
     return template
   end
