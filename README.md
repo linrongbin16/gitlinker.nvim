@@ -286,13 +286,13 @@ There're 3 group builtin APIs you can directly use:
 
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
 
-- Protocol: `git@`, `ssh://git@`, `https`, etc.
-- Host: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
-- User: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
-- Repo: `gitlinker.nvim.git`, `neovim.git`, etc.
-- Rev: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
-- File name: file path, e.g. `lua/gitlinker/routers.lua`.
-- Line range: start/end line numbers, e.g. `#L37-L156`.
+- `protocol`: `git@`, `ssh://git@`, `https`, etc.
+- `host`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
+- `user`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
+- `repo`: `gitlinker.nvim.git`, `neovim.git`, etc.
+- `rev`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
+- `file`: file name, e.g. `lua/gitlinker/routers.lua`.
+- `lstart`/`lend`: start/end line numbers, e.g. `#L37-L156`.
 
 For example you can customize the line numbers in form `&line=1&lines-count=2` like this:
 
@@ -335,16 +335,16 @@ end
 
 require('gitlinker').setup({
   router = {
-    ["^github%.your%.host"] = your_router,
+    browse = {
+      ["^github%.your%.host"] = your_router,
+    }
   }
 })
 ```
 
-### Url Template
+It seems quite a lot of engineering effort, isn't it?
 
-If there's no pre-defined router functions, it needs quite a lot of effort to build a self-host url string.
-
-You can also use the url template, which is much more easier (but it's hard to debug if the template has error):
+You can also use the url template, which should be easier (but the error message could be confusing if there's any syntax issue):
 
 ```lua
 require("gitlinker").setup({
@@ -356,9 +356,17 @@ require("gitlinker").setup({
 })
 ```
 
-> Note:
->
-> For easier writing, the `_A.REPO` has removed the `.git` suffix, the `_A.LEND` will always exist so no NPE throwed.
+The template string use curly braces `{}` to contains lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval).
+
+The available variables are the same with the `lk` parameter passing to hook functions, but in upper case, and with the `_A.` prefix:
+
+- `_A.PROTOCOL`: `git@`, `ssh://git@`, `https`, etc.
+- `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
+- `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
+- `_A.REPO`: `gitlinker.nvim`, `neovim`, etc. **Note: for easier writing, the `.git` suffix has been removed.**
+- `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
+- `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
+- `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`. **Note: for easier writing, the `_A.LEND` will always exists so no NPE will be throwed.**
 
 ## Highlight Group
 
