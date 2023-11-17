@@ -111,12 +111,10 @@ You could use below command:
 - `GitLink blame`: generate the `/blame` url and copy to clipboard.
 - `GitLink! blame`: generate the `/blame` url and open in browser.
 
-There're two arguments working with `GitLink` for now: `browse` and `blame`, they're called routers. By default `GitLink` use `browse` router, that's why simply use `GitLink` could generate the `/blob` url, instead of typing `GitLink browse`.
+There're two **routers** provided:
 
-Note:
-
-- `browse` router could also generate for other git host websites, e.g., `/src` for bitbucket.org.
-- `blame` router could also generate for other git host websites, e.g., `/annotate` for bitbucket.org.
+- `browse`: generate the `/blob` urls (default router in `GitLink`), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
+- `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
 
 <details>
 <summary><i>Click here to see recommended key mappings</i></summary>
