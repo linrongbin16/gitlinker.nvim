@@ -173,20 +173,58 @@ require('gitlinker').setup({
   -- router bindings
   router = {
     browse = {
-      ["^git@github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^git@gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^git@bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/src/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/src/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      ["^github%.com"] = "https://github.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}" -- '?plain=1'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      ["^gitlab%.com"] = "https://gitlab.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
+      ["^bitbucket%.org"] = "https://bitbucket.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/src/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#lines-{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
     },
     blame = {
-      ["^git@github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^git@gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^git@bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/annotate/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
-      ["^https://bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/annotate/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      ["^github%.com"] = "https://github.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blame/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      ["^gitlab%.com"] = "https://gitlab.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blame/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
+      ["^bitbucket%.org"] = "https://bitbucket.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/annotate/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#lines-{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
     },
   },
 
@@ -238,19 +276,20 @@ require('gitlinker').setup({
 })
 ```
 
-> Note:
->
-> - `github_browse` is a builtin router for [github.com](https://github.com/).
-> - the [lua pattern](https://www.lua.org/pil/20.2.html) needs to escape the `.` to `%.`.
+There're 3 group builtin APIs you can directly use:
+
+- `github_browse`/`github_blame`: for [github.com](https://github.com/).
+- `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
+- `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
 
 ### Fully Customize Urls
 
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
 
-- Protocol: `git`, `https`, etc.
+- Protocol: `git@`, `ssh://git@`, `https`, etc.
 - Host: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - User: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
-- Repo: `gitlinker.nvim`, `neovim`, etc.
+- Repo: `gitlinker.nvim.git`, `neovim.git`, etc.
 - Rev: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - File name: file path, e.g. `lua/gitlinker/routers.lua`.
 - Line range: start/end line numbers, e.g. `#L37-L156`.
@@ -300,6 +339,26 @@ require('gitlinker').setup({
   }
 })
 ```
+
+### Url Template
+
+If there's no pre-defined router functions, it needs quite a lot of effort to build a self-host url string.
+
+You can also use the url template, which is much more easier (but it's hard to debug if the template has error):
+
+```lua
+require("gitlinker").setup({
+  router = {
+    browse = {
+        ["^github%.your%.host"] = "https://github.your.host/{_A.USER}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}#L{_A.LSTART}{_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or ''}",
+    },
+  },
+})
+```
+
+> Note:
+>
+> For easier writing, the `_A.REPO` has removed the `.git` suffix, the `_A.LEND` will always exist so no NPE throwed.
 
 ## Highlight Group
 
