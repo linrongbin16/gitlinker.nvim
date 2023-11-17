@@ -2,6 +2,7 @@ local logger = require("gitlinker.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
 local deprecation = require("gitlinker.deprecation")
+local utils = require("gitlinker.utils")
 
 --- @alias gitlinker.Options table<any, any>
 --- @type gitlinker.Options
@@ -68,18 +69,142 @@ local function deprecated_notification(opts)
   end
 end
 
+--- @param lk gitlinker.Linker
+--- @param template string
+--- @return string
+local function _url_template_engine(lk, template)
+  local OPEN_BRACE = "{{"
+  local CLOSE_BRACE = "}}"
+  if type(template) ~= "string" or string.len(template) == 0 then
+    return template
+  end
+
+  --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
+  --- @type gitlinker.UrlTemplateExpr[]
+  local expressions = {}
+
+  local i = 1
+  local n = string.len(template)
+  while i <= n do
+    local open_pos = utils.string_find(template, OPEN_BRACE, i)
+    if not open_pos then
+      table.insert(
+        expressions,
+        { plain = true, body = string.sub(template, i) }
+      )
+      break
+    end
+    local close_pos = utils.string_find(
+      template,
+      CLOSE_BRACE,
+      open_pos + string.len(OPEN_BRACE)
+    )
+    assert(
+      type(close_pos) == "number" and close_pos > open_pos,
+      string.format(
+        "failed to evaluate url template(%s) at pos %d",
+        vim.inspect(template),
+        open_pos + string.len(OPEN_BRACE)
+      )
+    )
+    table.insert(expressions, {
+      plain = false,
+      body = string.sub(
+        template,
+        open_pos + string.len(OPEN_BRACE),
+        close_pos - 1
+      ),
+    })
+    logger.debug(
+      "|routers.url_template| expressions:%s (%d-%d)",
+      vim.inspect(expressions),
+      vim.inspect(open_pos),
+      vim.inspect(close_pos)
+    )
+    i = close_pos + string.len(CLOSE_BRACE)
+  end
+  logger.debug(
+    "|routers.url_template| final expressions:%s",
+    vim.inspect(expressions)
+  )
+
+  local results = {}
+  for _, exp in ipairs(expressions) do
+    if exp.plain then
+      table.insert(results, exp.body)
+    else
+      local formatted_exp = string.format(
+        [[
+  local luaargs = {...}
+  local REMOTE_URL = luaargs[1]
+  local PROTOCOL = luaargs[2]
+  local HOST = luaargs[3]
+  local USER = luaargs[4]
+  local REPO = luaargs[5]
+  local REV = luaargs[6]
+  local FILE = luaargs[7]
+  local LSTART = luaargs[8]
+  local LEND = luaargs[9]
+  local expressions = luaargs[10]
+  return %s
+        ]],
+        exp.body
+      )
+      local ok, evaluated = pcall(vim.api.nvim_exec_lua, formatted_exp, {
+        lk.remote_url,
+        lk.protocol,
+        lk.host,
+        lk.user,
+        lk.repo,
+        lk.rev,
+        lk.file,
+        lk.lstart,
+        lk.lend,
+      })
+      assert(
+        ok,
+        string.format(
+          "failed to evaluate url template(%s) with data: %s, error:%s",
+          vim.inspect(template),
+          vim.inspect(lk),
+          vim.inspect(evaluated)
+        )
+      )
+      table.insert(results, evaluated)
+    end
+  end
+
+  return table.concat(results, "")
+end
+
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _browse(lk)
   for pattern, route in pairs(Configs.router.browse) do
-    if string.match(lk.host, pattern) then
+    if
+      string.match(lk.host, pattern)
+      or string.match(lk.protocol .. lk.host, pattern)
+    then
       logger.debug(
         "|browse| match router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
-      return route(lk)
+      if type(route) == "function" then
+        return route(lk)
+      elseif type(route) == "string" then
+        return _url_template_engine(lk, route)
+      else
+        assert(
+          false,
+          string.format(
+            "unsupported router %s on pattern %s",
+            vim.inspect(route),
+            vim.inspect(pattern)
+          )
+        )
+      end
     end
   end
   assert(
@@ -96,13 +221,29 @@ end
 --- @return string?
 local function _blame(lk)
   for pattern, route in pairs(Configs.router.blame) do
-    if string.match(lk.host, pattern) then
+    if
+      string.match(lk.host, pattern)
+      or string.match(lk.protocol .. lk.host, pattern)
+    then
       logger.debug(
         "|blame| match router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
-      return route(lk)
+      if type(route) == "function" then
+        return route(lk)
+      elseif type(route) == "string" then
+        return _url_template_engine(lk, route)
+      else
+        assert(
+          false,
+          string.format(
+            "unsupported router %s on pattern %s",
+            vim.inspect(route),
+            vim.inspect(pattern)
+          )
+        )
+      end
     end
   end
   assert(
