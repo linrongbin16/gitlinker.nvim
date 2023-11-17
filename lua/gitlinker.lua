@@ -1,3 +1,4 @@
+local range = require("gitlinker.range")
 local logger = require("gitlinker.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
@@ -31,15 +32,16 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "{_A.FILE}"
+        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}" -- '?plain=1'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
-      ["^gitlab%.com"] = "https://github.com/"
+      ["^gitlab%.com"] = "https://gitlab.com/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -57,15 +59,16 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "{_A.FILE}"
+        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
-      ["^gitlab%.com"] = "https://github.com/"
+      ["^gitlab%.com"] = "https://gitlab.com/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -281,7 +284,7 @@ local function _blame(lk)
   return nil
 end
 
---- @param opts {action:gitlinker.Action,router:gitlinker.Router}
+--- @param opts {action:gitlinker.Action,router:gitlinker.Router,lstart:integer,lend:integer}
 --- @return string?
 local function link(opts)
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
@@ -290,6 +293,8 @@ local function link(opts)
   if not lk then
     return nil
   end
+  lk.lstart = opts.lstart
+  lk.lend = opts.lend
 
   local ok, url = pcall(opts.router, lk, true)
   logger.debug(
@@ -404,6 +409,7 @@ local function setup(opts)
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
+    local r = range.make_range()
     local parsed_args = (
       type(command_opts.args) == "string"
       and string.len(command_opts.args) > 0
@@ -411,10 +417,15 @@ local function setup(opts)
         and vim.trim(command_opts.args)
       or nil
     logger.debug(
-      "command opts:%s, parsed:%s",
+      "command opts:%s, parsed:%s, range:%s",
       vim.inspect(command_opts),
-      vim.inspect(parsed_args)
+      vim.inspect(parsed_args),
+      vim.inspect(r)
     )
+    local lstart =
+      math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+    local lend =
+      math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local router = _browse
     if parsed_args == "blame" then
       router = _blame
@@ -423,7 +434,7 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     end
-    link({ action = action, router = router })
+    link({ action = action, router = router, lstart = lstart, lend = lend })
   end, {
     nargs = "*",
     range = true,
