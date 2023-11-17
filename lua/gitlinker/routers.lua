@@ -51,7 +51,7 @@ function Builder:new(lk, range_maker)
   local o = {
     domain = string.format(
       "%s%s",
-      lk.protocol == "git" and "https://" or (lk.protocol .. "://"),
+      utils.string_endswith(lk.protocol, "git@") and "https://" or lk.protocol,
       lk.host
     ),
     user = lk.user,
