@@ -26,14 +26,44 @@ local Defaults = {
   -- router bindings
   router = {
     browse = {
-      ["^github%.com"] = require("gitlinker.routers").github_browse,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
+      ["^github%.com"] = "https://github.com/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blob/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+      ["^gitlab%.com"] = "https://github.com/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blob/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+      ["^bitbucket%.org"] = "https://bitbucket.org/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/src/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
     },
     blame = {
-      ["^github%.com"] = require("gitlinker.routers").github_blame,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
+      ["^github%.com"] = "https://github.com/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blame/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+      ["^gitlab%.com"] = "https://github.com/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/blame/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
+      ["^bitbucket%.org"] = "https://bitbucket.org/"
+        .. "{{_A.USER}}/"
+        .. "{{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO - 4) == '.git') and _A.REPO:sub(1, #_A.REPO-5) or _A.REPO}}/annotate/"
+        .. "{{_A.REV}}/"
+        .. "{{_A.FILE}}{{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE - 3) == '.md') and '?plain=1' or ''}}"
+        .. "#L{{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}}",
     },
   },
 
@@ -81,19 +111,20 @@ local function _url_template_engine(lk, template)
 
   --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
   --- @type gitlinker.UrlTemplateExpr[]
-  local expressions = {}
+  local exprs = {}
 
   local i = 1
   local n = string.len(template)
   while i <= n do
     local open_pos = utils.string_find(template, OPEN_BRACE, i)
     if not open_pos then
-      table.insert(
-        expressions,
-        { plain = true, body = string.sub(template, i) }
-      )
+      table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
     end
+    table.insert(
+      exprs,
+      { plain = true, body = string.sub(template, i, open_pos - 1) }
+    )
     local close_pos = utils.string_find(
       template,
       CLOSE_BRACE,
@@ -107,7 +138,7 @@ local function _url_template_engine(lk, template)
         open_pos + string.len(OPEN_BRACE)
       )
     )
-    table.insert(expressions, {
+    table.insert(exprs, {
       plain = false,
       body = string.sub(
         template,
@@ -117,7 +148,7 @@ local function _url_template_engine(lk, template)
     })
     logger.debug(
       "|routers.url_template| expressions:%s (%d-%d)",
-      vim.inspect(expressions),
+      vim.inspect(exprs),
       vim.inspect(open_pos),
       vim.inspect(close_pos)
     )
@@ -125,50 +156,29 @@ local function _url_template_engine(lk, template)
   end
   logger.debug(
     "|routers.url_template| final expressions:%s",
-    vim.inspect(expressions)
+    vim.inspect(exprs)
   )
 
   local results = {}
-  for _, exp in ipairs(expressions) do
+  for _, exp in ipairs(exprs) do
     if exp.plain then
       table.insert(results, exp.body)
     else
-      local formatted_exp = string.format(
-        [[
-  local luaargs = {...}
-  local REMOTE_URL = luaargs[1]
-  local PROTOCOL = luaargs[2]
-  local HOST = luaargs[3]
-  local USER = luaargs[4]
-  local REPO = luaargs[5]
-  local REV = luaargs[6]
-  local FILE = luaargs[7]
-  local LSTART = luaargs[8]
-  local LEND = luaargs[9]
-  local expressions = luaargs[10]
-  return %s
-        ]],
-        exp.body
-      )
-      local ok, evaluated = pcall(vim.api.nvim_exec_lua, formatted_exp, {
-        lk.remote_url,
-        lk.protocol,
-        lk.host,
-        lk.user,
-        lk.repo,
-        lk.rev,
-        lk.file,
-        lk.lstart,
-        lk.lend,
+      local evaluated = vim.fn.luaeval(exp.body, {
+        PROTOCOL = lk.protocol,
+        HOST = lk.host,
+        USER = lk.user,
+        REPO = lk.repo,
+        REV = lk.rev,
+        FILE = lk.file,
+        LSTART = lk.lstart,
+        LEND = lk.lend,
       })
-      assert(
-        ok,
-        string.format(
-          "failed to evaluate url template(%s) with data: %s, error:%s",
-          vim.inspect(template),
-          vim.inspect(lk),
-          vim.inspect(evaluated)
-        )
+      logger.debug(
+        "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
+        vim.inspect(exp.body),
+        vim.inspect(lk),
+        vim.inspect(evaluated)
       )
       table.insert(results, evaluated)
     end

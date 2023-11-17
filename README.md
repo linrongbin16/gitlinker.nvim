@@ -170,17 +170,23 @@ require('gitlinker').setup({
     desc = "Generate git permanent link",
   },
 
-  -- router
+  -- router bindings
   router = {
     browse = {
-      ["^github%.com"] = require("gitlinker.routers").github_browse,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_browse,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_browse,
+      ["^git@github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^git@gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blob/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^git@bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/src/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/src/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
     },
     blame = {
-      ["^github%.com"] = require("gitlinker.routers").github_blame,
-      ["^gitlab%.com"] = require("gitlinker.routers").gitlab_blame,
-      ["^bitbucket%.org"] = require("gitlinker.routers").bitbucket_blame,
+      ["^git@github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://github%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^git@gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://gitlab%.com"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/blame/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^git@bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/annotate/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
+      ["^https://bitbucket%.org"] = "{{_A.protocol}}{{_A.host}}/{{_A.user}}/{{_A.repo}}/annotate/{{_A.rev}}/{{_A.file}}{{(string.len(_A.file) > 3 and _A.file:sub(#_A.file - 3) == '.md') and '?plain=1' or ''}}#L{{_A.lstart .. ((type(_A.lend) == 'number' and _A.lend > _A.lstart) and ('-L' .. _A.lend) or '')}}",
     },
   },
 
