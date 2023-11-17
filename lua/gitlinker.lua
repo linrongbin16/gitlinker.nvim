@@ -68,6 +68,7 @@ local function deprecated_notification(opts)
   end
 end
 
+--- @alias gitlinker.Router fun(lk:gitlinker.Linker):string
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _browse(lk)
