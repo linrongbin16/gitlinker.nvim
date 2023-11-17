@@ -26,19 +26,21 @@ local Defaults = {
   -- router bindings
   router = {
     browse = {
-      -- example: https://github.com/linrongbin16/gitlinker.nvim.git/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
         .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
+      -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://github.com/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
         .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/src/"
@@ -47,18 +49,21 @@ local Defaults = {
         .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
     },
     blame = {
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
         .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
+      -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://github.com/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
         .. "#L{_A.LSTART .. ((type(_A.LEND) == 'number' and _A.LEND > _A.LSTART) and ('-L' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
         .. "{_A.USER}/"
         .. "{(string.len(_A.REPO) >= 4 and _A.REPO:sub(#_A.REPO-3) == '.git') and _A.REPO:sub(1, #_A.REPO-4) or _A.REPO}/annotate/"
