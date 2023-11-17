@@ -235,9 +235,6 @@ local function setup(opts)
     file_log = Configs.file_log,
   })
 
-  -- router binding
-  require("gitlinker.routers").setup(Configs.router or {})
-
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
     local parsed_args = (
