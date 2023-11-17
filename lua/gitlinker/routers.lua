@@ -140,12 +140,12 @@ local M = {
   LC_range = LC_range,
   lines_range = lines_range,
 
-  -- browse: /blob, /src
+  -- browse: `/blob`, `/src`
   github_browse = github_browse,
   gitlab_browse = gitlab_browse,
   bitbucket_browse = bitbucket_browse,
 
-  -- blame: /blame, /annotate
+  -- blame: `/blame`, `/annotate`
   github_blame = github_blame,
   gitlab_blame = gitlab_blame,
   bitbucket_blame = bitbucket_blame,
