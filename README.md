@@ -43,14 +43,14 @@ PRs are welcomed for other git host websites!
 
 ## Break Changes & Updates
 
-1. Bug fix:
-   - Customize/disable default key mappings.
+1. Break Changes:
+   - Drop off default key mappings.
 2. New Features:
+   - Provide `GitLink` command.
    - Windows support.
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
-   - Provide `GitLink` command and drop off default key mappings.
 3. Improvements:
    - Use stderr from git command as error message.
    - Performant child process IO via `uv.spawn`.
