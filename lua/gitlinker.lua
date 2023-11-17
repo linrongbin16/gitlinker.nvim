@@ -49,9 +49,9 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/src/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        .. "{_A.FILE}"
+        .. "#lines-{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
     },
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -76,9 +76,9 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/annotate/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        .. "{_A.FILE}"
+        .. "#lines-{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
     },
   },
 
