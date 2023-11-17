@@ -276,13 +276,17 @@ require('gitlinker').setup({
 })
 ```
 
-There're 3 group builtin APIs you can directly use:
+There're 3 groups of builtin APIs you can directly use:
 
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
 - `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
 
 ### Fully Customize Urls
+
+<details>
+<summary><i>Click here to see how to fully customize urls</i></summary>
+<br/>
 
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
 
@@ -342,9 +346,9 @@ require('gitlinker').setup({
 })
 ```
 
-It seems quite a lot of engineering effort, isn't it?
+It seems quite a lot of engineering effort, isn't it? You can also use the url template, which should be easier to define the url schema.
 
-You can also use the url template, which should be easier (but the error message could be confusing if there's any syntax issue):
+The url template is also the default implementation of builtin routers (see `router` option in [Configuration](#configuration)), while the error message could be confusing if there's any syntax issue:
 
 ```lua
 require("gitlinker").setup({
@@ -375,6 +379,8 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
   - **Note**: for easier writing, the `_A.LEND` will always exists so no NPE will be throwed.
+
+</details>
 
 ## Highlight Group
 
