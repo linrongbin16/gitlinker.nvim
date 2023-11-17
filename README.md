@@ -355,8 +355,8 @@ require("gitlinker").setup({
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
-        .. "#L{_A.LSTART}"
-        .. "{_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or ''}",
+        .. "&lines={_A.LSTART}"
+        .. "{_A.LEND > _A.LSTART and ('&lines-count=' .. _A.LEND) or ''}",
     },
   },
 })
