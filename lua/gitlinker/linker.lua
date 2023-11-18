@@ -40,23 +40,23 @@ local function _parse_remote_url(remote_url)
     )
   end
 
-  logger.debug(
-    "|gitlinker.linker - _parse_remote_url| 1. remote_url:%s, proto_pos:%s (%s)",
-    vim.inspect(remote_url),
-    vim.inspect(proto_pos),
-    vim.inspect(proto)
-  )
+  -- logger.debug(
+  --   "|gitlinker.linker - _parse_remote_url| 1. remote_url:%s, proto_pos:%s (%s)",
+  --   vim.inspect(remote_url),
+  --   vim.inspect(proto_pos),
+  --   vim.inspect(proto)
+  -- )
   if type(proto_pos) == "number" and proto_pos > 0 then
     protocol_end_pos = proto_pos + string.len(proto) - 1
     protocol = remote_url:sub(1, protocol_end_pos)
-    logger.debug(
-      "|gitlinker.linker - _parse_remote_url| 2. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s)",
-      vim.inspect(remote_url),
-      vim.inspect(proto_pos),
-      vim.inspect(proto),
-      vim.inspect(protocol_end_pos),
-      vim.inspect(protocol)
-    )
+    -- logger.debug(
+    --   "|gitlinker.linker - _parse_remote_url| 2. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s)",
+    --   vim.inspect(remote_url),
+    --   vim.inspect(proto_pos),
+    --   vim.inspect(proto),
+    --   vim.inspect(protocol_end_pos),
+    --   vim.inspect(protocol)
+    -- )
     local first_slash_pos = utils.string_find(
       remote_url,
       "/",
@@ -77,16 +77,16 @@ local function _parse_remote_url(remote_url)
       )
     end
     host = remote_url:sub(protocol_end_pos + 1, host_end_pos - 1)
-    logger.debug(
-      "|gitlinker.linker - _parse_remote_url| last. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s), host_end_pos:%s (%s)",
-      vim.inspect(remote_url),
-      vim.inspect(proto_pos),
-      vim.inspect(proto),
-      vim.inspect(protocol_end_pos),
-      vim.inspect(protocol),
-      vim.inspect(host_end_pos),
-      vim.inspect(host)
-    )
+    -- logger.debug(
+    --   "|gitlinker.linker - _parse_remote_url| last. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s), host_end_pos:%s (%s)",
+    --   vim.inspect(remote_url),
+    --   vim.inspect(proto_pos),
+    --   vim.inspect(proto),
+    --   vim.inspect(protocol_end_pos),
+    --   vim.inspect(protocol),
+    --   vim.inspect(host_end_pos),
+    --   vim.inspect(host)
+    -- )
   end
 
   local user_end_pos = utils.string_find(remote_url, "/", host_end_pos + 1)
@@ -96,7 +96,7 @@ local function _parse_remote_url(remote_url)
   user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
   repo = remote_url:sub(user_end_pos + 1)
   local result = { protocol = protocol, host = host, user = user, repo = repo }
-  logger.debug("linker._parse_remote_url| result:%s", vim.inspect(result))
+  -- logger.debug("linker._parse_remote_url| result:%s", vim.inspect(result))
   return result
 end
 
