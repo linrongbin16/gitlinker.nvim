@@ -165,8 +165,7 @@ require('gitlinker').setup({
   command = {
     -- to copy link to clipboard, use: 'GitLink'
     -- to open link in browser, use bang: 'GitLink!'
-    -- to use blame router, use: 'GitLink blame'
-    -- to use browse router, use: 'GitLink browse' (which is the default router)
+    -- to use blame router, use: 'GitLink blame' and 'GitLink! blame'
     name = "GitLink",
     desc = "Generate git permanent link",
   },
@@ -242,7 +241,7 @@ require('gitlinker').setup({
 
 ### Highlighting
 
-To create your own highlighting, please use:
+To create your own highlighting, please use below config before setup this plugin:
 
 ```lua
 -- lua
@@ -256,7 +255,7 @@ hi link NvimGitLinkerHighlightTextObject Constant
 
 > Also see [Highlight Group](#highlight-group).
 
-### Self-Host Git Hosts
+### Self-host Git Hosts
 
 For self-host git host websites, please add more bindings in `router` option.
 
@@ -285,11 +284,7 @@ There're 3 groups of builtin APIs you can directly use:
 
 ### Fully Customize Urls
 
-<details>
-<summary><i>Click here to see how to fully customize urls</i></summary>
-<br/>
-
-To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the string from below components:
+To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the url string from below components:
 
 - `protocol`: `git@`, `ssh://git@`, `https`, etc.
 - `host`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
@@ -326,12 +321,10 @@ local function your_router(lk)
     .. lk.file
     .. (string_endswith(lk.file, ".md") and "?plain=1" or "")
   -- line range: start line number, end line number
-  if type(lk.lstart) == "number" then
-    builder = builder .. string.format("&lines=%d", lk.lstart)
-    if type(lk.lend) == "number" and lk.lend > lk.lstart then
-      builder = builder
-        .. string.format("&lines-count=%d", lk.lend - lk.lstart + 1)
-    end
+  builder = builder .. string.format("&lines=%d", lk.lstart)
+  if lk.lend > lk.lstart then
+    builder = builder
+      .. string.format("&lines-count=%d", lk.lend - lk.lstart + 1)
   end
   return builder
 end
@@ -345,9 +338,9 @@ require("gitlinker").setup({
 })
 ```
 
-Quite a lot of engineering effort, isn't it? You can also use the url template, which should be easier to define the url schema.
+Quite a lot of engineering effort, isn't it? You can also use the url template, which should be easier to define the url schema:
 
-The url template is also the default implementation of builtin routers (see `router` option in [Configuration](#configuration)), but the error message could be confusing if there's any syntax issue:
+> The url template is also the default implementation of builtin routers (see `router` option in [Configuration](#configuration)), but the error message could be confusing if there's any syntax issue.
 
 ```lua
 require("gitlinker").setup({
@@ -373,13 +366,10 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
-  - **Note**: for easier writing, the `.git` suffix has been removed.
+  - **Note: for easier writing, the `.git` suffix has been removed.**
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
-  - **Note**: for easier writing, the `_A.LEND` will always exists so no NPE will be throwed.
-
-</details>
 
 ## Highlight Group
 
