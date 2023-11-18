@@ -35,7 +35,7 @@ PRs are welcomed for other git host websites!
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Highlighting](#highlighting)
-  - [Self-Host Git Hosts](#self-host-git-hosts)
+  - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
