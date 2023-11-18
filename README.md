@@ -44,10 +44,9 @@ PRs are welcomed for other git host websites!
 ## Break Changes & Updates
 
 1. Break Changes:
-   - Drop off default key mappings.
+   - Drop off default key mappings, provide `GitLink` command.
 2. New Features:
-   - Provide `GitLink` command.
-   - Windows support.
+   - Windows (+wsl) support.
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
@@ -106,10 +105,10 @@ require("lazy").setup({
 
 You could use below command:
 
-- `GitLink`: generate git link and copy to clipboard.
-- `GitLink!`: generate git link and open in browser.
-- `GitLink blame`: generate the `/blame` url and copy to clipboard.
-- `GitLink! blame`: generate the `/blame` url and open in browser.
+- `GitLink`: copy the `/blob` url to clipboard.
+- `GitLink!`: open the `/blob` url in browser.
+- `GitLink blame`: copy the `/blame` url to clipboard.
+- `GitLink! blame`: open the `/blame` url in browser.
 
 There're two **routers** provided:
 
