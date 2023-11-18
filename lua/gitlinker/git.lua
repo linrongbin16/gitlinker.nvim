@@ -186,6 +186,11 @@ local function _is_rev_in_remote(revspec, remote)
       return true
     end
   end
+  logger.debug(
+    "|git._is_rev_in_remote| remote(%s) not match branches:%s",
+    vim.inspect(remote),
+    vim.inspect(output)
+  )
   return false
 end
 
@@ -242,10 +247,6 @@ local function get_closest_remote_compatible_rev(remote)
 
   -- try upstream branch HEAD (a.k.a @{u})
   local upstream_rev = _get_rev("@{u}")
-  logger.debug(
-    "|git.get_closest_remote_compatible_rev| running _get_rev:%s",
-    vim.inspect(upstream_rev)
-  )
   if upstream_rev then
     return upstream_rev
   end
