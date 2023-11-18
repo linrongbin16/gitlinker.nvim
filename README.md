@@ -44,7 +44,7 @@ PRs are welcomed for other git host websites!
 ## Break Changes & Updates
 
 1. Break Changes:
-   - Drop off default key mappings, provide `GitLink` command.
+   - Provide `GitLink` command instead of default key mappings.
 2. New Features:
    - Windows (+wsl) support.
    - Respect ssh host alias.
