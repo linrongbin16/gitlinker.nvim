@@ -75,6 +75,47 @@ function Builder:new(lk, range_maker)
   return o
 end
 
+--- @param s string
+--- @param t string
+local function string_endswith(s, t)
+  return string.len(s) >= string.len(t) and string.sub(s, #s - #t + 1) == t
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function codeberg_browse(lk)
+  local builder = ""
+  -- protocol: 'git', 'http', 'https'
+  builder = builder
+    .. (lk.protocol == "git" and "https://" or (lk.protocol .. "://"))
+  -- host: 'github.com', 'gitlab.com', 'bitbucket.org'
+  builder = builder .. lk.host .. "/"
+  -- user: 'linrongbin16', 'neovim'
+  builder = builder .. lk.user .. "/"
+  -- repo: 'gitlinker.nvim.git', 'neovim'
+  builder = builder
+    .. (string_endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo)
+    .. "/"
+  -- src/commit
+  builder = builder .. "src/commit/"
+  -- rev: git commit, e.g. 'e605210941057849491cca4d7f44c0e09f363a69'
+  builder = builder .. lk.rev .. "/"
+  -- file: 'lua/gitlinker/logger.lua'
+  builder = builder
+    .. lk.file
+    .. (string_endswith(lk.file, ".md") and "?plain=1" or "")
+  -- display: source
+  builder = builder .. "?display=source"
+  -- line range: start line number, end line number
+  if type(lk.lstart) == "number" then
+    builder = builder .. string.format("#L%d", lk.lstart)
+    if type(lk.lend) == "number" and lk.lend > lk.lstart then
+      builder = builder .. string.format("-L%d", lk.lend)
+    end
+  end
+  return builder
+end
+
 --- @param url "blob"|"blame"|"src"|"annotate"
 --- @return string
 function Builder:build(url)
