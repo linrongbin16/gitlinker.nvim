@@ -198,6 +198,14 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://codeberg.org/bagnaram/dotfiles/src/branch/master/Makefile
+      ["^codeberg%.org"] = "https://codeberg.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/src/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) and '?display=source' or '')}",
     },
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -225,6 +233,14 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://codeberg.org/bagnaram/dotfiles/blame/commit/83a43b616cb6b5da976f6d64460b7af5839c9d21/Makefile#L84-L86
+      ["^codeberg%.org"] = "https://codeberg.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blame/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) and '?display=source' or '')}",
     },
   },
 
@@ -281,6 +297,7 @@ There're 3 groups of builtin APIs you can directly use:
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
 - `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
+- `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
 
 ### Fully Customize Urls
 
