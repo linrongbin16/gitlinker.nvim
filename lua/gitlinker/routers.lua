@@ -108,6 +108,13 @@ local function bitbucket_browse(lk)
   local builder = Builder:new(lk, lines_range)
   return builder:build("src")
 end
+--
+--- @param lk gitlinker.Linker
+--- @return string
+local function codeberg_browse(lk)
+  local builder = Builder:new(lk, LC_range)
+  return builder:build("src")
+end
 
 --- @param lk gitlinker.Linker
 --- @return string
@@ -130,6 +137,13 @@ local function bitbucket_blame(lk)
   return builder:build("annotate")
 end
 
+--- @param lk gitlinker.Linker
+--- @return string
+local function codeberg_blame(lk)
+  local builder = Builder:new(lk, lines_range)
+  return builder:build("blame")
+end
+
 local M = {
   -- Builder
   Builder = Builder,
@@ -142,11 +156,13 @@ local M = {
   github_browse = github_browse,
   gitlab_browse = gitlab_browse,
   bitbucket_browse = bitbucket_browse,
+  codeberg_browse = codeberg_browse,
 
   -- blame: `/blame`, `/annotate`
   github_blame = github_blame,
   gitlab_blame = gitlab_blame,
   bitbucket_blame = bitbucket_blame,
+  codeberg_blame = codeberg_blame,
 }
 
 return M
