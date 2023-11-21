@@ -271,8 +271,10 @@ local function get_closest_remote_compatible_rev(remote)
     return upstream_rev
   end
 
+  local remote_fetch_configured = _has_remote_fetch_config(remote)
+
   -- try HEAD
-  if _has_remote_fetch_config(remote) then
+  if remote_fetch_configured then
     if _is_rev_in_remote("HEAD", remote) then
       local head_rev = _get_rev("HEAD")
       if head_rev then
@@ -287,7 +289,7 @@ local function get_closest_remote_compatible_rev(remote)
   end
 
   -- try last 50 parent commits
-  if _has_remote_fetch_config(remote) then
+  if remote_fetch_configured then
     for i = 1, 50 do
       local revspec = "HEAD~" .. i
       if _is_rev_in_remote(revspec, remote) then
