@@ -189,6 +189,27 @@ local function _is_rev_in_remote(revspec, remote)
   return false
 end
 
+--- @package
+--- @param remote string
+--- @return boolean
+local function _has_remote_fetch_config(remote)
+  local args = { "git", "config", string.format("remote.%s.fetch", remote) }
+  local result = cmd(args)
+  logger.debug(
+    "|git._has_remote_fetch_config| running %s: %s (error:%s)",
+    vim.inspect(args),
+    vim.inspect(result.stdout),
+    vim.inspect(result.stderr)
+  )
+  local output = result.stdout
+  for _, fetch in ipairs(output) do
+    if type(fetch) == "string" and string.len(vim.trim(fetch)) > 0 then
+      return true
+    end
+  end
+  return false
+end
+
 --- @param host string
 --- @return string?
 local function resolve_host(host)
@@ -251,7 +272,14 @@ local function get_closest_remote_compatible_rev(remote)
   end
 
   -- try HEAD
-  if _is_rev_in_remote("HEAD", remote) then
+  if _has_remote_fetch_config(remote) then
+    if _is_rev_in_remote("HEAD", remote) then
+      local head_rev = _get_rev("HEAD")
+      if head_rev then
+        return head_rev
+      end
+    end
+  else
     local head_rev = _get_rev("HEAD")
     if head_rev then
       return head_rev
@@ -259,9 +287,19 @@ local function get_closest_remote_compatible_rev(remote)
   end
 
   -- try last 50 parent commits
-  for i = 1, 50 do
-    local revspec = "HEAD~" .. i
-    if _is_rev_in_remote(revspec, remote) then
+  if _has_remote_fetch_config(remote) then
+    for i = 1, 50 do
+      local revspec = "HEAD~" .. i
+      if _is_rev_in_remote(revspec, remote) then
+        local rev = _get_rev(revspec)
+        if rev then
+          return rev
+        end
+      end
+    end
+  else
+    for i = 1, 50 do
+      local revspec = "HEAD~" .. i
       local rev = _get_rev(revspec)
       if rev then
         return rev
