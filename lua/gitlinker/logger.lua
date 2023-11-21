@@ -132,6 +132,7 @@ local function ensure(cond, fmt, ...)
 end
 
 local M = {
+  LogLevels = LogLevels,
   setup = setup,
   debug = debug,
   info = info,
