@@ -72,12 +72,6 @@ local function log(level, msg)
   local msg_lines = vim.split(msg, "\n", { plain = true })
   if Configs.console_log and level >= LogLevels.INFO then
     local msg_chunks = {}
-    -- local prefix = ""
-    -- if level == LogLevels.ERROR then
-    --     prefix = "error! "
-    -- elseif level == LogLevels.WARN then
-    --     prefix = "warning! "
-    -- end
     for _, line in ipairs(msg_lines) do
       table.insert(msg_chunks, {
         string.format("[gitlinker] %s", --[[prefix,]] line),
