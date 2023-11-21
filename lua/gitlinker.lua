@@ -397,9 +397,19 @@ end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
+  local fp = io.open("gitlinker.log", "a")
+  if fp then
+    fp:write(string.format("opts: %s\n", vim.inspect(opts)))
+  end
+  fp:close()
   local router_configs = _merge_routers(opts)
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
   Configs.router = router_configs
+  local fp = io.open("gitlinker.log", "a")
+  if fp then
+    fp:write(string.format("gitlinker.Configs: %s\n", vim.inspect(Configs)))
+  end
+  fp:close()
 
   -- logger
   logger.setup({

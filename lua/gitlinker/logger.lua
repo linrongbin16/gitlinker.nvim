@@ -28,12 +28,10 @@ local PathSeperator = (vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0)
     and "\\"
   or "/"
 
-local Configs = {
+local Defaults = {
   level = LogLevels.INFO,
   console_log = true,
   file_log = false,
-  file_log_dir = vim.fn.stdpath("data"),
-  file_log_name = "gitlinker.log",
   _file_log_path = string.format(
     "%s%s%s",
     vim.fn.stdpath("data"),
@@ -42,21 +40,11 @@ local Configs = {
   ),
 }
 
+local Configs = {}
+
 --- @param opts gitlinker.Options?
 local function setup(opts)
-  Configs = vim.tbl_deep_extend("force", vim.deepcopy(Configs), opts or {})
-  if type(Configs.level) == "string" then
-    Configs.level = LogLevels[Configs.level]
-  end
-
-  if Configs.file_log then
-    Configs._file_log_path = string.format(
-      "%s%s%s",
-      Configs.file_log_dir,
-      (vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0) and "\\" or "/",
-      Configs.file_log_name
-    )
-  end
+  Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
   assert(
     type(Configs.level) == "number" and LogHighlights[Configs.level] ~= nil
   )
@@ -86,8 +74,9 @@ local function log(level, msg)
       for _, line in ipairs(msg_lines) do
         fp:write(
           string.format(
-            "%s [%s]: %s\n",
+            "%s %s [%s]: %s\n",
             os.date("%Y-%m-%d %H:%M:%S"),
+            Configs.level,
             LogLevelNames[level],
             line
           )
