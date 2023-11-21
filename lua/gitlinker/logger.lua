@@ -74,9 +74,8 @@ local function log(level, msg)
       for _, line in ipairs(msg_lines) do
         fp:write(
           string.format(
-            "%s %s [%s]: %s\n",
+            "%s [%s]: %s\n",
             os.date("%Y-%m-%d %H:%M:%S"),
-            Configs.level,
             LogLevelNames[level],
             line
           )
