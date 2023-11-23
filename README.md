@@ -409,7 +409,7 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
-  - **Note: for easier writing, the `.git` suffix has been removed.**
+  - **Note:** for easier writing, the `.git` suffix has been removed.
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
@@ -437,7 +437,7 @@ protocol host            user      repo               file       rev            
 
 The difference between main and dev is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`.
 
-To support such case, we need below improvements.
+To support such case, we have below improvements.
 
 #### Match Route Bindings by Remote Url
 
