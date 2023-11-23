@@ -23,6 +23,7 @@ For now supported platforms are:
 - [gitlab.com](https://gitlab.com/)
 - [bitbucket.org](https://bitbucket.org/)
 - [codeberg.org](https://codeberg.org/)
+- [git.samba.org](https://git.samba.org/)
 
 PRs are welcomed for other git host websites!
 
@@ -174,6 +175,24 @@ require('gitlinker').setup({
   -- router bindings
   router = {
     browse = {
+      -- **prioritized** list routers: route bindings will be searched from the first to the last
+      -- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
+      {
+        "^git@git%.samba%.org:samba%.git",
+        "https://git.samba.org/?p=samba.git;a=blob;"
+          .. "f={_A.FILE};"
+          .. "hb={_A.REV}"
+          .. "#l{_A.LSTART}",
+      },
+      {
+        "^https://git%.samba%.org/samba%.git",
+        "https://git.samba.org/?p=samba.git;a=blob;"
+          .. "f={_A.FILE};"
+          .. "hb={_A.REV}"
+          .. "#l{_A.LSTART}",
+      },
+
+      -- **unprioritized** map routers: there's no such guarantee that which route binding will be searched first.
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
@@ -300,6 +319,7 @@ There're 3 groups of builtin APIs you can directly use:
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
 - `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
 - `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
+- `samba_browse`: for [git.samba.org](https://git.samba.org/) (blame not support).
 
 ### Fully Customize Urls
 

@@ -28,6 +28,7 @@ local Defaults = {
   -- router bindings
   router = {
     browse = {
+      -- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       {
         "^git@git%.samba%.org:samba%.git",
         "https://git.samba.org/?p=samba.git;a=blob;"
