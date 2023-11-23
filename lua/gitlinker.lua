@@ -223,34 +223,80 @@ local function _url_template_engine(lk, template)
   return table.concat(results, "")
 end
 
+--- @param lk gitlinker.Linker
+--- @return string
+local function _make_resolved_remote_url(lk)
+  local resolved_remote_url =
+    string.format("%s%s%s%s", lk.protocol, lk.host, lk.host_delimiter, lk.user)
+  if type(lk.repo) == "string" and string.len(lk.repo) > 0 then
+    resolved_remote_url = string.format("%s/%s", resolved_remote_url, lk.repo)
+  end
+  return resolved_remote_url
+end
+
+--- @param lk gitlinker.Linker
+--- @param p string
+--- @param r string|function(lk:gitlinker.Linker):string?
+--- @return string?
+local function _do_route(lk, p, r)
+  if type(r) == "function" then
+    return r(lk)
+  elseif type(r) == "string" then
+    return _url_template_engine(lk, r)
+  else
+    assert(
+      false,
+      string.format(
+        "unsupported router %s on pattern %s",
+        vim.inspect(r),
+        vim.inspect(p)
+      )
+    )
+    return nil
+  end
+end
+
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _browse(lk)
-  for pattern, route in pairs(Configs.router.browse) do
+  for _, pattern_route_tuple in ipairs(Configs.router.browse) do
+    assert(
+      type(pattern_route_tuple) == "table" and #pattern_route_tuple == 2,
+      string.format(
+        "invalid browse pattern-router tuple %s",
+        vim.inspect(pattern_route_tuple)
+      )
+    )
+    local pattern = pattern_route_tuple[1]
+    local route = pattern_route_tuple[2]
+    local resolved_remote_url = _make_resolved_remote_url(lk)
     if
       string.match(lk.host, pattern)
-      or string.match(lk.protocol .. lk.host, pattern)
+      or string.match(lk.remote_url, pattern)
+      or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
         "|browse| match router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
-      if type(route) == "function" then
-        return route(lk)
-      elseif type(route) == "string" then
-        return _url_template_engine(lk, route)
-      else
-        assert(
-          false,
-          string.format(
-            "unsupported router %s on pattern %s",
-            vim.inspect(route),
-            vim.inspect(pattern)
-          )
-        )
-      end
+      return _do_route(lk, pattern, route)
+    end
+  end
+  for pattern, route in pairs(Configs.router.browse) do
+    local resolved_remote_url = _make_resolved_remote_url(lk)
+    if
+      string.match(lk.host, pattern)
+      or string.match(lk.remote_url, pattern)
+      or string.match(resolved_remote_url, pattern)
+    then
+      logger.debug(
+        "|browse| match router:%s with pattern:%s",
+        vim.inspect(route),
+        vim.inspect(pattern)
+      )
+      return _do_route(lk, pattern, route)
     end
   end
   assert(
@@ -266,30 +312,43 @@ end
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _blame(lk)
-  for pattern, route in pairs(Configs.router.blame) do
+  for _, pattern_route_tuple in ipairs(Configs.router.blame) do
+    assert(
+      type(pattern_route_tuple) == "table" and #pattern_route_tuple == 2,
+      string.format(
+        "invalid blame pattern-router tuple %s",
+        vim.inspect(pattern_route_tuple)
+      )
+    )
+    local pattern = pattern_route_tuple[1]
+    local route = pattern_route_tuple[2]
+    local resolved_remote_url = _make_resolved_remote_url(lk)
     if
       string.match(lk.host, pattern)
-      or string.match(lk.protocol .. lk.host, pattern)
+      or string.match(lk.remote_url, pattern)
+      or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
         "|blame| match router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
-      if type(route) == "function" then
-        return route(lk)
-      elseif type(route) == "string" then
-        return _url_template_engine(lk, route)
-      else
-        assert(
-          false,
-          string.format(
-            "unsupported router %s on pattern %s",
-            vim.inspect(route),
-            vim.inspect(pattern)
-          )
-        )
-      end
+      return _do_route(lk, pattern, route)
+    end
+  end
+  for pattern, route in pairs(Configs.router.blame) do
+    local resolved_remote_url = _make_resolved_remote_url(lk)
+    if
+      string.match(lk.host, pattern)
+      or string.match(lk.remote_url, pattern)
+      or string.match(resolved_remote_url, pattern)
+    then
+      logger.debug(
+        "|blame| match router:%s with pattern:%s",
+        vim.inspect(route),
+        vim.inspect(pattern)
+      )
+      return _do_route(lk, pattern, route)
     end
   end
   assert(
@@ -476,6 +535,8 @@ end
 local M = {
   setup = setup,
   link = link,
+  _make_resolved_remote_url = _make_resolved_remote_url,
+  _do_route = _do_route,
   _browse = _browse,
   _blame = _blame,
 }
