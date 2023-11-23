@@ -443,7 +443,23 @@ We need to match the route bindings not only by the `host` (`github.com`), but a
 
 As you can see, in the [Configuration](#configuration), the `router.browse` options `^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git` are remote urls instead of just `git%.samba%.org`.
 
-This can help differentiate between different users and repos, since for different
+This can help differentiate between different users and repos, so they can have different router implementations.
+
+#### Prioritized Matching List
+
+We need to set priority for different route bindings, since we always try to match more specific host or remote url first.
+
+E.g., try `https://git.samba.org/bbaumbach/samba.git` before `https://git.samba.org/samba.git` since we're not sure whether there will be a user named `samba` so his remote url also matches the `^https://git%.samba%.org/samba`, that would be too annoying.
+
+So the `router.browse` and `router.blame` options in [Configuration](#configuration) support two formats: list and hash-map.
+
+When processing all route bindings and finding the match, list will be processed from the first to the last, while hash-map still remains un-ordered.
+
+#### Handle The Missing `User` Component
+
+When facing the (git.samba.org) main repo case, for now the `lk.repo` (`_A.REPO`) component will be passed to an empty string.
+
+(Actually due to my superficial knowledge, I'm not sure whether it's the `lk.user` component missed or it's the `lk.repo` component missed. If there's a widely recognized standard says the main repo doesn't contains the `user` component, I may refactor this part.)
 
 ## Highlight Group
 
