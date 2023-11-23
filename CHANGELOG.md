@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.4.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.3.0...v4.4.0) (2023-11-23)
+
+
+### Features
+
+* **routers:** add `codeberg.org` router ([#147](https://github.com/linrongbin16/gitlinker.nvim/issues/147)) ([fb344ab](https://github.com/linrongbin16/gitlinker.nvim/commit/fb344abada764c198db15f80f645495e0a6f80e3))
+
+
+### Performance Improvements
+
+* **test:** improve test cases ([fb344ab](https://github.com/linrongbin16/gitlinker.nvim/commit/fb344abada764c198db15f80f645495e0a6f80e3))
+
 ## [4.3.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.2.0...v4.3.0) (2023-11-22)
 
 
