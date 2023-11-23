@@ -40,7 +40,7 @@ PRs are welcomed for other git host websites!
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
-    - [Match Route Bindings by Remote Url](#match-route-bindings-by-remote-url)
+    - [Also Match Remote Url](#also-match-remote-url)
     - [Prioritized Matching List](#prioritized-matching-list)
     - [Handle The Missing `User` Component](#handle-the-missing-user-component)
 - [Highlight Group](#highlight-group)
@@ -439,7 +439,7 @@ The difference between main and dev is: the main repo doesn't have the `user` co
 
 To support such case, we have below improvements.
 
-#### Match Route Bindings by Remote Url
+#### Also Match Remote Url
 
 We need to match the route bindings not only by the `host` (`github.com`), but also via the remote url (`https://github.com/linrongbin16/gitlinker.nvim.git`).
 
