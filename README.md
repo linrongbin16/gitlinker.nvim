@@ -466,7 +466,7 @@ For now there're two components you need to notice:
 - `lk.user` (`_A.USER`): the value is `samba.git`.
 - `lk.repo` (`_A.REPO`): the value is `` (empty string).
 
-(Actually due to my superficial knowledge, I'm not sure whether it's the `lk.user` component missed or it's the `lk.repo` component missed. If there's a widely recognized standard says the main repo doesn't contains the `user` component, I may refactor this part.)
+> Due to my superficial knowledge, I'm not sure whether there's a widely recognized standard says the main repo doesn't contains a `user`, so for now I'm just parsing the remote url in this way.
 
 ## Highlight Group
 
