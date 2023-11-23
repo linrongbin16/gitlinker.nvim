@@ -30,8 +30,7 @@ local Defaults = {
     browse = {
       {
         "^https://git%.samba%.org/samba%.git",
-        "https://git.samba.org/"
-          .. "?p={_A.USER};a=blob;"
+        "https://git.samba.org/?p=samba.git;a=blob;"
           .. "f={_A.FILE};"
           .. "hb={_A.REV}"
           .. "#l{_A.LSTART}",
@@ -188,18 +187,18 @@ local function _url_template_engine(lk, template)
         close_pos - 1
       ),
     })
-    logger.debug(
-      "|routers.url_template| expressions:%s (%d-%d)",
-      vim.inspect(exprs),
-      vim.inspect(open_pos),
-      vim.inspect(close_pos)
-    )
+    -- logger.debug(
+    --   "|routers.url_template| expressions:%s (%d-%d)",
+    --   vim.inspect(exprs),
+    --   vim.inspect(open_pos),
+    --   vim.inspect(close_pos)
+    -- )
     i = close_pos + string.len(CLOSE_BRACE)
   end
-  logger.debug(
-    "|routers.url_template| final expressions:%s",
-    vim.inspect(exprs)
-  )
+  -- logger.debug(
+  --   "|routers.url_template| final expressions:%s",
+  --   vim.inspect(exprs)
+  -- )
 
   local results = {}
   for _, exp in ipairs(exprs) do
@@ -223,12 +222,12 @@ local function _url_template_engine(lk, template)
         LEND = (type(lk.lend) == "number" and lk.lend > lk.lstart) and lk.lend
           or lk.lstart,
       })
-      logger.debug(
-        "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
-        vim.inspect(exp.body),
-        vim.inspect(lk),
-        vim.inspect(evaluated)
-      )
+      -- logger.debug(
+      --   "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
+      --   vim.inspect(exp.body),
+      --   vim.inspect(lk),
+      --   vim.inspect(evaluated)
+      -- )
       table.insert(results, evaluated)
     end
   end
@@ -273,43 +272,66 @@ end
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _browse(lk)
-  for _, pattern_route_tuple in ipairs(Configs.router.browse) do
-    assert(
-      type(pattern_route_tuple) == "table" and #pattern_route_tuple == 2,
-      string.format(
-        "invalid browse pattern-router tuple %s",
-        vim.inspect(pattern_route_tuple)
-      )
-    )
-    local pattern = pattern_route_tuple[1]
-    local route = pattern_route_tuple[2]
-    local resolved_remote_url = _make_resolved_remote_url(lk)
+  for i, pattern_route_tuple in ipairs(Configs._browse_list_routers) do
     if
-      string.match(lk.host, pattern)
-      or string.match(lk.remote_url, pattern)
-      or string.match(resolved_remote_url, pattern)
+      type(i) == "number"
+      and type(pattern_route_tuple) == "table"
+      and #pattern_route_tuple == 2
     then
+      local pattern = pattern_route_tuple[1]
+      local route = pattern_route_tuple[2]
+      local resolved_remote_url = _make_resolved_remote_url(lk)
       logger.debug(
-        "|browse| match-1 router:%s with pattern:%s",
-        vim.inspect(route),
-        vim.inspect(pattern)
+        "|gitlinker._browse| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s), resolved_remote_url:%s(%s)",
+        vim.inspect(i),
+        vim.inspect(pattern_route_tuple),
+        vim.inspect(string.match(lk.host, pattern)),
+        vim.inspect(lk.host),
+        vim.inspect(string.match(lk.remote_url, pattern)),
+        vim.inspect(lk.remote_url),
+        vim.inspect(string.match(resolved_remote_url, pattern)),
+        vim.inspect(resolved_remote_url)
       )
-      return _do_route(lk, pattern, route)
+      if
+        string.match(lk.host, pattern)
+        or string.match(lk.remote_url, pattern)
+        or string.match(resolved_remote_url, pattern)
+      then
+        logger.debug(
+          "|browse| match-1 router:%s with pattern:%s",
+          vim.inspect(route),
+          vim.inspect(pattern)
+        )
+        return _do_route(lk, pattern, route)
+      end
     end
   end
-  for pattern, route in pairs(Configs.router.browse) do
-    local resolved_remote_url = _make_resolved_remote_url(lk)
+  for pattern, route in pairs(Configs._browse_map_routers) do
     if
-      string.match(lk.host, pattern)
-      or string.match(lk.remote_url, pattern)
-      or string.match(resolved_remote_url, pattern)
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
     then
+      local resolved_remote_url = _make_resolved_remote_url(lk)
       logger.debug(
-        "|browse| match-2 router:%s with pattern:%s",
-        vim.inspect(route),
-        vim.inspect(pattern)
+        "|gitlinker._browse| table pattern:%s, match host:%s, remote_url:%s, resolved_remote_url:%s",
+        vim.inspect(pattern),
+        vim.inspect(lk.host),
+        vim.inspect(lk.remote_url),
+        vim.inspect(resolved_remote_url)
       )
-      return _do_route(lk, pattern, route)
+      if
+        string.match(lk.host, pattern)
+        or string.match(lk.remote_url, pattern)
+        or string.match(resolved_remote_url, pattern)
+      then
+        logger.debug(
+          "|browse| match-2 router:%s with pattern:%s",
+          vim.inspect(route),
+          vim.inspect(pattern)
+        )
+        return _do_route(lk, pattern, route)
+      end
     end
   end
   assert(
@@ -325,43 +347,55 @@ end
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _blame(lk)
-  for _, pattern_route_tuple in ipairs(Configs.router.blame) do
-    assert(
-      type(pattern_route_tuple) == "table" and #pattern_route_tuple == 2,
-      string.format(
-        "invalid blame pattern-router tuple %s",
-        vim.inspect(pattern_route_tuple)
-      )
-    )
-    local pattern = pattern_route_tuple[1]
-    local route = pattern_route_tuple[2]
-    local resolved_remote_url = _make_resolved_remote_url(lk)
+  for i, pattern_route_tuple in ipairs(Configs._blame_list_routers) do
     if
-      string.match(lk.host, pattern)
-      or string.match(lk.remote_url, pattern)
-      or string.match(resolved_remote_url, pattern)
+      type(i) == "number"
+      and type(pattern_route_tuple) == "table"
+      and #pattern_route_tuple == 2
     then
-      logger.debug(
-        "|blame| match-1 router:%s with pattern:%s",
-        vim.inspect(route),
-        vim.inspect(pattern)
+      assert(
+        type(pattern_route_tuple) == "table" and #pattern_route_tuple == 2,
+        string.format(
+          "invalid blame pattern-router tuple %s",
+          vim.inspect(pattern_route_tuple)
+        )
       )
-      return _do_route(lk, pattern, route)
+      local pattern = pattern_route_tuple[1]
+      local route = pattern_route_tuple[2]
+      local resolved_remote_url = _make_resolved_remote_url(lk)
+      if
+        string.match(lk.host, pattern)
+        or string.match(lk.remote_url, pattern)
+        or string.match(resolved_remote_url, pattern)
+      then
+        logger.debug(
+          "|blame| match-1 router:%s with pattern:%s",
+          vim.inspect(route),
+          vim.inspect(pattern)
+        )
+        return _do_route(lk, pattern, route)
+      end
     end
   end
-  for pattern, route in pairs(Configs.router.blame) do
-    local resolved_remote_url = _make_resolved_remote_url(lk)
+  for pattern, route in pairs(Configs._blame_map_routers) do
     if
-      string.match(lk.host, pattern)
-      or string.match(lk.remote_url, pattern)
-      or string.match(resolved_remote_url, pattern)
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
     then
-      logger.debug(
-        "|blame| match-2 router:%s with pattern:%s",
-        vim.inspect(route),
-        vim.inspect(pattern)
-      )
-      return _do_route(lk, pattern, route)
+      local resolved_remote_url = _make_resolved_remote_url(lk)
+      if
+        string.match(lk.host, pattern)
+        or string.match(lk.remote_url, pattern)
+        or string.match(resolved_remote_url, pattern)
+      then
+        logger.debug(
+          "|blame| match-2 router:%s with pattern:%s",
+          vim.inspect(route),
+          vim.inspect(pattern)
+        )
+        return _do_route(lk, pattern, route)
+      end
     end
   end
   assert(
@@ -420,69 +454,100 @@ local function link(opts)
 end
 
 --- @param opts gitlinker.Options
---- @return gitlinker.Options
-local function _merge_routers(opts)
-  -- browse
-  local browse_routers = vim.deepcopy(Defaults.router.browse)
-  local browse_router_binding_opts = {}
-  if
-    type(opts.router_binding) == "table"
-    and type(opts.router_binding.browse) == "table"
-  then
-    deprecation.notify(
-      "'router_binding' is renamed to 'router', please update to latest configs!"
-    )
-    browse_router_binding_opts = vim.deepcopy(opts.router_binding.browse)
-  end
-  local browse_router_opts = (
-    type(opts.router) == "table" and type(opts.router.browse) == "table"
+--- @return {browse_list:any[],browse_map:table<string,any>,blame_list:any[],blame_map:table<string,any>}
+local function _merge_user_routers(opts)
+  local default_browse_routers = Defaults.router.browse
+  local user_browse_routers = (
+    type(opts.router) == "table" and type(opts.router.browse)
   )
-      and vim.deepcopy(opts.router.browse)
+      and opts.router.browse
     or {}
-  browse_routers = vim.tbl_extend(
-    "force",
-    vim.deepcopy(browse_routers),
-    browse_router_binding_opts
-  )
-  browse_routers =
-    vim.tbl_extend("force", vim.deepcopy(browse_routers), browse_router_opts)
+  local merged_browse_list_routers = {}
+  local merged_browse_map_routers = {}
 
-  -- blame
-  local blame_routers = vim.deepcopy(Defaults.router.blame)
-  local blame_router_binding_opts = {}
-  if
-    type(opts.router_binding) == "table"
-    and type(opts.router_binding.blame) == "table"
-  then
-    deprecation.notify(
-      "'router_binding' is renamed to 'router', please update to latest configs!"
-    )
-    blame_router_binding_opts = vim.deepcopy(opts.router_binding.blame)
+  for i, tuple in ipairs(user_browse_routers) do
+    if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      table.insert(merged_browse_list_routers, tuple)
+    end
   end
-  local blame_router_opts = (
-    type(opts.router) == "table" and type(opts.router.blame) == "table"
+  for i, tuple in ipairs(default_browse_routers) do
+    if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      table.insert(merged_browse_list_routers, tuple)
+    end
+  end
+  for pattern, route in pairs(user_browse_routers) do
+    if
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
+    then
+      merged_browse_map_routers[pattern] = route
+    end
+  end
+  for pattern, route in pairs(default_browse_routers) do
+    if
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
+    then
+      merged_browse_map_routers[pattern] = route
+    end
+  end
+
+  local default_blame_routers = Defaults.router.blame
+  local user_blame_routers = (
+    type(opts.router) == "table" and type(opts.router.blame)
   )
-      and vim.deepcopy(opts.router.blame)
+      and opts.router.blame
     or {}
-  blame_routers = vim.tbl_extend(
-    "force",
-    vim.deepcopy(blame_routers),
-    blame_router_binding_opts
-  )
-  blame_routers =
-    vim.tbl_extend("force", vim.deepcopy(blame_routers), blame_router_opts)
+  local merged_blame_list_routers = {}
+  local merged_blame_map_routers = {}
+
+  for i, tuple in ipairs(user_blame_routers) do
+    if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      table.insert(merged_blame_list_routers, tuple)
+    end
+  end
+  for i, tuple in ipairs(default_blame_routers) do
+    if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      table.insert(merged_blame_list_routers, tuple)
+    end
+  end
+  for pattern, route in pairs(user_blame_routers) do
+    if
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
+    then
+      merged_blame_map_routers[pattern] = route
+    end
+  end
+  for pattern, route in pairs(default_blame_routers) do
+    if
+      type(pattern) == "string"
+      and string.len(pattern) > 0
+      and (type(route) == "string" or type(route) == "function")
+    then
+      merged_blame_map_routers[pattern] = route
+    end
+  end
 
   return {
-    browse = browse_routers,
-    blame = blame_routers,
+    browse_list = merged_browse_list_routers,
+    browse_map = merged_browse_map_routers,
+    blame_list = merged_blame_list_routers,
+    blame_map = merged_blame_map_routers,
   }
 end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
-  local router_configs = _merge_routers(opts or {})
+  local merged_routers = _merge_user_routers(opts or {})
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
-  Configs.router = router_configs
+  Configs._browse_list_routers = merged_routers.browse_list
+  Configs._browse_map_routers = merged_routers.browse_map
+  Configs._blame_list_routers = merged_routers.browse_list
+  Configs._blame_map_routers = merged_routers.browse_map
 
   -- logger
   logger.setup({
