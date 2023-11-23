@@ -29,6 +29,13 @@ local Defaults = {
   router = {
     browse = {
       {
+        "^git@git%.samba%.org:samba%.git",
+        "https://git.samba.org/?p=samba.git;a=blob;"
+          .. "f={_A.FILE};"
+          .. "hb={_A.REV}"
+          .. "#l{_A.LSTART}",
+      },
+      {
         "^https://git%.samba%.org/samba%.git",
         "https://git.samba.org/?p=samba.git;a=blob;"
           .. "f={_A.FILE};"
@@ -454,11 +461,11 @@ local function link(opts)
 end
 
 --- @param opts gitlinker.Options
---- @return {browse_list:any[],browse_map:table<string,any>,blame_list:any[],blame_map:table<string,any>}
-local function _merge_user_routers(opts)
+--- @return table<string, any>
+local function _merge_routers(opts)
   local default_browse_routers = Defaults.router.browse
   local user_browse_routers = (
-    type(opts.router) == "table" and type(opts.router.browse)
+    type(opts.router) == "table" and type(opts.router.browse) == "table"
   )
       and opts.router.browse
     or {}
@@ -467,11 +474,21 @@ local function _merge_user_routers(opts)
 
   for i, tuple in ipairs(user_browse_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      logger.debug(
+        "|gitlinker._merge_routers| user browse i:%d, tuple:%s",
+        vim.inspect(i),
+        vim.inspect(tuple)
+      )
       table.insert(merged_browse_list_routers, tuple)
     end
   end
   for i, tuple in ipairs(default_browse_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      logger.debug(
+        "|gitlinker._merge_routers| default browse i:%d, tuple:%s",
+        vim.inspect(i),
+        vim.inspect(tuple)
+      )
       table.insert(merged_browse_list_routers, tuple)
     end
   end
@@ -481,6 +498,11 @@ local function _merge_user_routers(opts)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
+      logger.debug(
+        "|gitlinker._merge_routers| user browse pattern:%s, route:%s",
+        vim.inspect(pattern),
+        vim.inspect(route)
+      )
       merged_browse_map_routers[pattern] = route
     end
   end
@@ -490,13 +512,18 @@ local function _merge_user_routers(opts)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
+      logger.debug(
+        "|gitlinker._merge_routers| default browse pattern:%s, route:%s",
+        vim.inspect(pattern),
+        vim.inspect(route)
+      )
       merged_browse_map_routers[pattern] = route
     end
   end
 
   local default_blame_routers = Defaults.router.blame
   local user_blame_routers = (
-    type(opts.router) == "table" and type(opts.router.blame)
+    type(opts.router) == "table" and type(opts.router.blame) == "table"
   )
       and opts.router.blame
     or {}
@@ -505,11 +532,21 @@ local function _merge_user_routers(opts)
 
   for i, tuple in ipairs(user_blame_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      logger.debug(
+        "|gitlinker._merge_routers| user blame i:%d, tuple:%s",
+        vim.inspect(i),
+        vim.inspect(tuple)
+      )
       table.insert(merged_blame_list_routers, tuple)
     end
   end
   for i, tuple in ipairs(default_blame_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+      logger.debug(
+        "|gitlinker._merge_routers| default blame i:%d, tuple:%s",
+        vim.inspect(i),
+        vim.inspect(tuple)
+      )
       table.insert(merged_blame_list_routers, tuple)
     end
   end
@@ -519,6 +556,11 @@ local function _merge_user_routers(opts)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
+      logger.debug(
+        "|gitlinker._merge_routers| user blame pattern:%s, route:%s",
+        vim.inspect(pattern),
+        vim.inspect(route)
+      )
       merged_blame_map_routers[pattern] = route
     end
   end
@@ -528,26 +570,33 @@ local function _merge_user_routers(opts)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
+      logger.debug(
+        "|gitlinker._merge_routers| default blame pattern:%s, route:%s",
+        vim.inspect(pattern),
+        vim.inspect(route)
+      )
       merged_blame_map_routers[pattern] = route
     end
   end
 
-  return {
-    browse_list = merged_browse_list_routers,
-    browse_map = merged_browse_map_routers,
-    blame_list = merged_blame_list_routers,
-    blame_map = merged_blame_map_routers,
+  local result = {
+    browse_list_routers = merged_browse_list_routers,
+    browse_map_routers = merged_browse_map_routers,
+    blame_list_routers = merged_blame_list_routers,
+    blame_map_routers = merged_blame_map_routers,
   }
+  logger.debug("|gitlinker._merge_routers| result:%s", vim.inspect(result))
+  return result
 end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
-  local merged_routers = _merge_user_routers(opts or {})
+  local merged_routers = _merge_routers(opts or {})
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
-  Configs._browse_list_routers = merged_routers.browse_list
-  Configs._browse_map_routers = merged_routers.browse_map
-  Configs._blame_list_routers = merged_routers.browse_list
-  Configs._blame_map_routers = merged_routers.browse_map
+  Configs._browse_list_routers = merged_routers.browse_list_routers
+  Configs._browse_map_routers = merged_routers.browse_map_routers
+  Configs._blame_list_routers = merged_routers.blame_list_routers
+  Configs._blame_map_routers = merged_routers.blame_map_routers
 
   -- logger
   logger.setup({
@@ -555,6 +604,8 @@ local function setup(opts)
     console_log = Configs.console_log,
     file_log = Configs.file_log,
   })
+
+  logger.debug("|gitlinker.setup| Configs:%s", vim.inspect(Configs))
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)

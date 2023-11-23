@@ -90,6 +90,20 @@ end
 
 -- browse {
 
+-- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12
+--- @param lk gitlinker.Linker
+--- @return string
+local function samba_browse(lk)
+  local builder = "https://git.samba.org/?p=samba.git;a=blob;"
+  -- file: 'wscript'
+  builder = builder .. string.format("f=%s;", lk.file)
+  -- rev
+  builder = builder .. string.format("hb=%s", lk.rev)
+  -- line number
+  builder = builder .. string.format("#l%d", lk.lstart)
+  return builder
+end
+
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_browse(lk)
@@ -161,6 +175,7 @@ local M = {
   lines_range = lines_range,
 
   -- browse: `/blob`, `/src`
+  samba_browse = samba_browse,
   github_browse = github_browse,
   gitlab_browse = gitlab_browse,
   bitbucket_browse = bitbucket_browse,
