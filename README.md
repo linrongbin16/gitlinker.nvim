@@ -445,7 +445,7 @@ We need to match the route bindings not only by the `host` (`github.com`), but a
 
 As you can see, the `router.browse` option (in [Configuration](#configuration)) contains two entries: `^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git`, which are actually remote urls instead of just host (`git%.samba%.org`).
 
-This can help differentiate between different users and repos, so they can have different router implementations.
+This can help differentiate between different users and repos, so they can bind to different router implementations.
 
 #### Prioritized Matching List
 
