@@ -41,15 +41,15 @@ local Defaults = {
 }
 
 local Configs = {
-  level = LogLevels.DEBUG,
-  console_log = true,
-  file_log = true,
-  _file_log_path = string.format(
-    "%s%s%s",
-    vim.fn.stdpath("data"),
-    PathSeperator,
-    "gitlinker.log"
-  ),
+  -- level = LogLevels.DEBUG,
+  -- console_log = true,
+  -- file_log = true,
+  -- _file_log_path = string.format(
+  --   "%s%s%s",
+  --   vim.fn.stdpath("data"),
+  --   PathSeperator,
+  --   "gitlinker.log"
+  -- ),
 }
 
 --- @param opts gitlinker.Options?
