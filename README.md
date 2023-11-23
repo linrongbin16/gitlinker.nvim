@@ -22,6 +22,7 @@ For now supported platforms are:
 - [github.com](https://github.com/)
 - [gitlab.com](https://gitlab.com/)
 - [bitbucket.org](https://bitbucket.org/)
+- [codeberg.org](https://codeberg.org/)
 
 PRs are welcomed for other git host websites!
 
@@ -198,6 +199,15 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
+      ["^codeberg%.org"] = "https://codeberg.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/src/commit/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?display=source' or ''}" -- '?display=source'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
     },
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -225,6 +235,14 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
+      ["^codeberg%.org"] = "https://codeberg.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blame/commit/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
     },
   },
 
@@ -281,6 +299,7 @@ There're 3 groups of builtin APIs you can directly use:
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
 - `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
+- `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
 
 ### Fully Customize Urls
 
