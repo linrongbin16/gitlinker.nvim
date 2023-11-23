@@ -382,4 +382,53 @@ describe("gitlinker", function()
       )
     end)
   end)
+  describe("[_do_route]", function()
+    it("is function", function()
+      local lk = {
+        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
+        protocol = "git@",
+        host = "my-personal-codeberg.org",
+        host_delimiter = ":",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._do_route(lk, "pattern", function(lk1)
+        assert_true(vim.deep_equal(lk, lk1))
+        return 1
+      end)
+      assert_eq(actual, 1)
+    end)
+    it("is string", function()
+      local lk = {
+        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
+        protocol = "git@",
+        host = "my-personal-codeberg.org",
+        host_delimiter = ":",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local string_template = "https://codeberg.org/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blame/commit/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}"
+      local actual = gitlinker._do_route(lk, "pattern", string_template)
+      assert_eq(
+        actual,
+        "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L21"
+      )
+    end)
+  end)
 end)
