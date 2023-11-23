@@ -39,6 +39,8 @@ PRs are welcomed for other git host websites!
   - [Highlighting](#highlighting)
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
+  - [GitWeb](#gitweb)
+    - [Match Route Bindings by Remote Url](#match-route-bindings-by-remote-url)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -313,7 +315,7 @@ require('gitlinker').setup({
 })
 ```
 
-There're 3 groups of builtin APIs you can directly use:
+There're several groups of builtin APIs you can directly use:
 
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
@@ -409,6 +411,39 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
+
+### GitWeb
+
+For [GitWeb](https://git-scm.com/book/en/v2/Git-on-the-Server-GitWeb), there're two types of urls: the main repository and the user's dev repository. For example on [git.samba.org](https://git.samba.org/):
+
+- Main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7.
+- User's dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7.
+
+Take a closer look at them:
+
+```bash
+# main repo
+https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7
+|       |                |                  |          |                                         |
+protocol host            repo               file       rev                                       line number
+
+# user repo
+https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
+|       |                |         |                  |          |                                         |
+protocol host            user      repo               file       rev                                       line number
+```
+
+The difference between main and dev is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`.
+
+To support such case, we need below improvements.
+
+#### Match Route Bindings by Remote Url
+
+We need to match the route bindings not only by the `host` (`github.com`), but also via the remote url (`https://github.com/linrongbin16/gitlinker.nvim.git`).
+
+As you can see, in the [Configuration](#configuration), the `router.browse` options `^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git` are remote urls instead of just `git%.samba%.org`.
+
+This can help differentiate between different users and repos, since for different
 
 ## Highlight Group
 
