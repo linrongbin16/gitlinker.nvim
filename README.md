@@ -41,6 +41,8 @@ PRs are welcomed for other git host websites!
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
     - [Match Route Bindings by Remote Url](#match-route-bindings-by-remote-url)
+    - [Prioritized Matching List](#prioritized-matching-list)
+    - [Handle The Missing `User` Component](#handle-the-missing-user-component)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -457,7 +459,7 @@ When processing all route bindings and finding the match, list will be processed
 
 #### Handle The Missing `User` Component
 
-When facing the (git.samba.org) main repo case, for now the `lk.repo` (`_A.REPO`) component will be passed to an empty string.
+When facing the above (git.samba.org) main repo case, for now the `lk.repo` (`_A.REPO`) component will be passed to an empty string.
 
 (Actually due to my superficial knowledge, I'm not sure whether it's the `lk.user` component missed or it's the `lk.repo` component missed. If there's a widely recognized standard says the main repo doesn't contains the `user` component, I may refactor this part.)
 
