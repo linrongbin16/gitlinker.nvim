@@ -96,11 +96,12 @@ local function _parse_remote_url(remote_url)
   end
 
   local user_end_pos = utils.string_find(remote_url, "/", host_end_pos + 1)
-  logger.ensure(
-    type(user_end_pos) == "number" and user_end_pos > host_end_pos + 1
-  )
-  user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
-  repo = remote_url:sub(user_end_pos + 1)
+  if type(user_end_pos) == "number" and user_end_pos > host_end_pos + 1 then
+    user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
+    repo = remote_url:sub(user_end_pos + 1)
+  else
+    user = remote_url:sub(host_end_pos + 1)
+  end
   local result = {
     protocol = protocol,
     host = host,

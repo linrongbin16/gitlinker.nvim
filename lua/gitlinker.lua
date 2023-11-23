@@ -28,6 +28,15 @@ local Defaults = {
   -- router bindings
   router = {
     browse = {
+      {
+        "^https://git%.samba%.org/samba%.git",
+        "https://git.samba.org/"
+          .. "?p={_A.USER};a=blob;"
+          .. "f={_A.FILE};"
+          .. "hb={_A.REV}"
+          .. "#l{_A.LSTART}",
+      },
+
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
@@ -197,13 +206,17 @@ local function _url_template_engine(lk, template)
     if exp.plain then
       table.insert(results, exp.body)
     else
+      local repo = lk.repo or ""
+      if type(repo) == "string" and string.len(repo) > 0 then
+        if utils.string_endswith(repo, ".git") then
+          repo = repo:sub(1, #repo - 4)
+        end
+      end
       local evaluated = vim.fn.luaeval(exp.body, {
         PROTOCOL = lk.protocol,
         HOST = lk.host,
         USER = lk.user,
-        REPO = utils.string_endswith(lk.repo, ".git")
-            and lk.repo:sub(1, #lk.repo - 4)
-          or lk.repo,
+        REPO = repo,
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
@@ -277,7 +290,7 @@ local function _browse(lk)
       or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
-        "|browse| match router:%s with pattern:%s",
+        "|browse| match-1 router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
@@ -292,7 +305,7 @@ local function _browse(lk)
       or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
-        "|browse| match router:%s with pattern:%s",
+        "|browse| match-2 router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
@@ -329,7 +342,7 @@ local function _blame(lk)
       or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
-        "|blame| match router:%s with pattern:%s",
+        "|blame| match-1 router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
@@ -344,7 +357,7 @@ local function _blame(lk)
       or string.match(resolved_remote_url, pattern)
     then
       logger.debug(
-        "|blame| match router:%s with pattern:%s",
+        "|blame| match-2 router:%s with pattern:%s",
         vim.inspect(route),
         vim.inspect(pattern)
       )
