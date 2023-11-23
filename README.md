@@ -459,7 +459,7 @@ When processing all route bindings and finding the match, list will be processed
 
 #### Handle The Missing `User` Component
 
-When facing the above (git.samba.org) main repo case, for now the `lk.repo` (`_A.REPO`) component will be passed to an empty string.
+When facing the (git.samba.org) main repo case, for now the `lk.repo` (`_A.REPO`) component will be passed to an empty string.
 
 (Actually due to my superficial knowledge, I'm not sure whether it's the `lk.user` component missed or it's the `lk.repo` component missed. If there's a widely recognized standard says the main repo doesn't contains the `user` component, I may refactor this part.)
 
