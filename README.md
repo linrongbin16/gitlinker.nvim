@@ -314,7 +314,7 @@ require('gitlinker').setup({
 })
 ```
 
-There're several groups of builtin APIs you can directly use:
+You can directly use below builtin APIs:
 
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
