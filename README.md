@@ -426,7 +426,7 @@ https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f831
 |       |                |                  |          |                                         |
 protocol host            repo               file       rev                                       line number
 
-# user repo
+# user dev repo
 https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
 |       |                |         |                  |          |                                         |
 protocol host            user      repo               file       rev                                       line number
