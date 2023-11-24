@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.5.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.4.0...v4.5.0) (2023-11-24)
+
+
+### Features
+
+* **parser:** support `git.samba.org/samba.git` ([d1d2482](https://github.com/linrongbin16/gitlinker.nvim/commit/d1d2482deef2eae6d7b1701707210a0b71d123e2))
+* **routers:** support gitweb such as `git.samba.org` ([#149](https://github.com/linrongbin16/gitlinker.nvim/issues/149)) ([d1d2482](https://github.com/linrongbin16/gitlinker.nvim/commit/d1d2482deef2eae6d7b1701707210a0b71d123e2))
+* **routers:** support prioritized matching list (undocumented hidden feature) ([d1d2482](https://github.com/linrongbin16/gitlinker.nvim/commit/d1d2482deef2eae6d7b1701707210a0b71d123e2))
+
+
+### Performance Improvements
+
+* **test:** improve unit tests to cover more use cases ([d1d2482](https://github.com/linrongbin16/gitlinker.nvim/commit/d1d2482deef2eae6d7b1701707210a0b71d123e2))
+
 ## [4.4.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.3.0...v4.4.0) (2023-11-23)
 
 
