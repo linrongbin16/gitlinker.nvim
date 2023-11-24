@@ -603,46 +603,49 @@ describe("gitlinker", function()
       local blame_map = actual.blame_map_routers
 
       assert_eq(#browse_list, 0)
-      local browse_n = 0
-      for k, v in pairs(browse_map) do
-        if k == "^github%.com" then
-          browse_n = browse_n + 1
-        elseif k == "^gitlab%.com" then
-          browse_n = browse_n + 1
-        elseif k == "^bitbucket%.org" then
-          browse_n = browse_n + 1
-        elseif k == "^codeberg%.org" then
-          browse_n = browse_n + 1
-        elseif k == "^git%.samba%.org" then
-          browse_n = browse_n + 1
-        elseif k == "^git%.xyz%.com" then
-          assert_eq(v, "https://git.xyz.com/browse")
-          browse_n = browse_n + 1
+      do
+        local browse_n = 0
+        for k, v in pairs(browse_map) do
+          if k == "^github%.com" then
+            browse_n = browse_n + 1
+          elseif k == "^gitlab%.com" then
+            browse_n = browse_n + 1
+          elseif k == "^bitbucket%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^codeberg%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^git%.samba%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^git%.xyz%.com" then
+            assert_eq(v, "https://git.xyz.com/browse")
+            browse_n = browse_n + 1
+          end
         end
+        assert_eq(browse_n, 6)
       end
-      assert_eq(browse_n, 6)
+
       assert_eq(#blame_list, 0)
-      local blame_n = 0
-      for k, v in pairs(blame_map) do
-        if k == "^github%.com" then
-          blame_n = blame_n + 1
-        elseif k == "^gitlab%.com" then
-          blame_n = blame_n + 1
-        elseif k == "^bitbucket%.org" then
-          blame_n = blame_n + 1
-        elseif k == "^codeberg%.org" then
-          blame_n = blame_n + 1
-        elseif k == "^git%.xyz%.com" then
-          assert_eq(v, "https://git.xyz.com/blame")
-          blame_n = blame_n + 1
+      do
+        local blame_n = 0
+        for k, v in pairs(blame_map) do
+          if k == "^github%.com" then
+            blame_n = blame_n + 1
+          elseif k == "^gitlab%.com" then
+            blame_n = blame_n + 1
+          elseif k == "^bitbucket%.org" then
+            blame_n = blame_n + 1
+          elseif k == "^codeberg%.org" then
+            blame_n = blame_n + 1
+          elseif k == "^git%.xyz%.com" then
+            assert_eq(v, "https://git.xyz.com/blame")
+            blame_n = blame_n + 1
+          end
         end
+        assert_eq(blame_n, 5)
       end
-      assert_eq(blame_n, 5)
     end)
     it("test list bindings", function()
-      gitlinker.setup({
-        debug = true,
-        file_log = true,
+      local actual = gitlinker._merge_routers({
         router = {
           browse = {
             {
@@ -660,6 +663,85 @@ describe("gitlinker", function()
           },
         },
       })
+
+      local browse_list = actual.browse_list_routers
+      local browse_map = actual.browse_map_routers
+      local blame_list = actual.blame_list_routers
+      local blame_map = actual.blame_map_routers
+
+      assert_eq(#browse_list, 2)
+      do
+        local browse_m = 0
+        for _, tuple in ipairs(browse_list) do
+          local p = tuple[1]
+          local r = tuple[2]
+          if p == "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim" then
+            assert_eq(
+              r,
+              "https://git.xyz.com/linrongbin16/gitlinker.nvim/browse"
+            )
+            browse_m = browse_m + 1
+          elseif p == "^git%.xyz%.com" then
+            assert_eq(r, "https://git.xyz.com/browse")
+            browse_m = browse_m + 1
+          end
+        end
+        assert_eq(browse_m, 2)
+      end
+
+      do
+        local browse_n = 0
+        for k, v in pairs(browse_map) do
+          if k == "^github%.com" then
+            browse_n = browse_n + 1
+          elseif k == "^gitlab%.com" then
+            browse_n = browse_n + 1
+          elseif k == "^bitbucket%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^codeberg%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^git%.samba%.org" then
+            browse_n = browse_n + 1
+          end
+        end
+        assert_eq(browse_n, 5)
+      end
+
+      assert_eq(#blame_list, 2)
+      do
+        local blame_m = 0
+        for _, tuple in ipairs(blame_list) do
+          local p = tuple[1]
+          local r = tuple[2]
+          if p == "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim" then
+            assert_eq(
+              r,
+              "https://git.xyz.com/linrongbin16/gitlinker.nvim/blame"
+            )
+            blame_m = blame_m + 1
+          elseif p == "^git%.xyz%.com" then
+            assert_eq(r, "https://git.xyz.com/blame")
+            blame_m = blame_m + 1
+          end
+        end
+        assert_eq(blame_m, 2)
+      end
+
+      do
+        local blame_n = 0
+        for k, v in pairs(blame_map) do
+          if k == "^github%.com" then
+            blame_n = blame_n + 1
+          elseif k == "^gitlab%.com" then
+            blame_n = blame_n + 1
+          elseif k == "^bitbucket%.org" then
+            blame_n = blame_n + 1
+          elseif k == "^codeberg%.org" then
+            blame_n = blame_n + 1
+          end
+        end
+        assert_eq(blame_n, 4)
+      end
     end)
   end)
 end)
