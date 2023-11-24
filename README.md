@@ -437,36 +437,14 @@ protocol host            user      repo               file       rev            
 
 The difference between main and dev is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`.
 
-To support such case, we have below improvements.
+To support such case, we have below changes:
 
-#### Also Match Remote Url
-
-We need to match the route bindings not only by the `host` (`github.com`), but also via the remote url (`https://github.com/linrongbin16/gitlinker.nvim.git`).
-
-As you can see, the `router.browse` option (in [Configuration](#configuration)) contains two entries: `^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git`, which are actually remote urls instead of just host (`git%.samba%.org`).
-
-This can help differentiate between different users and repos, so they can bind to different router implementations.
-
-#### Prioritized Matching List
-
-We need to set priority for different route bindings, since we always try to match more specific host or remote url first.
-
-E.g., try `https://git.samba.org/bbaumbach/samba.git` before `https://git.samba.org/samba.git` since we're not sure whether there will be a user named `samba` so his remote url also matches the `^https://git%.samba%.org/samba`, that would be too annoying.
-
-So the `router.browse` and `router.blame` options in [Configuration](#configuration) support two formats: list and hash-map.
-
-When processing all route bindings and finding the match, list will be processed from the first to the last, while hash-map still remains un-ordered.
-
-#### Handle The Missing `User` Component
-
-When facing the (git.samba.org) main repo case, e.g. `https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7`.
-
-For now there're two components you need to notice:
-
-- `lk.user` (`_A.USER`): the value is `samba.git`.
-- `lk.repo` (`_A.REPO`): the value is `` (empty string).
-
-> Due to my superficial knowledge, I'm not sure whether there's a widely recognized standard says the main repo doesn't contains a `user`, so for now I'm just parsing the remote url in this way.
+1. Allow match the route bindings not only by the `host` (`^git%.samba%.org`), but also via the remote url (`^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git` in the `router.browse` option). This helps differentiate between different users and repos.
+2. Use prioritized matching list to try more specific entries (e.g. put `^git@git%.samba%.org:bbaumbach/samba` before `^git@git%.samba%.org:samba` to try it first). This helps to go through all the list entries from the first to the last, while for other map entries they're still un-ordered.
+3. Facing the (`git.samba.org`) main repo case (e.g. `https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7`), there're two component changes you need to notice:
+   - `lk.user` (`_A.USER`): the value is `samba.git`.
+   - `lk.repo` (`_A.REPO`): the value is `` (empty string).
+   > Due to my superficial knowledge, I'm not sure whether there's a widely recognized standard says the main repo doesn't contains a `user`, so for now I'm just parsing the remote url in this way.
 
 ## Highlight Group
 
