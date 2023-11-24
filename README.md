@@ -23,6 +23,7 @@ For now supported platforms are:
 - [gitlab.com](https://gitlab.com/)
 - [bitbucket.org](https://bitbucket.org/)
 - [codeberg.org](https://codeberg.org/)
+- [git.samba.org](https://git.samba.org/)
 
 PRs are welcomed for other git host websites!
 
@@ -38,6 +39,7 @@ PRs are welcomed for other git host websites!
   - [Highlighting](#highlighting)
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
+  - [GitWeb](#gitweb)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -208,6 +210,14 @@ require('gitlinker').setup({
         .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?display=source' or ''}" -- '?display=source'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example:
+      -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
+      -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
+      ["^git%.samba%.org"] = "https://git.samba.org/?"
+        .. "p={string.len(_A.REPO) == 0 and _A.USER or (_A.USER .. '/' .. _A.REPO .. '.git')};a=blob;" -- 'p=samba.git' or 'p=bbaumbach/samba.git'
+        .. "f={_A.FILE};"
+        .. "hb={_A.REV}"
+        .. "#l{_A.LSTART}",
     },
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -294,12 +304,13 @@ require('gitlinker').setup({
 })
 ```
 
-There're 3 groups of builtin APIs you can directly use:
+You can directly use below builtin APIs:
 
 - `github_browse`/`github_blame`: for [github.com](https://github.com/).
 - `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
 - `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
 - `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
+- `samba_browse`: for [git.samba.org](https://git.samba.org/) (blame not support).
 
 ### Fully Customize Urls
 
@@ -385,10 +396,43 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
-  - **Note: for easier writing, the `.git` suffix has been removed.**
+  - **Note:** for easier writing, the `.git` suffix has been removed.
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
+
+### GitWeb
+
+For [GitWeb](https://git-scm.com/book/en/v2/Git-on-the-Server-GitWeb), there're two types of urls: the main repository and the user's dev repository. For example on [git.samba.org](https://git.samba.org/):
+
+- Main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7.
+- User's dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7.
+
+Take a closer look at them:
+
+```bash
+# main repo
+https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7
+|       |                |                  |          |                                         |
+protocol host            repo               file       rev                                       line number
+
+# user dev repo
+https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
+|       |                |         |                  |          |                                         |
+protocol host            user      repo               file       rev                                       line number
+```
+
+> Also see difference between `h` and `hb` in gitweb url:
+>
+> 1.  https://stackoverflow.com/q/14444593/4438921.
+> 2.  https://stackoverflow.com/a/14444767/4438921.
+
+The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different:
+
+- `lk.user` (`_A.USER`): the value is `samba.git`.
+- `lk.repo` (`_A.REPO`): the value is `` (empty string).
+
+> Actually it should be more likely the `lk.user` is empty string, and `lk.repo` is `samba.git`, but I'm just parsing it in this way.
 
 ## Highlight Group
 

@@ -1,5 +1,6 @@
 local utils = require("gitlinker.utils")
 local range = require("gitlinker.range")
+local logger = require("gitlinker.logger")
 
 --- @class gitlinker.Builder
 --- @field domain string?
@@ -90,6 +91,28 @@ end
 
 -- browse {
 
+-- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12
+--- @param lk gitlinker.Linker
+--- @return string
+local function samba_browse(lk)
+  logger.debug("|routers.samba_browse| lk:%s", vim.inspect(lk))
+  local builder = "https://git.samba.org/?"
+  -- user/repo
+  builder = builder
+    .. (
+      (lk.repo == nil or string.len(lk.repo) == 0)
+        and (string.format("p=%s;a=blob;", lk.user))
+      or (string.format("p=%s/%s;a=blob;", lk.user, lk.repo))
+    )
+  -- file: 'wscript'
+  builder = builder .. string.format("f=%s;", lk.file)
+  -- rev
+  builder = builder .. string.format("hb=%s", lk.rev)
+  -- line number
+  builder = builder .. string.format("#l%d", lk.lstart)
+  return builder
+end
+
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_browse(lk)
@@ -161,6 +184,7 @@ local M = {
   lines_range = lines_range,
 
   -- browse: `/blob`, `/src`
+  samba_browse = samba_browse,
   github_browse = github_browse,
   gitlab_browse = gitlab_browse,
   bitbucket_browse = bitbucket_browse,
