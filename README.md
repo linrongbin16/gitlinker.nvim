@@ -436,7 +436,7 @@ The difference between main and dev is: the main repo doesn't have the `user` co
 
 To support such case, we have below changes:
 
-1. Allow match the route bindings not only by the `host` (`^git%.samba%.org`), but also via the remote url (`^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git` in the `router.browse` option). This helps differentiate between different users and repos.
+1. Allow matching the route bindings not only by the `host` (`^git%.samba%.org`), but also via the remote url (`^git@git%.samba%.org:samba%.git` and `^https://git%.samba%.org/samba%.git` in the `router.browse` option). This helps differentiate between different users and repos.
 2. Use prioritized matching list to try more specific entries (e.g. put `^git@git%.samba%.org:bbaumbach/samba` before `^git@git%.samba%.org:samba` to try it first). This helps to go through all the list entries from the first to the last, while for other map entries they're still un-ordered.
 3. Facing the (`git.samba.org`) main repo case (e.g. `https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7`), there're two component changes you need to notice:
    - `lk.user` (`_A.USER`): the value is `samba.git`.
