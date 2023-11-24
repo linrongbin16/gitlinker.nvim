@@ -432,6 +432,8 @@ https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d33
 protocol host            user      repo               file       rev                                       line number
 ```
 
+> Also see: https://stackoverflow.com/q/14444593/4438921.
+
 The difference between main and dev is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`.
 
 To support such case, we have below changes:
