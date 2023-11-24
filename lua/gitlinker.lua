@@ -66,7 +66,7 @@ local Defaults = {
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?"
-        .. "p={string.len(_A.REPO) == 0 and _A.USER or (_A.USER .. '/' .. _A.REPO)};a=blob;" -- 'p=samba.git' or 'p=bbaumbach/samba.git'
+        .. "p={string.len(_A.REPO) == 0 and _A.USER or (_A.USER .. '/' .. _A.REPO .. '.git')};a=blob;" -- 'p=samba.git' or 'p=bbaumbach/samba.git'
         .. "f={_A.FILE};"
         .. "hb={_A.REV}"
         .. "#l{_A.LSTART}",

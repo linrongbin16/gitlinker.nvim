@@ -20,7 +20,7 @@ describe("gitlinker", function()
   local utils = require("gitlinker.utils")
   local routers = require("gitlinker.routers")
   describe("[_browse]", function()
-    it("git.samba.org with same lstart/lend", function()
+    it("git.samba.org/samba.git with same lstart/lend", function()
       local lk = {
         remote_url = "git@git.samba.org:samba.git",
         protocol = "git@",
@@ -41,7 +41,7 @@ describe("gitlinker", function()
       )
       assert_eq(actual, routers.samba_browse(lk))
     end)
-    it("git.samba.org with different lstart/lend", function()
+    it("git.samba.org/samba.git with different lstart/lend", function()
       local lk = {
         remote_url = "https://git.samba.org/samba.git",
         protocol = "https://",
@@ -62,6 +62,51 @@ describe("gitlinker", function()
       )
       assert_eq(actual, routers.samba_browse(lk))
     end)
+    it("git.samba.org/bbaumbach/samba.git with same lstart/lend", function()
+      local lk = {
+        remote_url = "git@git.samba.org:bbaumbach/samba.git",
+        protocol = "git@",
+        host = "git.samba.org",
+        host_delimiter = ":",
+        user = "bbaumbach",
+        repo = "samba.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "wscript",
+        file_changed = false,
+        lstart = 13,
+        lend = 13,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l13"
+      )
+      assert_eq(actual, routers.samba_browse(lk))
+    end)
+    it(
+      "git.samba.org/bbaumbach/samba.git with different lstart/lend",
+      function()
+        local lk = {
+          remote_url = "https://git.samba.org/bbaumbach/samba.git",
+          protocol = "https://",
+          host = "git.samba.org",
+          host_delimiter = "/",
+          user = "bbaumbach",
+          repo = "samba.git",
+          rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+          file = "wscript",
+          file_changed = false,
+          lstart = 12,
+          lend = 37,
+        }--[[@as gitlinker.Linker]]
+        local actual = gitlinker._browse(lk)
+        assert_eq(
+          actual,
+          "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12"
+        )
+        assert_eq(actual, routers.samba_browse(lk))
+      end
+    )
     it("github with same lstart/lend", function()
       local lk = {
         remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
