@@ -27,7 +27,7 @@ describe("gitlinker", function()
         host = "git.samba.org",
         host_delimiter = ":",
         user = "samba.git",
-        repo = "",
+        repo = nil,
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "wscript",
         file_changed = false,

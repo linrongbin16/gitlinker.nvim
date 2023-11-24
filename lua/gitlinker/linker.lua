@@ -113,7 +113,7 @@ local function _parse_remote_url(remote_url)
   return result
 end
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean}
 --- @return gitlinker.Linker?
 local function make_linker()
   local root = git.get_root()
