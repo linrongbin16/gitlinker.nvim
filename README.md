@@ -432,7 +432,7 @@ https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d33
 protocol host            user      repo               file       rev                                       line number
 ```
 
-> Also see difference between `h` and `hb`:
+> Also see difference between `h` and `hb` in gitweb url:
 > 1.  https://stackoverflow.com/q/14444593/4438921.
 > 2.  https://stackoverflow.com/a/14444767/4438921.
 
