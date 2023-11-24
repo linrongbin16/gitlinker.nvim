@@ -13,6 +13,26 @@ describe("gitlinker", function()
     gitlinker.setup({
       debug = true,
       file_log = true,
+      router = {
+        browse = {
+          ["^git%.xyz%.com"] = "https://git.xyz.com/"
+            .. "{_A.USER}/"
+            .. "{_A.REPO}/blob/"
+            .. "{_A.REV}/"
+            .. "{_A.FILE}"
+            .. "#L{_A.LSTART}"
+            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        },
+        blame = {
+          ["^git%.xyz%.com"] = "https://git.xyz.com/"
+            .. "{_A.USER}/"
+            .. "{_A.REPO}/blame/"
+            .. "{_A.REV}/"
+            .. "{_A.FILE}"
+            .. "#L{_A.LSTART}"
+            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        },
+      },
     })
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
@@ -144,6 +164,48 @@ describe("gitlinker", function()
       assert_eq(
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1"
+      )
+      assert_eq(actual, routers.github_browse(lk))
+    end)
+    it("ssh://git@git.xyz.com with same lstart/lend", function()
+      local lk = {
+        remote_url = "ssh://git@git.xyz.com/linrongbin16/gitlinker.nvim.git",
+        protocol = "ssh://git@",
+        host = "git.xyz.com",
+        host_delimiter = "/",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        file_changed = false,
+        lstart = 13,
+        lend = 47,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://git.xyz.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L47"
+      )
+      assert_eq(actual, routers.github_browse(lk))
+    end)
+    it("ssh://git@git.xyz.com with different lstart/lend", function()
+      local lk = {
+        remote_url = "ssh://git@github.com:linrongbin16/gitlinker.nvim.git",
+        protocol = "ssh://git@",
+        host = "git.xyz.com",
+        host_delimiter = ":",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 1,
+        lend = 1,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://git.xyz.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1"
       )
       assert_eq(actual, routers.github_browse(lk))
     end)
