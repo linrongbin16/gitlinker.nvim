@@ -176,7 +176,7 @@ require('gitlinker').setup({
   -- router bindings
   router = {
     browse = {
-      -- **prioritized** list routers: route bindings will be searched from the first to the last
+      -- **prioritized** matching list: route bindings will be searched from the first to the last
       -- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       {
         "^git@git%.samba%.org:samba%.git",
@@ -193,7 +193,7 @@ require('gitlinker').setup({
           .. "#l{_A.LSTART}",
       },
 
-      -- **unprioritized** map routers: there's no such guarantee that which route binding will be searched first.
+      -- **un-ordered** matching map: there's no such guarantee that which route binding will be searched first.
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
