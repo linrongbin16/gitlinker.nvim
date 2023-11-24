@@ -176,24 +176,6 @@ require('gitlinker').setup({
   -- router bindings
   router = {
     browse = {
-      -- **prioritized** matching list: route bindings will be searched from the first to the last
-      -- example: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
-      {
-        "^git@git%.samba%.org:samba%.git",
-        "https://git.samba.org/?p=samba.git;a=blob;"
-          .. "f={_A.FILE};"
-          .. "hb={_A.REV}"
-          .. "#l{_A.LSTART}",
-      },
-      {
-        "^https://git%.samba%.org/samba%.git",
-        "https://git.samba.org/?p=samba.git;a=blob;"
-          .. "f={_A.FILE};"
-          .. "hb={_A.REV}"
-          .. "#l{_A.LSTART}",
-      },
-
-      -- **un-ordered** matching map: there's no such guarantee that which route binding will be searched first.
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
@@ -228,6 +210,14 @@ require('gitlinker').setup({
         .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?display=source' or ''}" -- '?display=source'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example:
+      -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
+      -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
+      ["^git%.samba%.org"] = "https://git.samba.org/?"
+        .. "p={string.len(_A.REPO) == 0 and _A.USER or (_A.USER .. '/' .. _A.REPO .. '.git')};a=blob;" -- 'p=samba.git' or 'p=bbaumbach/samba.git'
+        .. "f={_A.FILE};"
+        .. "hb={_A.REV}"
+        .. "#l{_A.LSTART}",
     },
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
