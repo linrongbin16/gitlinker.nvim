@@ -661,6 +661,7 @@ local M = {
   _do_route = _do_route,
   _browse = _browse,
   _blame = _blame,
+  _merge_routers = _merge_routers,
 }
 
 return M

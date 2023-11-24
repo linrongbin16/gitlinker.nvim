@@ -584,4 +584,82 @@ describe("gitlinker", function()
       )
     end)
   end)
+  describe("[_merge_routers]", function()
+    it("test map bindings", function()
+      local actual = gitlinker._merge_routers({
+        router = {
+          browse = {
+            ["^git%.xyz%.com"] = "https://git.xyz.com/browse",
+          },
+          blame = {
+            ["^git%.xyz%.com"] = "https://git.xyz.com/blame",
+          },
+        },
+      })
+
+      local browse_list = actual.browse_list_routers
+      local browse_map = actual.browse_map_routers
+      local blame_list = actual.blame_list_routers
+      local blame_map = actual.blame_map_routers
+
+      assert_eq(#browse_list, 0)
+      local browse_n = 0
+      for k, v in pairs(browse_map) do
+        if k == "^github%.com" then
+          browse_n = browse_n + 1
+        elseif k == "^gitlab%.com" then
+          browse_n = browse_n + 1
+        elseif k == "^bitbucket%.org" then
+          browse_n = browse_n + 1
+        elseif k == "^codeberg%.org" then
+          browse_n = browse_n + 1
+        elseif k == "^git%.samba%.org" then
+          browse_n = browse_n + 1
+        elseif k == "^git%.xyz%.com" then
+          assert_eq(v, "https://git.xyz.com/browse")
+          browse_n = browse_n + 1
+        end
+      end
+      assert_eq(browse_n, 6)
+      assert_eq(#blame_list, 0)
+      local blame_n = 0
+      for k, v in pairs(blame_map) do
+        if k == "^github%.com" then
+          blame_n = blame_n + 1
+        elseif k == "^gitlab%.com" then
+          blame_n = blame_n + 1
+        elseif k == "^bitbucket%.org" then
+          blame_n = blame_n + 1
+        elseif k == "^codeberg%.org" then
+          blame_n = blame_n + 1
+        elseif k == "^git%.xyz%.com" then
+          assert_eq(v, "https://git.xyz.com/blame")
+          blame_n = blame_n + 1
+        end
+      end
+      assert_eq(blame_n, 5)
+    end)
+    it("test list bindings", function()
+      gitlinker.setup({
+        debug = true,
+        file_log = true,
+        router = {
+          browse = {
+            {
+              "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim",
+              "https://git.xyz.com/linrongbin16/gitlinker.nvim/browse",
+            },
+            { "^git%.xyz%.com", "https://git.xyz.com/browse" },
+          },
+          blame = {
+            {
+              "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim",
+              "https://git.xyz.com/linrongbin16/gitlinker.nvim/blame",
+            },
+            { "^git%.xyz%.com", "https://git.xyz.com/blame" },
+          },
+        },
+      })
+    end)
+  end)
 end)
