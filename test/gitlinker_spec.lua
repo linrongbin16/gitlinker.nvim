@@ -535,7 +535,7 @@ describe("gitlinker", function()
       )
     end)
   end)
-  describe("[_do_route]", function()
+  describe("[_worker]", function()
     it("is function", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
