@@ -597,10 +597,11 @@ describe("gitlinker", function()
         },
       })
 
-      local browse_list = actual.browse_list_routers
-      local browse_map = actual.browse_map_routers
-      local blame_list = actual.blame_list_routers
-      local blame_map = actual.blame_map_routers
+      print(string.format("merged routers:%s\n", vim.inspect(actual)))
+      local browse_list = actual.browse.list_routers
+      local browse_map = actual.browse.map_routers
+      local blame_list = actual.blame.list_routers
+      local blame_map = actual.blame.map_routers
 
       assert_eq(#browse_list, 0)
       do
@@ -664,10 +665,10 @@ describe("gitlinker", function()
         },
       })
 
-      local browse_list = actual.browse_list_routers
-      local browse_map = actual.browse_map_routers
-      local blame_list = actual.blame_list_routers
-      local blame_map = actual.blame_map_routers
+      local browse_list = actual.browse.list_routers
+      local browse_map = actual.browse.map_routers
+      local blame_list = actual.blame.list_routers
+      local blame_map = actual.blame.map_routers
 
       assert_eq(#browse_list, 2)
       do
