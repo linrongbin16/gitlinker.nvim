@@ -437,7 +437,7 @@ The difference is: the main repo doesn't have the `user` component, it's just `h
 
 ### Create Your Own Router Type
 
-You can even create your own router type (e.g. using the same engine with `browse`/`blame`), for example let's create a new `master_branch` router type:
+You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example let's create a new `master_branch` router type:
 
 ```lua
 require("gitlinker").setup({
