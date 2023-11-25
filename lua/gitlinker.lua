@@ -479,7 +479,7 @@ local function _merge_routers(opts)
       end
     end
   end
-  logger.debug("|gitlinker._merge_routers| result:%s", vim.inspect(result))
+  -- logger.debug("|gitlinker._merge_routers| result:%s", vim.inspect(result))
   return result
 end
 
