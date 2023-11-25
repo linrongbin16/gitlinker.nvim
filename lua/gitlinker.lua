@@ -517,13 +517,12 @@ local function setup(opts)
       math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend =
       math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local router = _browse
-    if parsed_args == "blame" then
-      router = _blame
-    elseif type(parsed_args) == "string" and string.len(parsed_args) > 0 then
-      router = function(lk)
-        return _router(parsed_args, lk)
-      end
+    local router_type = type(parsed_args) == "string"
+        and string.len(parsed_args) > 0
+        and parsed_args
+      or "browse"
+    local router = function(lk)
+      return _router(router_type, lk)
     end
     local action = require("gitlinker.actions").clipboard
     if command_opts.bang then
