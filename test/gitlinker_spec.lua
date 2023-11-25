@@ -550,7 +550,7 @@ describe("gitlinker", function()
         lend = 21,
         file_changed = false,
       }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._do_route(lk, "pattern", function(lk1)
+      local actual = gitlinker._worker(lk, "pattern", function(lk1)
         assert_true(vim.deep_equal(lk, lk1))
         return 1
       end)
@@ -577,7 +577,7 @@ describe("gitlinker", function()
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}"
-      local actual = gitlinker._do_route(lk, "pattern", string_template)
+      local actual = gitlinker._worker(lk, "pattern", string_template)
       assert_eq(
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L21"

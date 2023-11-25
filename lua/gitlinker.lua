@@ -250,7 +250,7 @@ end
 --- @param p string
 --- @param r string|function(lk:gitlinker.Linker):string?
 --- @return string?
-local function _do_route(lk, p, r)
+local function _worker(lk, p, r)
   if type(r) == "function" then
     return r(lk)
   elseif type(r) == "string" then
@@ -298,7 +298,7 @@ local function _router(router_type, lk)
       local route = tuple[2]
       local resolved_remote_url = _make_resolved_remote_url(lk)
       logger.debug(
-        "|gitlinker._browse| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s), resolved_remote_url:%s(%s)",
+        "|gitlinker._router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s), resolved_remote_url:%s(%s)",
         vim.inspect(i),
         vim.inspect(tuple),
         vim.inspect(string.match(lk.host, pattern)),
@@ -318,7 +318,7 @@ local function _router(router_type, lk)
           vim.inspect(route),
           vim.inspect(pattern)
         )
-        return _do_route(lk, pattern, route)
+        return _worker(lk, pattern, route)
       end
     end
   end
@@ -330,7 +330,7 @@ local function _router(router_type, lk)
     then
       local resolved_remote_url = _make_resolved_remote_url(lk)
       logger.debug(
-        "|gitlinker._browse| table pattern:%s, match host:%s, remote_url:%s, resolved_remote_url:%s",
+        "|gitlinker._router| table pattern:%s, match host:%s, remote_url:%s, resolved_remote_url:%s",
         vim.inspect(pattern),
         vim.inspect(lk.host),
         vim.inspect(lk.remote_url),
@@ -346,7 +346,7 @@ local function _router(router_type, lk)
           vim.inspect(route),
           vim.inspect(pattern)
         )
-        return _do_route(lk, pattern, route)
+        return _worker(lk, pattern, route)
       end
     end
   end
@@ -559,7 +559,7 @@ local M = {
   setup = setup,
   link = link,
   _make_resolved_remote_url = _make_resolved_remote_url,
-  _do_route = _do_route,
+  _worker = _worker,
   _browse = _browse,
   _blame = _blame,
   _merge_routers = _merge_routers,
