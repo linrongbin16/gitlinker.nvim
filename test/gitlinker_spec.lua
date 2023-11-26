@@ -535,7 +535,7 @@ describe("gitlinker", function()
       )
     end)
   end)
-  describe("[_do_route]", function()
+  describe("[_worker]", function()
     it("is function", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
@@ -550,7 +550,7 @@ describe("gitlinker", function()
         lend = 21,
         file_changed = false,
       }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._do_route(lk, "pattern", function(lk1)
+      local actual = gitlinker._worker(lk, "pattern", function(lk1)
         assert_true(vim.deep_equal(lk, lk1))
         return 1
       end)
@@ -577,7 +577,7 @@ describe("gitlinker", function()
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}"
-      local actual = gitlinker._do_route(lk, "pattern", string_template)
+      local actual = gitlinker._worker(lk, "pattern", string_template)
       assert_eq(
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L21"
@@ -597,10 +597,11 @@ describe("gitlinker", function()
         },
       })
 
-      local browse_list = actual.browse_list_routers
-      local browse_map = actual.browse_map_routers
-      local blame_list = actual.blame_list_routers
-      local blame_map = actual.blame_map_routers
+      print(string.format("merged routers:%s\n", vim.inspect(actual)))
+      local browse_list = actual.browse.list_routers
+      local browse_map = actual.browse.map_routers
+      local blame_list = actual.blame.list_routers
+      local blame_map = actual.blame.map_routers
 
       assert_eq(#browse_list, 0)
       do
@@ -664,10 +665,10 @@ describe("gitlinker", function()
         },
       })
 
-      local browse_list = actual.browse_list_routers
-      local browse_map = actual.browse_map_routers
-      local blame_list = actual.blame_list_routers
-      local blame_map = actual.blame_map_routers
+      local browse_list = actual.browse.list_routers
+      local browse_map = actual.browse.map_routers
+      local blame_list = actual.blame.list_routers
+      local blame_map = actual.blame.map_routers
 
       assert_eq(#browse_list, 2)
       do

@@ -40,6 +40,7 @@ PRs are welcomed for other git host websites!
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
+  - [More Router Types](#more-router-types)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -115,7 +116,7 @@ You could use below command:
 
 There're two **routers** provided:
 
-- `browse`: generate the `/blob` urls (default router in `GitLink`), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
+- `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
 - `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
 
 <details>
@@ -424,8 +425,8 @@ protocol host            user      repo               file       rev            
 
 > Also see difference between `h` and `hb` in gitweb url:
 >
-> 1.  https://stackoverflow.com/q/14444593/4438921.
-> 2.  https://stackoverflow.com/a/14444767/4438921.
+> 1. https://stackoverflow.com/q/14444593/4438921.
+> 2. https://stackoverflow.com/a/14444767/4438921.
 
 The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different:
 
@@ -433,6 +434,32 @@ The difference is: the main repo doesn't have the `user` component, it's just `h
 - `lk.repo` (`_A.REPO`): the value is `` (empty string).
 
 > Actually it should be more likely the `lk.user` is empty string, and `lk.repo` is `samba.git`, but I'm just parsing it in this way.
+
+### More Router Types
+
+You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example create the `master_branch` router type:
+
+```lua
+require("gitlinker").setup({
+  router = {
+    master_branch = {
+      ["^github%.com"] = "https://github.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blob/master/" -- always 'master' branch
+        .. "{_A.FILE}"
+        .. "?&lines={_A.LSTART}"
+        .. "{_A.LEND > _A.LSTART and ('&lines-count=' .. _A.LEND - _A.LSTART + 1) or ''}",
+    },
+  },
+})
+```
+
+Then use it just like `blame`:
+
+```
+GitLink master_branch
+GitLink! master_branch
+```
 
 ## Highlight Group
 
