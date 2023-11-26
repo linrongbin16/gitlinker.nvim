@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.6.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.5.0...v4.6.0) (2023-11-26)
+
+
+### Features
+
+* **config:** user router types ([#152](https://github.com/linrongbin16/gitlinker.nvim/issues/152)) ([8530e1a](https://github.com/linrongbin16/gitlinker.nvim/commit/8530e1a95da83560fbfddee01cdbe61e9673002e))
+
+
+### Performance Improvements
+
+* **gitweb:** correct parsing remote url! ([#154](https://github.com/linrongbin16/gitlinker.nvim/issues/154)) ([382b31e](https://github.com/linrongbin16/gitlinker.nvim/commit/382b31e63f09c3c1c45a663e5876ce98d7c87ad9))
+
 ## [4.5.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.4.0...v4.5.0) (2023-11-24)
 
 
