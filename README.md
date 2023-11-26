@@ -454,6 +454,13 @@ require("gitlinker").setup({
 })
 ```
 
+Then use it just like `blame`:
+
+```
+GitLink master_branch
+GitLink! master_branch
+```
+
 ## Highlight Group
 
 | Highlight Group                  | Default Group | Description                          |
