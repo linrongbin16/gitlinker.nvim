@@ -65,8 +65,9 @@ local Defaults = {
       -- example:
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
-      ["^git%.samba%.org"] = "https://git.samba.org/?"
-        .. "p={string.len(_A.REPO) == 0 and _A.USER or (_A.USER .. '/' .. _A.REPO .. '.git')};a=blob;" -- 'p=samba.git' or 'p=bbaumbach/samba.git'
+      ["^git%.samba%.org"] = "https://git.samba.org/?p="
+        .. "{string.len(_A.USER) > 0 and (_A.USER .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
+        .. "{_A.REPO .. '.git'};a=blob;"
         .. "f={_A.FILE};"
         .. "hb={_A.REV}"
         .. "#l{_A.LSTART}",
@@ -205,17 +206,13 @@ local function _url_template_engine(lk, template)
     if exp.plain then
       table.insert(results, exp.body)
     else
-      local repo = lk.repo or ""
-      if type(repo) == "string" and string.len(repo) > 0 then
-        if utils.string_endswith(repo, ".git") then
-          repo = repo:sub(1, #repo - 4)
-        end
-      end
       local evaluated = vim.fn.luaeval(exp.body, {
         PROTOCOL = lk.protocol,
         HOST = lk.host,
         USER = lk.user,
-        REPO = repo,
+        REPO = utils.string_endswith(lk.repo, ".git")
+            and lk.repo:sub(1, #lk.repo - 4)
+          or lk.repo,
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
