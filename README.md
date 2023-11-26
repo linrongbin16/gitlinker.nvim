@@ -40,7 +40,7 @@ PRs are welcomed for other git host websites!
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
-  - [Create Your Own Router Type](#create-your-own-router-type)
+  - [More Router Types](#more-router-types)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
