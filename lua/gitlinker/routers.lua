@@ -96,14 +96,12 @@ end
 --- @return string
 local function samba_browse(lk)
   logger.debug("|routers.samba_browse| lk:%s", vim.inspect(lk))
-  local builder = "https://git.samba.org/?"
-  -- user/repo
+  local builder = "https://git.samba.org/?p="
+  -- user
   builder = builder
-    .. (
-      (lk.repo == nil or string.len(lk.repo) == 0)
-        and (string.format("p=%s;a=blob;", lk.user))
-      or (string.format("p=%s/%s;a=blob;", lk.user, lk.repo))
-    )
+    .. (string.len(lk.user) > 0 and string.format("%s/", lk.user) or "")
+  -- user
+  builder = builder .. string.format("%s;a=blob;", lk.repo)
   -- file: 'wscript'
   builder = builder .. string.format("f=%s;", lk.file)
   -- rev
