@@ -114,9 +114,9 @@ You could use below command:
 - `GitLink blame`: copy the `/blame` url to clipboard.
 - `GitLink! blame`: open the `/blame` url in browser.
 
-There're two **routers** provided:
+There're two **router** provided:
 
-- `browse`: generate the `/blob` urls (default router in `GitLink`), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
+- `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
 - `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
 
 <details>
