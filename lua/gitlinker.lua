@@ -421,36 +421,6 @@ end
 --- @return table<string, {list_routers:table,map_routers:table}>
 local function _merge_routers(opts)
   local result = {}
-  if type(opts.router) == "table" then
-    -- user_router_type: browse, blame, etc
-    for user_router_type, user_router_bindings in pairs(opts.router) do
-      if result[user_router_type] == nil then
-        result[user_router_type] = {}
-        result[user_router_type].list_routers = {}
-        result[user_router_type].map_routers = {}
-      end
-      -- list
-      for i, tuple in ipairs(user_router_bindings) do
-        if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
-          table.insert(result[user_router_type].list_routers, tuple)
-        end
-      end
-      -- map
-      for pattern, route in pairs(user_router_bindings) do
-        if result[user_router_type].map_routers == nil then
-          result[user_router_type].map_routers = {}
-        end
-        if
-          type(pattern) == "string"
-          and string.len(pattern) > 0
-          and (type(route) == "string" or type(route) == "function")
-        then
-          result[user_router_type].map_routers[pattern] = route
-        end
-      end
-    end
-  end
-
   -- default routers
   -- default_router_type: browse, blame, etc
   for default_router_type, default_router_bindings in pairs(Defaults.router) do
@@ -476,6 +446,37 @@ local function _merge_routers(opts)
         and (type(route) == "string" or type(route) == "function")
       then
         result[default_router_type].map_routers[pattern] = route
+      end
+    end
+  end
+  if type(opts.router) == "table" then
+    -- user_router_type: browse, blame, etc
+    for user_router_type, user_router_bindings in pairs(opts.router) do
+      if result[user_router_type] == nil then
+        result[user_router_type] = {}
+        result[user_router_type].list_routers = {}
+        result[user_router_type].map_routers = {}
+      end
+      -- list
+      for i, tuple in ipairs(user_router_bindings) do
+        if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+          -- prepend to head for higher priority
+          table.insert(result[user_router_type].list_routers, 1, tuple)
+        end
+      end
+      -- map
+      for pattern, route in pairs(user_router_bindings) do
+        if result[user_router_type].map_routers == nil then
+          result[user_router_type].map_routers = {}
+        end
+        if
+          type(pattern) == "string"
+          and string.len(pattern) > 0
+          and (type(route) == "string" or type(route) == "function")
+        then
+          -- override default routers
+          result[user_router_type].map_routers[pattern] = route
+        end
       end
     end
   end
