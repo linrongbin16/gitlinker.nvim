@@ -435,7 +435,7 @@ The difference is: the main repo doesn't have the `user` component, it's just `h
 
 > Actually it should be more likely the `lk.user` is empty string, and `lk.repo` is `samba.git`, but I'm just parsing it in this way.
 
-### Create Your Own Router Type
+### More Router Types
 
 You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example create the `master_branch` router type:
 
