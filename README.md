@@ -407,34 +407,24 @@ The available variables are the same with the `lk` parameter passing to hook fun
 
 For [GitWeb](https://git-scm.com/book/en/v2/Git-on-the-Server-GitWeb), there're two types of urls: the main repository and the user's dev repository. For example on [git.samba.org](https://git.samba.org/):
 
-- Main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7.
-- User's dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7.
-
-Take a closer look at them:
-
 ```bash
 # main repo
+https://git.samba.org/samba.git (`git remote get-url origin`)
 https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7
 |       |                |                  |          |                                         |
 protocol host            repo               file       rev                                       line number
 
-# user dev repo
+# user's dev repo
+https://git.samba.org/bbaumbach/samba.git (`git remote get-url origin`)
 https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
 |       |                |         |                  |          |                                         |
 protocol host            user      repo               file       rev                                       line number
 ```
 
-> Also see difference between `h` and `hb` in gitweb url:
->
-> 1. https://stackoverflow.com/q/14444593/4438921.
-> 2. https://stackoverflow.com/a/14444767/4438921.
+The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
 
-The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different:
-
-- `lk.user` (`_A.USER`): the value is `samba.git`.
-- `lk.repo` (`_A.REPO`): the value is `` (empty string).
-
-> Actually it should be more likely the `lk.user` is empty string, and `lk.repo` is `samba.git`, but I'm just parsing it in this way.
+- `lk.user` (`_A.USER`): the value is `` (empty string).
+- `lk.repo` (`_A.REPO`): the value is `samba.git`.
 
 ### More Router Types
 
