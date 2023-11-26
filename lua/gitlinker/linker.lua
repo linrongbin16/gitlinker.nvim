@@ -100,7 +100,12 @@ local function _parse_remote_url(remote_url)
     user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
     repo = remote_url:sub(user_end_pos + 1)
   else
-    user = remote_url:sub(host_end_pos + 1)
+    -- if no slash '/', then don't have 'user', but only 'repo'
+    -- example:
+    -- * main repo: https://git.samba.org/?p=samba.git
+    -- * user dev repo: https://git.samba.org/?p=bbaumbach/samba.git
+    repo = remote_url:sub(host_end_pos + 1)
+    user = ""
   end
   local result = {
     protocol = protocol,
