@@ -106,6 +106,7 @@ describe("linker", function()
           lk.remote_url,
           "https://github.com/linrongbin16/gitlinker.nvim.git"
         )
+        assert_eq(lk.default_branch, "master")
       end
     end)
   end)
