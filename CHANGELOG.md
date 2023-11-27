@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.7.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.6.0...v4.7.0) (2023-11-27)
+
+
+### Features
+
+* **branch:** provide `DEFAULT_BRANCH` and `CURRENT_BRANCH` components ([#159](https://github.com/linrongbin16/gitlinker.nvim/issues/159)) ([7007c7a](https://github.com/linrongbin16/gitlinker.nvim/commit/7007c7a5b5427b510cd4bbfdffb5334654441d4d))
+
+
+### Bug Fixes
+
+* **config:** fix merged user routers configs ([#158](https://github.com/linrongbin16/gitlinker.nvim/issues/158)) ([3e33ba8](https://github.com/linrongbin16/gitlinker.nvim/commit/3e33ba845dc8d5ed22565c90b01650261c204303))
+
+
+### Performance Improvements
+
+* **routers:** always add '?display=source' for codeberg ([#156](https://github.com/linrongbin16/gitlinker.nvim/issues/156)) ([0a8925f](https://github.com/linrongbin16/gitlinker.nvim/commit/0a8925f6e85a0d355217f5dd00a8c307c99a46a5))
+* **routers:** always add '?plain=1' for github ([#156](https://github.com/linrongbin16/gitlinker.nvim/issues/156)) ([0a8925f](https://github.com/linrongbin16/gitlinker.nvim/commit/0a8925f6e85a0d355217f5dd00a8c307c99a46a5))
+
 ## [4.6.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.5.0...v4.6.0) (2023-11-26)
 
 
