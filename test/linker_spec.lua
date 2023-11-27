@@ -107,6 +107,8 @@ describe("linker", function()
           "https://github.com/linrongbin16/gitlinker.nvim.git"
         )
         assert_eq(lk.default_branch, "master")
+        assert_eq(type(lk.current_branch), "string")
+        assert_true(string.len(lk.current_branch) >= 0)
       end
     end)
   end)
