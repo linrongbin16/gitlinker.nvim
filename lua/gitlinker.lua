@@ -573,6 +573,7 @@ local M = {
   link = link,
   _make_resolved_remote_url = _make_resolved_remote_url,
   _worker = _worker,
+  _router = _router,
   _browse = _browse,
   _blame = _blame,
   _merge_routers = _merge_routers,

@@ -32,6 +32,24 @@ describe("gitlinker", function()
             .. "#L{_A.LSTART}"
             .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
         },
+        default_branch = {
+          ["^github%.com"] = "https://github.com/"
+            .. "{_A.USER}/"
+            .. "{_A.REPO}/blob/"
+            .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
+            .. "{_A.FILE}?plain=1" -- '?plain=1'
+            .. "#L{_A.LSTART}"
+            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        },
+        current_branch = {
+          ["^github%.com"] = "https://github.com/"
+            .. "{_A.USER}/"
+            .. "{_A.REPO}/blob/"
+            .. "{_A.CURRENT_BRANCH}/" -- always current branch
+            .. "{_A.FILE}?plain=1" -- '?plain=1'
+            .. "#L{_A.LSTART}"
+            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        },
       },
     })
     vim.cmd([[ edit lua/gitlinker.lua ]])
@@ -743,6 +761,56 @@ describe("gitlinker", function()
         end
         assert_eq(blame_n, 4)
       end
+    end)
+  end)
+  describe("[user router types]", function()
+    it("default_branch", function()
+      local lk = {
+        remote_url = "https://github.com/linrongbin16/gitlinker.nvim.git",
+        protocol = "https://",
+        host = "github.com",
+        host_delimiter = "/",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._router("default_branch", lk)
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/logger.lua?plain=1#L13-L21"
+      )
+    end)
+    it("current_branch", function()
+      local lk = {
+        remote_url = "https://github.com/linrongbin16/gitlinker.nvim.git",
+        protocol = "https://",
+        host = "github.com",
+        host_delimiter = "/",
+        user = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._router("current_branch", lk)
+      assert_true(
+        utils.string_startswith(
+          actual,
+          "https://github.com/linrongbin16/gitlinker.nvim/blob/"
+        )
+      )
+      assert_true(
+        utils.string_endswith(
+          actual,
+          "/lua/gitlinker/logger.lua?plain=1#L13-L21"
+        )
+      )
     end)
   end)
 end)
