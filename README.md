@@ -193,7 +193,7 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/src/"
@@ -244,7 +244,7 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
-      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#lines-3:4
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/commit/"
