@@ -456,6 +456,11 @@ require("gitlinker").setup({
 })
 ```
 
+> Here use the two branch components:
+>
+> - `lk.default_branch`(`_A.DEFAULT_BRANCH`): retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
+> - `lk.current_branch`(`_A.CURRENT_BRANCH`): retrieved from `git rev-parse --abbrev-ref HEAD`.
+
 Then use it just like `blame`:
 
 ```vim
