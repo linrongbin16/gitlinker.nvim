@@ -95,7 +95,7 @@ local Defaults = {
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
-      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L3-L4
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/commit/"
