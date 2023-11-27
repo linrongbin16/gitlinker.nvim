@@ -236,7 +236,7 @@ require('gitlinker').setup({
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
         .. "{_A.USER}/"
         .. "{_A.REPO}/annotate/"
