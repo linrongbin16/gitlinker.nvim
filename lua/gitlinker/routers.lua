@@ -11,6 +11,7 @@ local logger = require("gitlinker.logger")
 local Builder = {}
 
 --- @alias gitlinker.RangeStringify fun(r:gitlinker.Range?):string?
+
 --- @param r gitlinker.Range?
 --- @return string?
 local function LC_range(r)
@@ -25,7 +26,6 @@ local function LC_range(r)
   return tmp
 end
 
---- @alias gitlinker.RangeStringify fun(r:gitlinker.Range?):string?
 --- @param r gitlinker.Range?
 --- @return string?
 local function github_LC_range(r)
@@ -40,7 +40,6 @@ local function github_LC_range(r)
   return tmp
 end
 
---- @alias gitlinker.RangeStringify fun(r:gitlinker.Range?):string?
 --- @param r gitlinker.Range?
 --- @return string?
 local function codeberg_LC_range(r)
