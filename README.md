@@ -425,18 +425,28 @@ The difference is: the main repo doesn't have the `user` component, it's just `h
 
 ### More Router Types
 
-You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example create the `master_branch` router type:
+You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example create the `default_branch` router type:
 
 ```lua
 require("gitlinker").setup({
   router = {
-    master_branch = {
+    default_branch = {
       ["^github%.com"] = "https://github.com/"
         .. "{_A.USER}/"
-        .. "{_A.REPO}/blob/master/" -- always 'master' branch
-        .. "{_A.FILE}"
-        .. "?&lines={_A.LSTART}"
-        .. "{_A.LEND > _A.LSTART and ('&lines-count=' .. _A.LEND - _A.LSTART + 1) or ''}",
+        .. "{_A.REPO}/blob/"
+        .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
+        .. "{_A.FILE}?plain=1" -- '?plain=1'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+    },
+    current_branch = {
+      ["^github%.com"] = "https://github.com/"
+        .. "{_A.USER}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.CURRENT_BRANCH}/" -- always current branch
+        .. "{_A.FILE}?plain=1" -- '?plain=1'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
     },
   },
 })
@@ -444,10 +454,15 @@ require("gitlinker").setup({
 
 Then use it just like `blame`:
 
+```vim
+GitLink default_branch
+GitLink current_branch
 ```
-GitLink master_branch
-GitLink! master_branch
-```
+
+Two more components are provided:
+
+- `lk.default_branch`(`_A.DEFAULT_BRANCH`): retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
+- `lk.current_branch`(`_A.CURRENT_BRANCH`): retrieved from `git rev-parse --abbrev-ref HEAD`.
 
 ## Highlight Group
 

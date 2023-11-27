@@ -393,6 +393,38 @@ local function get_branch_remote()
   return nil
 end
 
+--- @return string?
+local function get_default_branch()
+  local args = { "git", "rev-parse", "--abbrev-ref", "origin/HEAD" }
+  local result = cmd(args)
+  if type(result.stdout) ~= "table" or #result.stdout == 0 then
+    return nil
+  end
+  logger.debug(
+    "|git.get_default_branch| running %s: %s",
+    vim.inspect(args),
+    vim.inspect(result.stdout)
+  )
+  local splits =
+    vim.split(result.stdout[1], "/", { plain = true, trimempty = true })
+  return splits[#splits]
+end
+
+--- @return string?
+local function get_current_branch()
+  local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
+  local result = cmd(args)
+  if type(result.stdout) ~= "table" or #result.stdout == 0 then
+    return nil
+  end
+  logger.debug(
+    "|git.get_current_branch| running %s: %s",
+    vim.inspect(args),
+    vim.inspect(result.stdout)
+  )
+  return result.stdout[1]
+end
+
 local M = {
   CmdResult = CmdResult,
   _get_remote = _get_remote,
@@ -405,6 +437,8 @@ local M = {
   get_closest_remote_compatible_rev = get_closest_remote_compatible_rev,
   get_branch_remote = get_branch_remote,
   resolve_host = resolve_host,
+  get_default_branch = get_default_branch,
+  get_current_branch = get_current_branch,
 }
 
 return M
