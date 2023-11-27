@@ -33,8 +33,7 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}"
-        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}" -- '?plain=1'
+        .. "{_A.FILE}?plain=1" -- '?plain=1'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -58,8 +57,7 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/src/commit/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}"
-        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?display=source' or ''}" -- '?display=source'
+        .. "{_A.FILE}?display=source" -- '?display=source'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example:
@@ -78,8 +76,7 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}"
-        .. "{(string.len(_A.FILE) >= 3 and _A.FILE:sub(#_A.FILE-2) == '.md') and '?plain=1' or ''}"
+        .. "{_A.FILE}?plain=1" -- '?plain=1'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
@@ -103,7 +100,7 @@ local Defaults = {
         .. "{_A.USER}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}"
+        .. "{_A.FILE}?display=source" -- '?display=source'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
     },
