@@ -215,6 +215,12 @@ local function _url_template_engine(lk, template)
         LSTART = lk.lstart,
         LEND = (type(lk.lend) == "number" and lk.lend > lk.lstart) and lk.lend
           or lk.lstart,
+        DEFAULT_BRANCH = (type(lk.default_branch) == "string" and string.len(
+          lk.default_branch
+        ) > 0) and lk.default_branch or "",
+        CURRENT_BRANCH = (type(lk.current_branch) == "string" and string.len(
+          lk.current_branch
+        ) > 0) and lk.current_branch or "",
       })
       -- logger.debug(
       --   "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
@@ -567,6 +573,7 @@ local M = {
   link = link,
   _make_resolved_remote_url = _make_resolved_remote_url,
   _worker = _worker,
+  _router = _router,
   _browse = _browse,
   _blame = _blame,
   _merge_routers = _merge_routers,

@@ -118,7 +118,7 @@ local function _parse_remote_url(remote_url)
   return result
 end
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @return gitlinker.Linker?
 local function make_linker()
   local root = git.get_root()
@@ -177,6 +177,9 @@ local function make_linker()
   --     vim.inspect(buf_path_on_cwd)
   -- )
 
+  local default_branch = git.get_default_branch()
+  local current_branch = git.get_current_branch()
+
   local o = {
     remote_url = remote_url,
     protocol = parsed_remote_url.protocol,
@@ -191,6 +194,8 @@ local function make_linker()
     ---@diagnostic disable-next-line: need-check-nil
     lend = nil,
     file_changed = file_changed,
+    default_branch = default_branch,
+    current_branch = current_branch,
   }
 
   logger.debug("|linker.make_linker| o:%s", vim.inspect(o))
