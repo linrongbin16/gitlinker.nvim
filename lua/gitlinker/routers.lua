@@ -11,6 +11,7 @@ local logger = require("gitlinker.logger")
 local Builder = {}
 
 --- @alias gitlinker.RangeStringify fun(r:gitlinker.Range?):string?
+
 --- @param r gitlinker.Range?
 --- @return string?
 local function LC_range(r)
@@ -19,6 +20,34 @@ local function LC_range(r)
   end
   assert(r ~= nil)
   local tmp = string.format([[#L%d]], r.lstart)
+  if type(r.lend) == "number" and r.lend > r.lstart then
+    tmp = tmp .. string.format([[-L%d]], r.lend)
+  end
+  return tmp
+end
+
+--- @param r gitlinker.Range?
+--- @return string?
+local function github_LC_range(r)
+  if not range.is_range(r) then
+    return nil
+  end
+  assert(r ~= nil)
+  local tmp = string.format([[?plain=1#L%d]], r.lstart)
+  if type(r.lend) == "number" and r.lend > r.lstart then
+    tmp = tmp .. string.format([[-L%d]], r.lend)
+  end
+  return tmp
+end
+
+--- @param r gitlinker.Range?
+--- @return string?
+local function codeberg_LC_range(r)
+  if not range.is_range(r) then
+    return nil
+  end
+  assert(r ~= nil)
+  local tmp = string.format([[?display=source#L%d]], r.lstart)
   if type(r.lend) == "number" and r.lend > r.lstart then
     tmp = tmp .. string.format([[-L%d]], r.lend)
   end
@@ -114,7 +143,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_browse(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, github_LC_range)
   return builder:build("blob")
 end
 
@@ -135,7 +164,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function codeberg_browse(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, codeberg_LC_range)
   return builder:build("src/commit")
 end
 
@@ -146,7 +175,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_blame(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, github_LC_range)
   return builder:build("blame")
 end
 
@@ -167,7 +196,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function codeberg_blame(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, codeberg_LC_range)
   return builder:build("blame/commit")
 end
 
