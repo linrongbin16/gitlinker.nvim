@@ -777,6 +777,8 @@ describe("gitlinker", function()
         lstart = 13,
         lend = 21,
         file_changed = false,
+        default_branch = "master",
+        current_branch = "test",
       }--[[@as gitlinker.Linker]]
       local actual = gitlinker._router("default_branch", lk)
       assert_eq(
@@ -797,19 +799,13 @@ describe("gitlinker", function()
         lstart = 13,
         lend = 21,
         file_changed = false,
+        default_branch = "master",
+        current_branch = "current",
       }--[[@as gitlinker.Linker]]
       local actual = gitlinker._router("current_branch", lk)
-      assert_true(
-        utils.string_startswith(
-          actual,
-          "https://github.com/linrongbin16/gitlinker.nvim/blob/"
-        )
-      )
-      assert_true(
-        utils.string_endswith(
-          actual,
-          "/lua/gitlinker/logger.lua?plain=1#L13-L21"
-        )
+      assert_eq(
+        actual,
+        "https://github.com/linrongbin16/gitlinker.nvim/blob/current/lua/gitlinker/logger.lua?plain=1#L13-L21"
       )
     end)
   end)
