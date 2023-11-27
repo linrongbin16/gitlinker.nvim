@@ -463,11 +463,6 @@ GitLink default_branch
 GitLink current_branch
 ```
 
-Two more components are provided:
-
-- `lk.default_branch`(`_A.DEFAULT_BRANCH`): retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
-- `lk.current_branch`(`_A.CURRENT_BRANCH`): retrieved from `git rev-parse --abbrev-ref HEAD`.
-
 ## Highlight Group
 
 | Highlight Group                  | Default Group | Description                          |
