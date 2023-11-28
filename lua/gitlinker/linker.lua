@@ -177,7 +177,7 @@ local function make_linker()
   --     vim.inspect(buf_path_on_cwd)
   -- )
 
-  local default_branch = git.get_default_branch()
+  local default_branch = git.get_default_branch(remote)
   local current_branch = git.get_current_branch()
 
   local o = {
