@@ -393,9 +393,11 @@ local function get_branch_remote()
   return nil
 end
 
+--- @param remote string
 --- @return string?
-local function get_default_branch()
-  local args = { "git", "rev-parse", "--abbrev-ref", "origin/HEAD" }
+local function get_default_branch(remote)
+  local args =
+    { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
