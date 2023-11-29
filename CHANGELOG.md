@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.7.0...v4.7.1) (2023-11-28)
+
+
+### Bug Fixes
+
+* **default_branch:** use real-time remote ([#163](https://github.com/linrongbin16/gitlinker.nvim/issues/163)) ([15b0d41](https://github.com/linrongbin16/gitlinker.nvim/commit/15b0d414c136e3475629ea1c7d8fa98b615915b5))
+
 ## [4.7.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.6.0...v4.7.0) (2023-11-27)
 
 
