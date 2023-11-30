@@ -50,7 +50,7 @@ PRs are welcomed for other git host websites!
 1. Break Changes:
    - Provide `GitLink` command instead of default key mappings.
 2. New Features:
-   - Windows (+wsl) support.
+   - Windows (+wsl2) support.
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
@@ -66,6 +66,7 @@ Requirement:
 - neovim &ge; v0.7.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
+- [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
 
 ### [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
