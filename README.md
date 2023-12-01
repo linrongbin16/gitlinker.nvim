@@ -122,8 +122,8 @@ There're two **routers** provided:
 
 By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes with `remote=xxx` arguments. For example `upstream`, please use:
 
-- `GitLink (blame) remote=upstream`: copy upstream url to clipboard.
-- `GitLink! (blame) remote=upstream`: open upstream url in browser.
+- `GitLink remote=upstream`: copy upstream url to clipboard.
+- `GitLink! remote=upstream`: open upstream url in browser.
 
 <details>
 <summary><i>Click here to see recommended key mappings</i></summary>
