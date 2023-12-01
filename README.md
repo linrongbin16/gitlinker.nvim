@@ -120,7 +120,7 @@ There're two **routers** provided:
 - `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
 - `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
 
-By default `GitLink` will use the first detected remote (usually `origin`), but if you need to specify other remotes with `remote=xxx` arguments. For example `upstream`, please use:
+By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes with `remote=xxx` arguments. For example `upstream`, please use:
 
 - `GitLink (blame) remote=upstream`: copy upstream url to clipboard.
 - `GitLink! (blame) remote=upstream`: open upstream url in browser.
