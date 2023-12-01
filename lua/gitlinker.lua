@@ -268,7 +268,7 @@ local function _worker(lk, p, r)
   end
 end
 
---- @alias gitlinker.Router fun(lk:gitlinker.Linker):string
+--- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @param router_type string
 --- @param lk gitlinker.Linker
 --- @return string?
@@ -372,12 +372,12 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action,router:gitlinker.Router,lstart:integer,lend:integer}
+--- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
 --- @return string?
 local function link(opts)
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker()
+  local lk = linker.make_linker(opts.remote)
   if not lk then
     return nil
   end
@@ -391,11 +391,13 @@ local function link(opts)
     vim.inspect(url),
     vim.inspect(opts.router)
   )
-  logger.ensure(
+  assert(
     ok and type(url) == "string" and string.len(url) > 0,
-    "fatal: failed to generate permanent url from remote url (%s): %s",
-    vim.inspect(lk.remote_url),
-    vim.inspect(url)
+    string.format(
+      "fatal: failed to generate permanent url from remote (%s): %s",
+      vim.inspect(lk.remote_url),
+      vim.inspect(url)
+    )
   )
 
   if opts.action then
@@ -496,6 +498,29 @@ local function _merge_routers(opts)
   return result
 end
 
+--- @param args string?
+--- @return {router_type:string,remote:string?}
+local function _parse_args(args)
+  args = args or ""
+
+  local router_type = "browse"
+  local remote = nil
+  if string.len(args) == 0 then
+    return { router_type = router_type, remote = remote }
+  end
+  local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
+  for _, a in ipairs(args_splits) do
+    if string.len(a) > 0 then
+      if utils.string_startswith(a, "remote=") then
+        remote = a:sub(8)
+      else
+        router_type = a
+      end
+    end
+  end
+  return { router_type = router_type, remote = remote }
+end
+
 --- @param opts gitlinker.Options?
 local function setup(opts)
   local merged_routers = _merge_routers(opts or {})
@@ -514,7 +539,7 @@ local function setup(opts)
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
     local r = range.make_range()
-    local parsed_args = (
+    local args = (
       type(command_opts.args) == "string"
       and string.len(command_opts.args) > 0
     )
@@ -523,25 +548,24 @@ local function setup(opts)
     logger.debug(
       "command opts:%s, parsed:%s, range:%s",
       vim.inspect(command_opts),
-      vim.inspect(parsed_args),
+      vim.inspect(args),
       vim.inspect(r)
     )
     local lstart =
       math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend =
       math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local router_type = type(parsed_args) == "string"
-        and string.len(parsed_args) > 0
-        and parsed_args
-      or "browse"
-    local router = function(lk)
-      return _router(router_type, lk)
-    end
-    local action = require("gitlinker.actions").clipboard
-    if command_opts.bang then
-      action = require("gitlinker.actions").system
-    end
-    link({ action = action, router = router, lstart = lstart, lend = lend })
+    local parsed = _parse_args(args)
+    link({
+      action = command_opts.bang and require("gitlinker.actions").system
+        or require("gitlinker.actions").clipboard,
+      router = function(lk)
+        return _router(parsed.router_type, lk)
+      end,
+      lstart = lstart,
+      lend = lend,
+      remote = parsed.remote,
+    })
   end, {
     nargs = "*",
     range = true,

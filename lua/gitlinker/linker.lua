@@ -119,14 +119,16 @@ local function _parse_remote_url(remote_url)
 end
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @param remote string?
 --- @return gitlinker.Linker?
-local function make_linker()
+local function make_linker(remote)
   local root = git.get_root()
   if not root then
     return nil
   end
 
-  local remote = git.get_branch_remote()
+  remote = (type(remote) == "string" and string.len(remote) > 0) and remote
+    or git.get_branch_remote()
   if not remote then
     return nil
   end
