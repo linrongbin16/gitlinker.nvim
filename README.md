@@ -407,7 +407,7 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
-  - **Note:** for easier writing, the `.git` suffix has been removed.
+  - **Note:** for easier writing, the `.git` suffix is been removed.
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.DEFAULT_BRANCH`: git default branch, `master`, `main`, etc, retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
 - `_A.CURRENT_BRANCH`: git current branch, `feat-router-types`, etc, retrieved from `git rev-parse --abbrev-ref HEAD`.
@@ -435,7 +435,7 @@ protocol host            user      repo               file       rev            
 The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
 
 - `lk.user` (`_A.USER`): the value is `` (empty string).
-- `lk.repo` (`_A.REPO`): the value is `samba.git` (`_A.REPO` value is `samba`, suffix `.git` has been removed for easier writing url template).
+- `lk.repo` (`_A.REPO`): the value is `samba.git` (`_A.REPO` value is `samba`, the `.git` suffix is been removed for easier writing url template).
 
 ### More Router Types
 
