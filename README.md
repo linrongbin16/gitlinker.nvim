@@ -41,7 +41,6 @@ PRs are welcomed for other git host websites!
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
   - [More Router Types](#more-router-types)
-  - [Multiple Remotes](#multiple-remotes)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -476,8 +475,6 @@ GitLink! default_branch " open default branch in browser
 GitLink current_branch  " copy current branch to clipboard
 GitLink! current_branch " open current branch in browser
 ```
-
-### Multiple Remotes
 
 ## Highlight Group
 
