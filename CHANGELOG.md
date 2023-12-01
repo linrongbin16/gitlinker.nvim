@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.8.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.7.1...v4.8.0) (2023-12-01)
+
+
+### Features
+
+* **command:** support command args complete suggestions ([bbab7ba](https://github.com/linrongbin16/gitlinker.nvim/commit/bbab7bae3f0b1914d405eef1a498743b9c88d163))
+* **remote:** support multiple remotes (origin/upstream) ([#166](https://github.com/linrongbin16/gitlinker.nvim/issues/166)) ([bbab7ba](https://github.com/linrongbin16/gitlinker.nvim/commit/bbab7bae3f0b1914d405eef1a498743b9c88d163))
+
 ## [4.7.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.7.0...v4.7.1) (2023-11-28)
 
 
