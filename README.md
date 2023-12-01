@@ -120,6 +120,11 @@ There're two **routers** provided:
 - `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
 - `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
 
+By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes with `remote=xxx` arguments. For example `upstream`, please use:
+
+- `GitLink remote=upstream`: copy upstream url to clipboard.
+- `GitLink! remote=upstream`: open upstream url in browser.
+
 <details>
 <summary><i>Click here to see recommended key mappings</i></summary>
 <br/>
@@ -273,7 +278,11 @@ To create your own highlighting, please use below config before setup this plugi
 
 ```lua
 -- lua
-vim.api.nvim_set_hl( 0, "NvimGitLinkerHighlightTextObject", { link = "Constant" })
+vim.api.nvim_set_hl(
+  0,
+  "NvimGitLinkerHighlightTextObject",
+  { link = "Constant" }
+)
 ```
 
 ```vim
@@ -306,11 +315,11 @@ require('gitlinker').setup({
 
 You can directly use below builtin APIs:
 
-- `github_browse`/`github_blame`: for [github.com](https://github.com/).
-- `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
-- `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
-- `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
-- `samba_browse`: for [git.samba.org](https://git.samba.org/) (blame not support).
+- `github_browse`/`github_blame`: for github.com.
+- `gitlab_browse`/`gitlab_blame`: for gitlab.com.
+- `bitbucket_browse`/`bitbucket_blame`: for bitbucket.org.
+- `codeberg_browse`/`codeberg_blame`: for codeberg.org.
+- `samba_browse`: for git.samba.org (blame not support).
 
 ### Fully Customize Urls
 
@@ -398,7 +407,7 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
 - `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
-  - **Note:** for easier writing, the `.git` suffix has been removed.
+  - **Note:** for easier writing, the `.git` suffix is been removed.
 - `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `_A.DEFAULT_BRANCH`: git default branch, `master`, `main`, etc, retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
 - `_A.CURRENT_BRANCH`: git current branch, `feat-router-types`, etc, retrieved from `git rev-parse --abbrev-ref HEAD`.
@@ -426,7 +435,7 @@ protocol host            user      repo               file       rev            
 The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
 
 - `lk.user` (`_A.USER`): the value is `` (empty string).
-- `lk.repo` (`_A.REPO`): the value is `samba.git`.
+- `lk.repo` (`_A.REPO`): the value is `samba.git` (`_A.REPO` value is `samba`, the `.git` suffix is been removed for easier writing url template).
 
 ### More Router Types
 
@@ -465,8 +474,10 @@ require("gitlinker").setup({
 Then use it just like `blame`:
 
 ```vim
-GitLink default_branch
-GitLink current_branch
+GitLink default_branch  " copy default branch to clipboard
+GitLink! default_branch " open default branch in browser
+GitLink current_branch  " copy current branch to clipboard
+GitLink! current_branch " open current branch in browser
 ```
 
 ## Highlight Group
@@ -492,7 +503,7 @@ Then test with `vusted ./test`.
 
 ## Contribute
 
-Please also open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](https://github.com/linrongbin16/gitlinker.nvim/pulls) for anything about gitlinker.nvim.
+Please open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](https://github.com/linrongbin16/gitlinker.nvim/pulls) for anything about gitlinker.nvim.
 
 Like gitlinker.nvim? Consider
 
