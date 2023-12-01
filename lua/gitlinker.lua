@@ -571,6 +571,16 @@ local function setup(opts)
     range = true,
     bang = true,
     desc = Configs.command.desc,
+    complete = function()
+      local suggestions = {}
+      for router_type, _ in pairs(Configs._routers) do
+        table.insert(suggestions, router_type)
+      end
+      table.sort(suggestions, function(a, b)
+        return a < b
+      end)
+      return suggestions
+    end,
   })
 
   if type(Configs.mapping) == "table" then
