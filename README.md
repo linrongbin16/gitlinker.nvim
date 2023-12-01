@@ -278,7 +278,11 @@ To create your own highlighting, please use below config before setup this plugi
 
 ```lua
 -- lua
-vim.api.nvim_set_hl( 0, "NvimGitLinkerHighlightTextObject", { link = "Constant" })
+vim.api.nvim_set_hl(
+  0,
+  "NvimGitLinkerHighlightTextObject",
+  { link = "Constant" }
+)
 ```
 
 ```vim
