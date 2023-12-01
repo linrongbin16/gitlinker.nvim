@@ -41,6 +41,7 @@ PRs are welcomed for other git host websites!
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
   - [More Router Types](#more-router-types)
+  - [Multiple Remotes](#multiple-remotes)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -119,6 +120,11 @@ There're two **routers** provided:
 
 - `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
 - `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
+
+By default `GitLink` will use the first detected remote (usually `origin`), but if you need to specify other remotes with `remote=xxx` arguments. For example `upstream`, please use:
+
+- `GitLink (blame) remote=upstream`: copy upstream url to clipboard.
+- `GitLink! (blame) remote=upstream`: open upstream url in browser.
 
 <details>
 <summary><i>Click here to see recommended key mappings</i></summary>
@@ -306,11 +312,11 @@ require('gitlinker').setup({
 
 You can directly use below builtin APIs:
 
-- `github_browse`/`github_blame`: for [github.com](https://github.com/).
-- `gitlab_browse`/`gitlab_blame`: for [gitlab.com](https://gitlab.com/).
-- `bitbucket_browse`/`bitbucket_blame`: for [bitbucket.org](https://bitbucket.org/).
-- `codeberg_browse`/`codeberg_blame`: for [codeberg.org](https://codeberg.org/).
-- `samba_browse`: for [git.samba.org](https://git.samba.org/) (blame not support).
+- `github_browse`/`github_blame`: for github.com.
+- `gitlab_browse`/`gitlab_blame`: for gitlab.com.
+- `bitbucket_browse`/`bitbucket_blame`: for bitbucket.org.
+- `codeberg_browse`/`codeberg_blame`: for codeberg.org.
+- `samba_browse`: for git.samba.org (blame not support).
 
 ### Fully Customize Urls
 
@@ -426,7 +432,7 @@ protocol host            user      repo               file       rev            
 The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
 
 - `lk.user` (`_A.USER`): the value is `` (empty string).
-- `lk.repo` (`_A.REPO`): the value is `samba.git`.
+- `lk.repo` (`_A.REPO`): the value is `samba.git` (`_A.REPO` value is `samba`, suffix `.git` has been removed for easier writing url template).
 
 ### More Router Types
 
@@ -465,9 +471,13 @@ require("gitlinker").setup({
 Then use it just like `blame`:
 
 ```vim
-GitLink default_branch
-GitLink current_branch
+GitLink default_branch  " copy default branch to clipboard
+GitLink! default_branch " open default branch in browser
+GitLink current_branch  " copy current branch to clipboard
+GitLink! current_branch " open current branch in browser
 ```
+
+### Multiple Remotes
 
 ## Highlight Group
 
