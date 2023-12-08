@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.8.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.0...v4.8.1) (2023-12-08)
+
+
+### Performance Improvements
+
+* **ci:** upload luarocks package ([d7341e6](https://github.com/linrongbin16/gitlinker.nvim/commit/d7341e6024e4591f018eea9aa110978449fbb174))
+
 ## [4.8.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.7.1...v4.8.0) (2023-12-01)
 
 
