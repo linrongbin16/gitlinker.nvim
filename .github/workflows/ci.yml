@@ -8,7 +8,7 @@ on:
     branches:
       - master
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}-ci
   cancel-in-progress: true
 jobs:
   pr_conventional_commit:
@@ -16,8 +16,7 @@ jobs:
     if: ${{ github.ref != 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - uses: ytanikin/PRConventionalCommits@1.1.0
         with:
           task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","break"]'
@@ -25,28 +24,23 @@ jobs:
     name: Lua check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: LuaLs Typecheck
-        uses: stevearc/nvim-typecheck-action@v1
+      - uses: actions/checkout@v4
+      - uses: stevearc/nvim-typecheck-action@v1
         with:
           path: lua
           level: Information
           configpath: ".luarc.json"
           neodev-version: stable
-      - name: Lua check
-        uses: lunarmodules/luacheck@v1
+      - uses: lunarmodules/luacheck@v1
         with:
           args: lua --config .luacheckrc
-      - name: Stylua
-        uses: JohnnyMorganz/stylua-action@v3
+      - uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --config-path .stylua.toml ./lua ./test
-      - name: Auto commit
+      - uses: stefanzweifel/git-auto-commit-action@v4
         if: ${{ github.ref != 'refs/heads/master' }}
-        uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore(pr): auto-commit"
   unit_test:
@@ -56,20 +50,16 @@ jobs:
         nvim_version: [stable, nightly, v0.7.0]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup neovim
-        uses: rhysd/action-setup-vim@v1
+      - uses: actions/checkout@v4
+      - uses: rhysd/action-setup-vim@v1
         id: vim
         with:
           neovim: true
           version: ${{ matrix.nvim_version }}
-      - name: Install luajit
-        uses: leafo/gh-actions-lua@v10
+      - uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "luajit-2.1.0-beta3"
-      - name: Install luarocks
-        uses: leafo/gh-actions-luarocks@v4
+      - uses: leafo/gh-actions-luarocks@v4
       - name: Run test cases
         shell: bash
         run: |
@@ -89,8 +79,7 @@ jobs:
           ls -l .
           echo "cat ./luacov.report.out"
           cat ./luacov.report.out
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v3
         with:
           files: luacov.report.out
         env:
@@ -116,3 +105,9 @@ jobs:
           message: "Current stable release: ${{ steps.release.outputs.tag_name }}"
           tag_exists_error: false
           force_push_tag: true
+      - uses: nvim-neorocks/luarocks-tag-release@v5
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
+        with:
+          version: ${{ steps.release.outputs.tag_name }}
