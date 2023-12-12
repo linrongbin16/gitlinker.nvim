@@ -170,20 +170,41 @@ end
 
 --- @param s string
 --- @param t string
+--- @param opts {ignorecase:boolean?}?
 --- @return boolean
-M.startswith = function(s, t)
+M.startswith = function(s, t, opts)
   assert(type(s) == "string")
   assert(type(t) == "string")
-  return string.len(s) >= string.len(t) and s:sub(1, #t) == t
+
+  opts = opts or { ignorecase = false }
+  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase
+    or false
+
+  if opts.ignorecase then
+    return string.len(s) >= string.len(t) and s:sub(1, #t):lower() == t:lower()
+  else
+    return string.len(s) >= string.len(t) and s:sub(1, #t) == t
+  end
 end
 
 --- @param s string
 --- @param t string
+--- @param opts {ignorecase:boolean?}?
 --- @return boolean
-M.endswith = function(s, t)
+M.endswith = function(s, t, opts)
   assert(type(s) == "string")
   assert(type(t) == "string")
-  return string.len(s) >= string.len(t) and s:sub(#s - #t + 1) == t
+
+  opts = opts or { ignorecase = false }
+  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase
+    or false
+
+  if opts.ignorecase then
+    return string.len(s) >= string.len(t)
+      and s:sub(#s - #t + 1):lower() == t:lower()
+  else
+    return string.len(s) >= string.len(t) and s:sub(#s - #t + 1) == t
+  end
 end
 
 --- @param c string
