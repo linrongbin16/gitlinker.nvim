@@ -28,7 +28,7 @@ jobs:
       - uses: stevearc/nvim-typecheck-action@v1
         with:
           path: lua
-          level: Information
+          level: Error
           configpath: ".luarc.json"
           neodev-version: stable
       - uses: lunarmodules/luacheck@v1
@@ -39,6 +39,17 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --config-path .stylua.toml ./lua ./test
+      - name: Install commons.nvim
+        if: ${{ github.ref != 'refs/heads/master' }}
+        shell: bash
+        run: |
+          echo "pwd"
+          echo $PWD
+          git clone --depth=1 https://github.com/linrongbin16/commons.nvim.git ~/.commons.nvim
+          mkdir -p ./lua/gitlinker/commons
+          cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
+          cd ./lua/gitlinker/commons
+          find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
       - uses: stefanzweifel/git-auto-commit-action@v4
         if: ${{ github.ref != 'refs/heads/master' }}
         with:
