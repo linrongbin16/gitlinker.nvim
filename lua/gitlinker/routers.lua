@@ -1,4 +1,5 @@
 local utils = require("gitlinker.utils")
+local strings = require("gitlinker.commons.strings")
 local range = require("gitlinker.range")
 local logger = require("gitlinker.logger")
 
@@ -80,19 +81,18 @@ function Builder:new(lk, range_maker)
   local o = {
     domain = string.format(
       "%s%s",
-      utils.string_endswith(lk.protocol, "git@") and "https://" or lk.protocol,
+      strings.endswith(lk.protocol, "git@") and "https://" or lk.protocol,
       lk.host
     ),
     user = lk.user,
-    repo = utils.string_endswith(lk.repo, ".git")
-        and lk.repo:sub(1, #lk.repo - 4)
+    repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4)
       or lk.repo,
     rev = lk.rev,
     location = string.format(
       "%s%s",
       lk.file
         .. (
-          utils.string_endswith(lk.file, ".md", { ignorecase = true })
+          strings.endswith(lk.file, ".md", { ignorecase = true })
             and "?plain=1"
           or ""
         ),
