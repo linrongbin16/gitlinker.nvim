@@ -5,25 +5,49 @@ local M = {}
 M.SEPARATOR = IS_WINDOWS and "\\" or "/"
 
 --- @param p string
---- @param opts {backslash:boolean?,expand:boolean?}?  by default {backslash = false, expand = false}
+--- @param opts {double_backslash:boolean?,expand:boolean?}?
 --- @return string
 M.normalize = function(p, opts)
-  opts = opts or { backslash = false, expand = false }
-  opts.backslash = type(opts.backslash) == "boolean" and opts.backslash or false
+  opts = opts or { double_backslash = false, expand = false }
+  opts.double_backslash = type(opts.double_backslash) == "boolean"
+      and opts.double_backslash
+    or false
   opts.expand = type(opts.expand) == "boolean" and opts.expand or false
 
+  -- '\\\\' => '\\'
+  local function _double_backslash(s)
+    if string.match(s, [[\\]]) then
+      s = string.gsub(s, [[\\]], [[\]])
+    end
+    return s
+  end
+
+  -- '\\' => '/'
+  local function _single_backslash(s)
+    if string.match(s, [[\]]) then
+      s = string.gsub(s, [[\]], [[/]])
+    end
+    return s
+  end
+
   local result = p
-  if string.match(result, [[\\]]) then
-    result = string.gsub(result, [[\\]], [[\]])
+
+  if opts.double_backslash then
+    result = _double_backslash(result)
   end
-  if opts.backslash and string.match(result, [[\]]) then
-    result = string.gsub(result, [[\]], [[/]])
-  end
+  result = _single_backslash(result)
+
   if opts.expand then
-    return vim.fn.expand(vim.trim(result)) --[[@as string]]
+    result = vim.fn.expand(vim.trim(result)) --[[@as string]]
+    if opts.double_backslash then
+      result = _double_backslash(result)
+    end
+    result = _single_backslash(result)
   else
-    return vim.trim(result)
+    result = vim.trim(result)
   end
+
+  return result
 end
 
 --- @param ... any
