@@ -3,7 +3,6 @@ local LogLevels = require("gitlinker.logger").LogLevels
 local logger = require("gitlinker.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
-local deprecation = require("gitlinker.deprecation")
 local strings = require("gitlinker.commons.strings")
 
 --- @alias gitlinker.Options table<any, any>
@@ -118,25 +117,6 @@ local Defaults = {
 
 --- @type gitlinker.Options
 local Configs = {}
-
---- @param opts gitlinker.Options
-local function deprecated_notification(opts)
-  if type(opts) == "table" and opts.pattern_rules ~= nil then
-    deprecation.notify(
-      "'pattern_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-  if type(opts) == "table" and opts.override_rules ~= nil then
-    deprecation.notify(
-      "'override_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-  if type(opts) == "table" and opts.custom_rules ~= nil then
-    deprecation.notify(
-      "'custom_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-end
 
 --- @param lk gitlinker.Linker
 --- @param template string
@@ -593,10 +573,6 @@ local function setup(opts)
       vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
     end
   end
-
-  -- logger.debug("|setup| Configs:%s", vim.inspect(Configs))
-
-  deprecated_notification(Configs)
 end
 
 local M = {
