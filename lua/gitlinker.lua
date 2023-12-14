@@ -560,12 +560,6 @@ local function setup(opts)
     end,
   })
 
-  if type(Configs.mapping) == "table" then
-    deprecation.notify(
-      "'mapping' option is deprecated! please migrate to 'GitLink' command."
-    )
-  end
-
   -- Configure highlight group
   if Configs.highlight_duration > 0 then
     local hl_group = "NvimGitLinkerHighlightTextObject"
