@@ -1,7 +1,7 @@
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local logger = require("gitlinker.logger")
-local utils = require("gitlinker.utils")
+local strings = require("gitlinker.commons.strings")
 
 -- example:
 -- git@github.com:linrongbin16/gitlinker.nvim.git
@@ -29,7 +29,7 @@ local function _parse_remote_url(remote_url)
   --- @type integer?
   local proto_pos = nil
   for _, p in ipairs(PROTOS) do
-    proto_pos = utils.string_find(remote_url, p)
+    proto_pos = strings.find(remote_url, p)
     if type(proto_pos) == "number" and proto_pos > 0 then
       proto = p
       break
@@ -61,16 +61,10 @@ local function _parse_remote_url(remote_url)
       vim.inspect(protocol_end_pos),
       vim.inspect(protocol)
     )
-    local first_slash_pos = utils.string_find(
-      remote_url,
-      "/",
-      protocol_end_pos + 1
-    ) or INT32_MAX
-    local first_colon_pos = utils.string_find(
-      remote_url,
-      ":",
-      protocol_end_pos + 1
-    ) or INT32_MAX
+    local first_slash_pos = strings.find(remote_url, "/", protocol_end_pos + 1)
+      or INT32_MAX
+    local first_colon_pos = strings.find(remote_url, ":", protocol_end_pos + 1)
+      or INT32_MAX
     host_end_pos = math.min(first_slash_pos, first_colon_pos)
     if not host_end_pos then
       error(
@@ -95,7 +89,7 @@ local function _parse_remote_url(remote_url)
     )
   end
 
-  local user_end_pos = utils.string_find(remote_url, "/", host_end_pos + 1)
+  local user_end_pos = strings.find(remote_url, "/", host_end_pos + 1)
   if type(user_end_pos) == "number" and user_end_pos > host_end_pos + 1 then
     user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
     repo = remote_url:sub(user_end_pos + 1)

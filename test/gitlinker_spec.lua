@@ -55,7 +55,6 @@ describe("gitlinker", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local utils = require("gitlinker.utils")
   local routers = require("gitlinker.routers")
   describe("[_browse]", function()
     it("git.samba.org/samba.git with same lstart/lend", function()
