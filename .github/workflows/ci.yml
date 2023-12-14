@@ -46,6 +46,7 @@ jobs:
           echo "pwd"
           echo $PWD
           git clone --depth=1 https://github.com/linrongbin16/commons.nvim.git ~/.commons.nvim
+          rm -rf ./lua/gitlinker/commons
           mkdir -p ./lua/gitlinker/commons
           cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
           cd ./lua/gitlinker/commons
