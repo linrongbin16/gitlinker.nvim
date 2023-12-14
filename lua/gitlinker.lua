@@ -3,8 +3,7 @@ local LogLevels = require("gitlinker.logger").LogLevels
 local logger = require("gitlinker.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
-local deprecation = require("gitlinker.deprecation")
-local utils = require("gitlinker.utils")
+local strings = require("gitlinker.commons.strings")
 
 --- @alias gitlinker.Options table<any, any>
 --- @type gitlinker.Options
@@ -119,25 +118,6 @@ local Defaults = {
 --- @type gitlinker.Options
 local Configs = {}
 
---- @param opts gitlinker.Options
-local function deprecated_notification(opts)
-  if type(opts) == "table" and opts.pattern_rules ~= nil then
-    deprecation.notify(
-      "'pattern_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-  if type(opts) == "table" and opts.override_rules ~= nil then
-    deprecation.notify(
-      "'override_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-  if type(opts) == "table" and opts.custom_rules ~= nil then
-    deprecation.notify(
-      "'custom_rules' option is deprecated! please migrate to latest configs."
-    )
-  end
-end
-
 --- @param lk gitlinker.Linker
 --- @param template string
 --- @return string
@@ -155,7 +135,7 @@ local function _url_template_engine(lk, template)
   local i = 1
   local n = string.len(template)
   while i <= n do
-    local open_pos = utils.string_find(template, OPEN_BRACE, i)
+    local open_pos = strings.find(template, OPEN_BRACE, i)
     if not open_pos then
       table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
@@ -164,11 +144,8 @@ local function _url_template_engine(lk, template)
       exprs,
       { plain = true, body = string.sub(template, i, open_pos - 1) }
     )
-    local close_pos = utils.string_find(
-      template,
-      CLOSE_BRACE,
-      open_pos + string.len(OPEN_BRACE)
-    )
+    local close_pos =
+      strings.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     assert(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
@@ -207,7 +184,7 @@ local function _url_template_engine(lk, template)
         PROTOCOL = lk.protocol,
         HOST = lk.host,
         USER = lk.user,
-        REPO = utils.string_endswith(lk.repo, ".git")
+        REPO = strings.endswith(lk.repo, ".git")
             and lk.repo:sub(1, #lk.repo - 4)
           or lk.repo,
         REV = lk.rev,
@@ -511,7 +488,7 @@ local function _parse_args(args)
   local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
   for _, a in ipairs(args_splits) do
     if string.len(a) > 0 then
-      if utils.string_startswith(a, "remote=") then
+      if strings.startswith(a, "remote=") then
         remote = a:sub(8)
       else
         router_type = a
@@ -583,12 +560,6 @@ local function setup(opts)
     end,
   })
 
-  if type(Configs.mapping) == "table" then
-    deprecation.notify(
-      "'mapping' option is deprecated! please migrate to 'GitLink' command."
-    )
-  end
-
   -- Configure highlight group
   if Configs.highlight_duration > 0 then
     local hl_group = "NvimGitLinkerHighlightTextObject"
@@ -596,10 +567,6 @@ local function setup(opts)
       vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
     end
   end
-
-  -- logger.debug("|setup| Configs:%s", vim.inspect(Configs))
-
-  deprecated_notification(Configs)
 end
 
 local M = {

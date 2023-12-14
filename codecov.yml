@@ -6,3 +6,5 @@ coverage:
     patch:
       default:
         threshold: 90%
+ignore:
+  - "lua/gitlinker/commons/*.lua"

@@ -1,5 +1,5 @@
 local logger = require("gitlinker.logger")
-local spawn = require("gitlinker.spawn")
+local spawn = require("gitlinker.commons.spawn")
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -46,20 +46,21 @@ end
 local function cmd(args, cwd)
   local result = CmdResult:new()
 
-  local sp = spawn.Spawn:make(args, {
+  local sp = spawn.run(args, {
     cwd = cwd or vim.fn.getcwd(),
-    on_stdout = function(line)
+    stdout = function(line)
       if type(line) == "string" then
         table.insert(result.stdout, line)
       end
     end,
-    on_stderr = function(line)
+    stderr = function(line)
       if type(line) == "string" then
         table.insert(result.stderr, line)
       end
     end,
-  }) --[[@as Spawn]]
-  sp:run()
+  })
+
+  sp:wait()
   return result
 end
 
