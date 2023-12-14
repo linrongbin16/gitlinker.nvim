@@ -1,4 +1,3 @@
-local utils = require("gitlinker.utils")
 local strings = require("gitlinker.commons.strings")
 local range = require("gitlinker.range")
 local logger = require("gitlinker.logger")
