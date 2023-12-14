@@ -1,10 +1,11 @@
 local M = {}
 
 --- @alias commons.SpawnLineProcessor fun(line:string):any
+--- @alias commons.SpawnOpts {stdout:commons.SpawnLineProcessor, stderr:commons.SpawnLineProcessor, [string]:any}
+--- @alias commons.SpawnOnExit fun(completed:vim.SystemCompleted):nil
 --- @param cmd string[]
---- @param opts {stdout:commons.SpawnLineProcessor, stderr:commons.SpawnLineProcessor, [string]:any}?
---         by default {text = true}
---- @param on_exit fun(completed:vim.SystemCompleted):nil|nil
+--- @param opts commons.SpawnOpts?  by default {text = true}
+--- @param on_exit commons.SpawnOnExit?
 M.run = function(cmd, opts, on_exit)
   opts = opts or {}
   opts.text = type(opts.text) == "boolean" and opts.text or true
