@@ -1,5 +1,3 @@
--- Drop-in replacement 'RingBuffer' data structure
-
 local M = {}
 
 --- @class commons.RingBuffer

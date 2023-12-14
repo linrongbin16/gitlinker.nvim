@@ -1,16 +1,14 @@
--- File IOs
-
 local M = {}
 
 -- FileLineReader {
-
+--
 --- @class commons.FileLineReader
---- @field filename string
---- @field handler integer
---- @field filesize integer
---- @field offset integer
---- @field batchsize integer
---- @field buffer string?
+--- @field filename string    file name.
+--- @field handler integer    file handle.
+--- @field filesize integer   file size in bytes.
+--- @field offset integer     current read position.
+--- @field batchsize integer  chunk size for each read operation running internally.
+--- @field buffer string?     internal data buffer.
 local FileLineReader = {}
 
 --- @param filename string
@@ -22,7 +20,7 @@ function FileLineReader:open(filename, batchsize)
   if type(handler) ~= "number" then
     error(
       string.format(
-        "|fzfx.lib.files - FileLineReader:open| failed to fs_open file: %s",
+        "|commons.fileios - FileLineReader:open| failed to fs_open file: %s",
         vim.inspect(filename)
       )
     )
@@ -32,7 +30,7 @@ function FileLineReader:open(filename, batchsize)
   if type(fstat) ~= "table" then
     error(
       string.format(
-        "|fzfx.lib.files - FileLineReader:open| failed to fs_fstat file: %s",
+        "|commons.fileios - FileLineReader:open| failed to fs_fstat file: %s",
         vim.inspect(filename)
       )
     )
@@ -53,6 +51,7 @@ function FileLineReader:open(filename, batchsize)
   return o
 end
 
+--- @private
 --- @return integer
 function FileLineReader:_read_chunk()
   local uv = require("gitlinker.commons.uv")
@@ -69,7 +68,7 @@ function FileLineReader:_read_chunk()
   if read_err then
     error(
       string.format(
-        "|fzfx.lib.files - FileLineReader:_read_chunk| failed to fs_read file: %s, read_error:%s, read_name:%s",
+        "|commons.fileios - FileLineReader:_read_chunk| failed to fs_read file: %s, read_error:%s, read_name:%s",
         vim.inspect(self.filename),
         vim.inspect(read_err),
         vim.inspect(read_name)
@@ -124,6 +123,7 @@ function FileLineReader:next()
   end
 end
 
+-- Close the file reader.
 function FileLineReader:close()
   local uv = require("gitlinker.commons.uv")
   if self.handler then
@@ -137,7 +137,7 @@ M.FileLineReader = FileLineReader
 -- FileLineReader }
 
 --- @param filename string
---- @param opts {trim:boolean?}?  by default opts={trim=false}
+--- @param opts {trim:boolean?}?
 --- @return string?
 M.readfile = function(filename, opts)
   opts = opts or { trim = false }
@@ -152,9 +152,11 @@ M.readfile = function(filename, opts)
   return opts.trim and vim.trim(content) or content
 end
 
---- @param filename string
---- @param on_complete fun(data:string?):nil
---- @param opts {trim:boolean?}|nil  by default opts={trim=false}
+--- @param filename string                    file name.
+--- @param on_complete fun(data:string?):nil  callback on read complete.
+---                                             1. `data`: the file content.
+--- @param opts {trim:boolean?}?              options:
+---                                             1. `trim`: whether to trim whitespaces around text content, by default `false`.
 M.asyncreadfile = function(filename, on_complete, opts)
   local uv = require("gitlinker.commons.uv")
   opts = opts or { trim = false }
@@ -243,9 +245,9 @@ M.readlines = function(filename)
   return results
 end
 
---- @param filename string
---- @param content string
---- @return integer
+--- @param filename string  file name.
+--- @param content string   file content.
+--- @return integer         returns `0` if success, returns `-1` if failed.
 M.writefile = function(filename, content)
   local f = io.open(filename, "w")
   if not f then
@@ -256,9 +258,10 @@ M.writefile = function(filename, content)
   return 0
 end
 
---- @param filename string
---- @param content string
---- @param on_complete fun(bytes:integer?):any
+--- @param filename string                      file name.
+--- @param content string                       file content.
+--- @param on_complete fun(bytes:integer?):any  callback on write complete.
+---                                               1. `bytes`: written data bytes.
 M.asyncwritefile = function(filename, content, on_complete)
   local uv = require("gitlinker.commons.uv")
   uv.fs_open(filename, "w", 438, function(open_err, fd)
@@ -304,9 +307,9 @@ M.asyncwritefile = function(filename, content, on_complete)
   end)
 end
 
---- @param filename string
---- @param lines string[]
---- @return integer
+--- @param filename string  file name.
+--- @param lines string[]   content lines.
+--- @return integer         returns `0` if success, returns `-1` if failed.
 M.writelines = function(filename, lines)
   local f = io.open(filename, "w")
   if not f then

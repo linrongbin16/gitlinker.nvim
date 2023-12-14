@@ -1,5 +1,3 @@
--- Compatible Neovim buffer related API
-
 local M = {}
 
 --- @param bufnr integer
@@ -16,7 +14,6 @@ end
 --- @param bufnr integer
 --- @param name string
 --- @param value any
---- @return any
 M.set_buf_option = function(bufnr, name, value)
   if vim.fn.has("nvim-0.8") > 0 then
     return vim.api.nvim_set_option_value(name, value, { buf = bufnr })
