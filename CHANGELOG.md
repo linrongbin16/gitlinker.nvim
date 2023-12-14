@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.8.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.1...v4.8.2) (2023-12-14)
+
+
+### Bug Fixes
+
+* **windows:** fix file path for Windows ([#173](https://github.com/linrongbin16/gitlinker.nvim/issues/173)) ([3f8cfa5](https://github.com/linrongbin16/gitlinker.nvim/commit/3f8cfa557d9808cb7d1d2804cdf09a6b484a0dc1))
+
+
+### Performance Improvements
+
+* **refactor:** use 'commons.nvim' library ([#173](https://github.com/linrongbin16/gitlinker.nvim/issues/173)) ([3f8cfa5](https://github.com/linrongbin16/gitlinker.nvim/commit/3f8cfa557d9808cb7d1d2804cdf09a6b484a0dc1))
+
 ## [4.8.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.0...v4.8.1) (2023-12-08)
 
 
