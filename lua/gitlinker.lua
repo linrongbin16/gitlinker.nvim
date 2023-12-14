@@ -1,6 +1,6 @@
 local range = require("gitlinker.range")
-local LogLevels = require("gitlinker.logger").LogLevels
-local logger = require("gitlinker.logger")
+local LogLevels = require("gitlinker.commons.logger").LogLevels
+local logger = require("gitlinker.commons.logger")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
 local strings = require("gitlinker.commons.strings")
@@ -506,9 +506,11 @@ local function setup(opts)
 
   -- logger
   logger.setup({
+    name = "[gitlinker]",
     level = Configs.debug and LogLevels.DEBUG or LogLevels.INFO,
     console_log = Configs.console_log,
     file_log = Configs.file_log,
+    file_log_name = "gitlinker.log",
   })
 
   logger.debug("|gitlinker.setup| Configs:%s", vim.inspect(Configs))

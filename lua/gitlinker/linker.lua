@@ -1,6 +1,6 @@
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
-local logger = require("gitlinker.logger")
+local logger = require("gitlinker.commons.logger")
 local strings = require("gitlinker.commons.strings")
 
 -- example:

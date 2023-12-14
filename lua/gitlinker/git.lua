@@ -1,4 +1,4 @@
-local logger = require("gitlinker.logger")
+local logger = require("gitlinker.commons.logger")
 local spawn = require("gitlinker.commons.spawn")
 
 --- @class gitlinker.CmdResult

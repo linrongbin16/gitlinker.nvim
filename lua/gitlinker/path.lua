@@ -1,4 +1,4 @@
-local logger = require("gitlinker.logger")
+local logger = require("gitlinker.commons.logger")
 
 --- @param cwd string?
 --- @return string?

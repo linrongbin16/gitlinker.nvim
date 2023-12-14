@@ -11,12 +11,14 @@ describe("git", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local LogLevels = require("gitlinker.logger").LogLevels
-  local logger = require("gitlinker.logger")
+  local LogLevels = require("gitlinker.commons.logger").LogLevels
+  local logger = require("gitlinker.commons.logger")
   logger.setup({
+    name = "[gitlinker]",
     level = LogLevels.DEBUG,
     console_log = true,
     file_log = true,
+    file_log_name = "gitlinker.log",
   })
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
