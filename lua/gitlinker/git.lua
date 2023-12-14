@@ -46,21 +46,21 @@ end
 local function cmd(args, cwd)
   local result = CmdResult:new()
 
-  spawn
-    .run(args, {
-      cwd = cwd or vim.fn.getcwd(),
-      stdout = function(line)
-        if type(line) == "string" then
-          table.insert(result.stdout, line)
-        end
-      end,
-      stderr = function(line)
-        if type(line) == "string" then
-          table.insert(result.stderr, line)
-        end
-      end,
-    })
-    :wait()
+  local sp = spawn.run(args, {
+    cwd = cwd or vim.fn.getcwd(),
+    stdout = function(line)
+      if type(line) == "string" then
+        table.insert(result.stdout, line)
+      end
+    end,
+    stderr = function(line)
+      if type(line) == "string" then
+        table.insert(result.stderr, line)
+      end
+    end,
+  })
+
+  sp:wait()
   return result
 end
 
