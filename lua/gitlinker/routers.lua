@@ -1,6 +1,6 @@
 local strings = require("gitlinker.commons.strings")
 local range = require("gitlinker.range")
-local logger = require("gitlinker.logger")
+local logger = require("gitlinker.commons.logger")
 
 --- @class gitlinker.Builder
 --- @field domain string?

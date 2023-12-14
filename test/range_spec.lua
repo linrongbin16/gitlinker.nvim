@@ -8,8 +8,10 @@ describe("range", function()
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
-    local logger = require("gitlinker.logger")
-    logger.setup()
+    local logger = require("gitlinker.commons.logger")
+    logger.setup({
+      name = "[gitlinker]",
+    })
   end)
 
   local range = require("gitlinker.range")
