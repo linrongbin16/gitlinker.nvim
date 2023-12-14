@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.8.3](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.2...v4.8.3) (2023-12-14)
+
+
+### Performance Improvements
+
+* **logger:** migrate logger to commons.nvim ([#175](https://github.com/linrongbin16/gitlinker.nvim/issues/175)) ([ea27d70](https://github.com/linrongbin16/gitlinker.nvim/commit/ea27d7014242678307e469419e91dc35c57104ea))
+
 ## [4.8.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.1...v4.8.2) (2023-12-14)
 
 
