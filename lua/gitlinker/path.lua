@@ -7,11 +7,11 @@ local function buffer_relpath(cwd)
 
   cwd = cwd or vim.fn.getcwd()
   cwd = vim.fn.resolve(cwd)
-  cwd = paths.normalize(cwd)
+  cwd = paths.normalize(cwd, { double_backslash = true, expand = true })
 
   local bufpath = vim.api.nvim_buf_get_name(0)
   bufpath = vim.fn.resolve(bufpath)
-  bufpath = paths.normalize(bufpath)
+  bufpath = paths.normalize(bufpath, { double_backslash = true, expand = true })
 
   -- logger.debug(
   --     "|path.buffer_relpath| enter, cwd:%s, bufpath:%s",
