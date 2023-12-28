@@ -1,5 +1,3 @@
-local logger = require("gitlinker.commons.logger")
-
 local M = {}
 
 --- @param name string
