@@ -49,6 +49,7 @@ jobs:
           rm -rf ./lua/gitlinker/commons
           mkdir -p ./lua/gitlinker/commons
           cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
+          cp ~/.commons.nvim/version.txt ./lua/gitlinker/commons/version.txt
           cd ./lua/gitlinker/commons
           find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
       - uses: stefanzweifel/git-auto-commit-action@v4

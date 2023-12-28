@@ -1,8 +1,7 @@
----@diagnostic disable: undefined-doc-param
 local M = {}
 
---- @param t table?   lua table.
---- @return string?   returns json string.
+--- @param t table?
+--- @return string?
 M.encode = function(t)
   if t == nil then
     return nil
@@ -14,8 +13,8 @@ M.encode = function(t)
   end
 end
 
---- @param j string?  json string.
---- @return table?    returns lua table.
+--- @param j string?
+--- @return table?
 M.decode = function(j)
   if j == nil then
     return nil

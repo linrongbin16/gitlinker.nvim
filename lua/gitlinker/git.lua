@@ -1,4 +1,4 @@
-local logger = require("gitlinker.commons.logger")
+local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
 
 --- @class gitlinker.CmdResult
@@ -29,12 +29,13 @@ end
 
 --- @param default string
 function CmdResult:print_err(default)
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   if self:has_err() then
     for _, e in ipairs(self.stderr) do
-      logger.err("%s", e)
+      logger:err("%s", e)
     end
   else
-    logger.err("fatal: %s", default)
+    logger:err("fatal: %s", default)
   end
 end
 
@@ -48,12 +49,12 @@ local function cmd(args, cwd)
 
   local sp = spawn.run(args, {
     cwd = cwd or vim.fn.getcwd(),
-    stdout = function(line)
+    on_stdout = function(line)
       if type(line) == "string" then
         table.insert(result.stdout, line)
       end
     end,
-    stderr = function(line)
+    on_stderr = function(line)
       if type(line) == "string" then
         table.insert(result.stderr, line)
       end
@@ -260,6 +261,7 @@ end
 --- @param remote string
 --- @return string?
 local function get_closest_remote_compatible_rev(remote)
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
@@ -316,7 +318,7 @@ local function get_closest_remote_compatible_rev(remote)
     return remote_rev
   end
 
-  logger.err(
+  logger:err(
     "fatal: failed to get closest revision in that exists in remote '%s'",
     remote
   )
@@ -350,6 +352,7 @@ end
 
 --- @return string?
 local function get_branch_remote()
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   -- origin/upstream
   local remotes = _get_remote()
   if not remotes then
@@ -373,7 +376,7 @@ local function get_branch_remote()
     upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
 
   if not remote_from_upstream_branch then
-    logger.err(
+    logger:err(
       "fatal: cannot parse remote name from remote branch '%s'",
       upstream_branch
     )
@@ -386,7 +389,7 @@ local function get_branch_remote()
     end
   end
 
-  logger.err(
+  logger:err(
     "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
     remote_from_upstream_branch,
     upstream_branch
@@ -397,14 +400,15 @@ end
 --- @param remote string
 --- @return string?
 local function get_default_branch(remote)
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   local args =
     { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger.debug(
-    "|git.get_default_branch| running %s: %s",
+  logger:debug(
+    "|get_default_branch| running %s: %s",
     vim.inspect(args),
     vim.inspect(result.stdout)
   )
@@ -415,13 +419,14 @@ end
 
 --- @return string?
 local function get_current_branch()
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
   local result = cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger.debug(
-    "|git.get_current_branch| running %s: %s",
+  logger:debug(
+    "|get_current_branch| running %s: %s",
     vim.inspect(args),
     vim.inspect(result.stdout)
   )

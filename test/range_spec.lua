@@ -8,13 +8,11 @@ describe("range", function()
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
-    local logger = require("gitlinker.commons.logger")
-    logger.setup({
-      name = "[gitlinker]",
-    })
   end)
 
   local range = require("gitlinker.range")
+  local gitlinker = require("gitlinker")
+  pcall(gitlinker.setup, {})
   describe("[_is_visual_mode]", function()
     it("test", function()
       assert_true(range._is_visual_mode("V"))

@@ -8,10 +8,8 @@ describe("linker", function()
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
-    local logger = require("gitlinker.commons.logger")
-    logger.setup({
-      name = "[gitlinker]",
-    })
+    local gitlinker = require("gitlinker")
+    pcall(gitlinker.setup, {})
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 

@@ -1,4 +1,4 @@
-local logger = require("gitlinker.commons.logger")
+local logging = require("gitlinker.commons.logging")
 
 --- @param m string
 --- @return boolean
@@ -13,7 +13,7 @@ end
 --- @return gitlinker.Range
 local function make_range()
   local m = vim.fn.mode()
-  logger.debug("|range.make_range| mode:%s", vim.inspect(m))
+  logging.get("gitlinker"):debug("|make_range| mode:%s", vim.inspect(m))
   local l1 = nil
   local l2 = nil
   if _is_visual_mode(m) then

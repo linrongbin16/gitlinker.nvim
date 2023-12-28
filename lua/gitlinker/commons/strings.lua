@@ -85,69 +85,36 @@ M.rfind = function(s, t, rstart)
 end
 
 --- @param s string
---- @param t string?  by default t is whitespace
+--- @param t string?  by default is whitespace
 --- @return string
 M.ltrim = function(s, t)
   assert(type(s) == "string")
   assert(type(t) == "string" or t == nil)
 
-  local function has(idx)
-    if not t then
-      return M.isspace(s:sub(idx, idx))
-    end
-
-    local c = string.byte(s, idx)
-    local found = false
-    for j = 1, #t do
-      if string.byte(t, j) == c then
-        found = true
-        break
-      end
-    end
-    return found
-  end
-
-  local i = 1
-  while i <= #s do
-    if not has(i) then
-      break
-    end
-    i = i + 1
-  end
-  return s:sub(i, #s)
+  t = t or "%s+"
+  ---@diagnostic disable-next-line: redundant-return-value
+  return string.gsub(s, "^" .. t, "")
 end
 
 --- @param s string
---- @param t string?  by default t is whitespace
+--- @param t string?  by default is whitespace
 --- @return string
 M.rtrim = function(s, t)
   assert(type(s) == "string")
   assert(type(t) == "string" or t == nil)
 
-  local function has(idx)
-    if not t then
-      return M.isspace(s:sub(idx, idx))
-    end
+  t = t or "%s+"
+  ---@diagnostic disable-next-line: redundant-return-value
+  return string.gsub(s, t .. "$", "")
+end
 
-    local c = string.byte(s, idx)
-    local found = false
-    for j = 1, #t do
-      if string.byte(t, j) == c then
-        found = true
-        break
-      end
-    end
-    return found
-  end
-
-  local i = #s
-  while i >= 1 do
-    if not has(i) then
-      break
-    end
-    i = i - 1
-  end
-  return s:sub(1, i)
+--- @param s string
+--- @param t string?  by default is whitespace
+--- @return string
+M.trim = function(s, t)
+  assert(type(s) == "string")
+  assert(type(t) == "string" or t == nil)
+  return M.rtrim(M.ltrim(s, t), t)
 end
 
 --- @param s string
@@ -259,6 +226,43 @@ M.isupper = function(c)
   assert(type(c) == "string")
   assert(string.len(c) == 1)
   return c:match("%u") ~= nil
+end
+
+--- @param s string
+--- @param pos integer
+--- @param ch string
+--- @return string
+M.setchar = function(s, pos, ch)
+  assert(type(s) == "string")
+  assert(type(pos) == "number")
+  assert(type(ch) == "string")
+  assert(string.len(ch) == 1)
+
+  local n = string.len(s)
+  pos = require("gitlinker.commons.tables").list_index(pos, n)
+
+  local buffer = ""
+  if pos > 1 then
+    buffer = string.sub(s, 1, pos - 1)
+  end
+  buffer = buffer .. ch
+  if pos < n then
+    buffer = buffer .. string.sub(s, pos + 1)
+  end
+
+  return buffer
+end
+
+--- @param s string
+--- @return string[]
+M.tochars = function(s)
+  assert(type(s) == "string")
+  local l = {}
+  local n = string.len(s)
+  for i = 1, n do
+    table.insert(l, string.sub(s, i, i))
+  end
+  return l
 end
 
 return M

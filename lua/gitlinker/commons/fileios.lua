@@ -1,7 +1,7 @@
 local M = {}
 
 -- FileLineReader {
---
+
 --- @class commons.FileLineReader
 --- @field filename string    file name.
 --- @field handler integer    file handle.

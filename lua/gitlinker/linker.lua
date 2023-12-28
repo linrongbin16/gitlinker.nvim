@@ -1,7 +1,7 @@
+local logging = require("gitlinker.commons.logging")
+local strings = require("gitlinker.commons.strings")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
-local logger = require("gitlinker.commons.logger")
-local strings = require("gitlinker.commons.strings")
 
 -- example:
 -- git@github.com:linrongbin16/gitlinker.nvim.git
@@ -13,6 +13,8 @@ local strings = require("gitlinker.commons.strings")
 --- @param remote_url string
 --- @return {protocol:string?,host:string?,host_delimiter:string?,user:string?,repo:string?}
 local function _parse_remote_url(remote_url)
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+
   local PROTOS = { "git@", "https://", "http://" }
   local INT32_MAX = 2 ^ 31 - 1
 
@@ -44,8 +46,8 @@ local function _parse_remote_url(remote_url)
     )
   end
 
-  logger.debug(
-    "|gitlinker.linker - _parse_remote_url| 1. remote_url:%s, proto_pos:%s (%s)",
+  logger:debug(
+    "|_parse_remote_url| 1. remote_url:%s, proto_pos:%s (%s)",
     vim.inspect(remote_url),
     vim.inspect(proto_pos),
     vim.inspect(proto)
@@ -53,8 +55,8 @@ local function _parse_remote_url(remote_url)
   if type(proto_pos) == "number" and proto_pos > 0 then
     protocol_end_pos = proto_pos + string.len(proto) - 1
     protocol = remote_url:sub(1, protocol_end_pos)
-    logger.debug(
-      "|gitlinker.linker - _parse_remote_url| 2. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s)",
+    logger:debug(
+      "|_parse_remote_url| 2. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s)",
       vim.inspect(remote_url),
       vim.inspect(proto_pos),
       vim.inspect(proto),
@@ -76,8 +78,8 @@ local function _parse_remote_url(remote_url)
     end
     host_delimiter = remote_url:sub(host_end_pos, host_end_pos)
     host = remote_url:sub(protocol_end_pos + 1, host_end_pos - 1)
-    logger.debug(
-      "|gitlinker.linker - _parse_remote_url| last. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s), host_end_pos:%s (%s), host_delimiter:%s",
+    logger:debug(
+      "|_parse_remote_url| last. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s), host_end_pos:%s (%s), host_delimiter:%s",
       vim.inspect(remote_url),
       vim.inspect(proto_pos),
       vim.inspect(proto),
@@ -108,7 +110,7 @@ local function _parse_remote_url(remote_url)
     user = user,
     repo = repo,
   }
-  logger.debug("linker._parse_remote_url| result:%s", vim.inspect(result))
+  logger:debug("|_parse_remote_url| result:%s", vim.inspect(result))
   return result
 end
 
@@ -116,6 +118,8 @@ end
 --- @param remote string?
 --- @return gitlinker.Linker?
 local function make_linker(remote)
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+
   local root = git.get_root()
   if not root then
     return nil
@@ -194,7 +198,7 @@ local function make_linker(remote)
     current_branch = current_branch,
   }
 
-  logger.debug("|linker.make_linker| o:%s", vim.inspect(o))
+  logger:debug("|make_linker| o:%s", vim.inspect(o))
   return o
 end
 

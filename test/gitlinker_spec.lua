@@ -10,7 +10,7 @@ describe("gitlinker", function()
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
-    gitlinker.setup({
+    pcall(gitlinker.setup, {
       debug = true,
       file_log = true,
       router = {

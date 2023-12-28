@@ -1,5 +1,3 @@
-local logger = require("gitlinker.commons.logger")
-
 --- @param cwd string?
 --- @return string?
 local function buffer_relpath(cwd)

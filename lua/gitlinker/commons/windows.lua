@@ -2,6 +2,8 @@
 
 local M = {}
 
+--- @deprecated
+--- @see commons.apis
 --- @param winnr integer
 --- @param name string
 --- @return any
@@ -13,6 +15,8 @@ M.get_win_option = function(winnr, name)
   end
 end
 
+--- @deprecated
+--- @see commons.apis
 --- @param winnr integer
 --- @param name string
 --- @param value any

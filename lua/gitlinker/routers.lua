@@ -1,6 +1,6 @@
 local strings = require("gitlinker.commons.strings")
 local range = require("gitlinker.range")
-local logger = require("gitlinker.commons.logger")
+local logging = require("gitlinker.commons.logging")
 
 --- @class gitlinker.Builder
 --- @field domain string?
@@ -123,7 +123,8 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function samba_browse(lk)
-  logger.debug("|routers.samba_browse| lk:%s", vim.inspect(lk))
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  logger:debug("|samba_browse| lk:%s", vim.inspect(lk))
   local builder = "https://git.samba.org/?p="
   -- user
   builder = builder
