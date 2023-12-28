@@ -437,7 +437,7 @@ protocol host            user      repo               file       rev            
 The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
 
 - `lk.user` (`_A.USER`): the value is `` (empty string).
-- `lk.repo` (`_A.REPO`): the value is `samba.git` (`_A.REPO` value is `samba`, the `.git` suffix is been removed for easier writing url template).
+- `lk.repo`: the value is `samba.git`, for `_A.REPO` the value is `samba` (the `.git` suffix is been removed for easier writing url template).
 
 ### More Router Types
 
