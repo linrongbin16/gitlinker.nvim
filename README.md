@@ -31,6 +31,7 @@ PRs are welcomed for other git host websites!
 ## Table of Contents
 
 - [Break Changes & Updates](#break-changes--updates)
+- [Requirements](#requirements)
 - [Installation](#installation)
   - [packer.nvim](#packernvim)
   - [vim-plug](#vim-plug)
@@ -60,14 +61,14 @@ PRs are welcomed for other git host websites!
    - Performant child process IO via `uv.spawn`.
    - Drop off `plenary` dependency.
 
-## Installation
-
-Requirement:
+## Requirements
 
 - Neovim &ge; v0.7.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
 - [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
+
+## Installation
 
 <details>
 <summary><b>With <a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></b></summary>
