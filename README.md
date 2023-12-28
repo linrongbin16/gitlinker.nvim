@@ -112,8 +112,8 @@ You could use below command:
 
 There're two **routers** provided:
 
-- `browse`: generate the `/blob` urls (default router), also work for other git host websites, e.g. generate `/src` for bitbucket.org.
-- `blame`: generate the `/blame` urls, also work for other git host websites, e.g. generate `/annotate` for bitbucket.org.
+- `browse`: generate the `/blob` url (default router), also work for other git host websites, for example generate `/src` for bitbucket.org.
+- `blame`: generate the `/blame` url, also work for other git host websites, for example generate `/annotate` for bitbucket.org.
 
 By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes, please use `remote=xxx` arguments. For example:
 
