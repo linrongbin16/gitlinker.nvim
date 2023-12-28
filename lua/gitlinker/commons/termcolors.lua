@@ -1,7 +1,6 @@
--- Render text with terminal colors
-
 local M = {}
 
+--- @package
 --- @param attr "fg"|"bg"
 --- @param code string
 --- @return string
@@ -68,9 +67,9 @@ M.retrieve = function(attr, hl)
   return nil
 end
 
---- @param text string   the text content to be rendered
---- @param name string      the ANSI color name or RGB color codes
---- @param hl string?       the highlighting group name
+--- @param text string    the text content to be rendered
+--- @param name string    the ANSI color name or RGB color codes
+--- @param hl string?     the highlighting group name
 --- @return string
 M.render = function(text, name, hl)
   local strings = require("gitlinker.commons.strings")
@@ -98,10 +97,6 @@ M.render = function(text, name, hl)
   return string.format("[%sm%s[0m", fmt, text)
 end
 
--- Unescape(erase) the terminal colors from `text` content.
---
--- Returns the raw text content.
---
 --- @param text string?
 --- @return string?
 M.erase = function(text)
@@ -115,11 +110,13 @@ M.erase = function(text)
     :gsub("\x1b%[%d+;%d+;%d+m", "")
     :gsub("\x1b%[%d+;%d+m", "")
     :gsub("\x1b%[%d+m", "")
+    :gsub("\x1b%[m", "")
   return result
 end
 
--- Helper functions for the `render` API.
--- Render `text` content with pre-defined CSS color (see CSS_COLORS), or vim's syntax highlighting group (only if been provided).
+--- @type string[]
+M.COLOR_NAMES = {}
+
 do
   for name, code in pairs(CSS_COLORS) do
     --- @param text string
@@ -128,6 +125,7 @@ do
     M[name] = function(text, hl)
       return M.render(text, name, hl)
     end
+    table.insert(M.COLOR_NAMES, name)
   end
 end
 

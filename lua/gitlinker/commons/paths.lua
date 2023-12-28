@@ -83,16 +83,26 @@ M.pipename = function()
         string.format("%x", vim.loop.os_getpid()),
         string.format("%x", secs),
         string.format("%x", ms),
-        string.format(
-          "%x",
-          math.random(1, require("fzfx.lib.numbers").INT32_MAX)
-        ),
       }, "-")
     end
     return string.format([[\\.\pipe\nvim-pipe-%s]], uuid())
   else
     return vim.fn.tempname() --[[@as string]]
   end
+end
+
+--- @param p string?
+--- @return string?
+M.parent = function(p)
+  p = p or vim.fn.getcwd()
+
+  local strings = require("gitlinker.commons.strings")
+  if strings.endswith(p, "/") or strings.endswith(p, "\\") then
+    p = string.sub(p, 1, #p - 1)
+  end
+
+  local result = vim.fn.fnamemodify(p, ":h")
+  return string.len(result) < string.len(p) and result or nil
 end
 
 return M
