@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 MD034 -->
+<!-- markdownlint-disable MD013 MD034 MD033 -->
 
 # gitlinker.nvim
 
