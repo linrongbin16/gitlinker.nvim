@@ -153,7 +153,7 @@ function M.wait(...)
     return wait(...)
   end
 
-  -- Assume argc is equal to the number of passed arguments.
+  -- Asume argc is equal to the number of passed arguments.
   return wait(select("#", ...) - 1, ...)
 end
 
