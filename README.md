@@ -39,7 +39,7 @@ PRs are welcomed for other git host websites!
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
   - [GitWeb](#gitweb)
-  - [More Router Types](#more-router-types)
+  - [Create Your Own Router](#create-your-own-router)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
@@ -437,9 +437,9 @@ The difference is: the main repo doesn't have the `user` component, it's just `h
 - `lk.user` (`_A.USER`): the value is `` (empty string).
 - `lk.repo`: the value is `samba.git`, for `_A.REPO` the value is `samba` (the `.git` suffix is been removed for easier writing url template).
 
-### More Router Types
+### Create Your Own Router
 
-You can even create your own router type (e.g. use the same engine with `browse`/`blame`), for example create the `default_branch`/`current_branch` router type:
+You can even create your own router (e.g. use the same engine with `browse`/`blame`), for example create the `default_branch`/`current_branch` router type:
 
 ```lua
 require("gitlinker").setup({
@@ -465,11 +465,6 @@ require("gitlinker").setup({
   },
 })
 ```
-
-> Here use the two branch components:
->
-> - `lk.default_branch`(`_A.DEFAULT_BRANCH`): retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
-> - `lk.current_branch`(`_A.CURRENT_BRANCH`): retrieved from `git rev-parse --abbrev-ref HEAD`.
 
 Then use it just like `blame`:
 
