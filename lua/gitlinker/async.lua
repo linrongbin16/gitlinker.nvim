@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-doc-name
 --- Upstream: https://github.com/lewis6991/async.nvim/blob/main/lua/async.lua
 --- Small async library for Neovim plugins
 --- @module async
