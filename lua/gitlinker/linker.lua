@@ -2,6 +2,7 @@ local logging = require("gitlinker.commons.logging")
 local strings = require("gitlinker.commons.strings")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
+local async = require("gitlinker.async")
 
 -- example:
 -- git@github.com:linrongbin16/gitlinker.nvim.git
@@ -154,6 +155,7 @@ local function make_linker(remote)
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
+  async.scheduler()
   local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
   -- logger.debug(
   --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
@@ -170,6 +172,7 @@ local function make_linker(remote)
   --     vim.inspect(file_in_rev_result)
   -- )
 
+  async.scheduler()
   local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
   local file_changed = git.file_has_changed(buf_path_on_cwd, rev)
   -- logger.debug(

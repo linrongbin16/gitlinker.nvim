@@ -1,5 +1,7 @@
 local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
+local async = require("gitlinker.async")
+local uv = require("gitlinker.commons.uv")
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -39,16 +41,12 @@ function CmdResult:print_err(default)
   end
 end
 
--- wrap the git command to do the right thing always
---- @package
---- @param args string[]
---- @param cwd string?
---- @return gitlinker.CmdResult
-local function cmd(args, cwd)
+--- NOTE: async functions can't have optional parameters so wrap it into another function without '_'
+local _run_cmd = async.wrap(function(args, cwd, callback)
   local result = CmdResult:new()
 
-  local sp = spawn.run(args, {
-    cwd = cwd or vim.fn.getcwd(),
+  spawn.run(args, {
+    cwd = cwd,
     on_stdout = function(line)
       if type(line) == "string" then
         table.insert(result.stdout, line)
@@ -59,17 +57,23 @@ local function cmd(args, cwd)
         table.insert(result.stderr, line)
       end
     end,
-  })
+  }, function()
+    callback(result)
+  end)
+end, 3)
 
-  sp:wait()
-  return result
+-- wrap the git command to do the right thing always
+--- @package
+--- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
+local function run_cmd(args, cwd)
+  return _run_cmd(args, cwd or uv.cwd())
 end
 
 --- @package
 --- @return string[]|nil
 local function _get_remote()
   local args = { "git", "remote" }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     result:print_err("fatal: git repo has no remote")
     return nil
@@ -87,7 +91,7 @@ end
 local function get_remote_url(remote)
   assert(remote, "remote cannot be nil")
   local args = { "git", "remote", "get-url", remote }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if not result:has_out() then
     result:print_err(
       "fatal: failed to get remote url by remote '" .. remote .. "'"
@@ -107,7 +111,7 @@ end
 --- @return string?
 local function _get_rev(revspec)
   local args = { "git", "rev-parse", revspec }
-  local result = cmd(args)
+  local result = run_cmd(args)
   -- logger.debug(
   --   "|git._get_rev| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -122,7 +126,7 @@ end
 --- @return string?
 local function _get_rev_name(revspec)
   local args = { "git", "rev-parse", "--abbrev-ref", revspec }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if not result:has_out() then
     result:print_err("fatal: git branch has no remote")
     return nil
@@ -140,7 +144,7 @@ end
 --- @return boolean
 local function is_file_in_rev(file, revspec)
   local args = { "git", "cat-file", "-e", revspec .. ":" .. file }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if result:has_err() then
     result:print_err(
       "fatal: '" .. file .. "' does not exist in remote '" .. revspec .. "'"
@@ -160,7 +164,7 @@ end
 --- @return boolean
 local function file_has_changed(file, rev)
   local args = { "git", "diff", rev, "--", file }
-  local result = cmd(args)
+  local result = run_cmd(args)
   -- logger.debug(
   --   "|git.has_file_changed| running %s: %s",
   --   vim.inspect(args),
@@ -175,7 +179,7 @@ end
 --- @return boolean
 local function _is_rev_in_remote(revspec, remote)
   local args = { "git", "branch", "--remotes", "--contains", revspec }
-  local result = cmd(args)
+  local result = run_cmd(args)
   -- logger.debug(
   --   "|git._is_rev_in_remote| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -196,7 +200,7 @@ end
 --- @return boolean
 local function _has_remote_fetch_config(remote)
   local args = { "git", "config", string.format("remote.%s.fetch", remote) }
-  local result = cmd(args)
+  local result = run_cmd(args)
   -- logger.debug(
   --   "|git._has_remote_fetch_config| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -221,7 +225,7 @@ local function resolve_host(host)
   local errmsg =
     string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
   local args = { "ssh", "-ttG", host }
-  local result = cmd(args)
+  local result = run_cmd(args)
 
   if not result:has_out() then
     result:print_err(errmsg)
@@ -330,7 +334,7 @@ local function get_root()
   local buf_path = vim.api.nvim_buf_get_name(0)
   local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
   local args = { "git", "rev-parse", "--show-toplevel" }
-  local result = cmd(args, buf_dir)
+  local result = run_cmd(args, buf_dir)
   -- logger.debug(
   --     "|git.get_root| buf_path:%s, buf_dir:%s, result:%s",
   --     vim.inspect(buf_path),
@@ -403,7 +407,7 @@ local function get_default_branch(remote)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   local args =
     { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
@@ -421,7 +425,7 @@ end
 local function get_current_branch()
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
-  local result = cmd(args)
+  local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end

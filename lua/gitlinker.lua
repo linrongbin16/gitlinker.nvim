@@ -1,3 +1,4 @@
+local async = require("gitlinker.async")
 local range = require("gitlinker.range")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
@@ -351,9 +352,8 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
---- @return string?
-local function link(opts)
+--- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}):string?
+local link = async.void(function(opts)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
@@ -364,6 +364,7 @@ local function link(opts)
   lk.lstart = opts.lstart
   lk.lend = opts.lend
 
+  async.scheduler()
   local ok, url = pcall(opts.router, lk, true)
   logger:debug(
     "|link| ok:%s, url:%s, router:%s",
@@ -397,7 +398,7 @@ local function link(opts)
   end
 
   return url
-end
+end)
 
 --- @param opts gitlinker.Options
 --- @return table<string, {list_routers:table,map_routers:table}>
