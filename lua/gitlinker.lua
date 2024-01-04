@@ -352,7 +352,7 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
+--- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
 local link = function(opts)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
