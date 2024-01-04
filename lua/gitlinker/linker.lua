@@ -16,7 +16,7 @@ local async = require("gitlinker.commons.async")
 local function _parse_remote_url(remote_url)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
-  local PROTOS = { "git@", "https://", "http://" }
+  local PROTOS = { "git@", "https://", "http://", "ssh://" }
   local INT32_MAX = 2 ^ 31 - 1
 
   local protocol = nil
