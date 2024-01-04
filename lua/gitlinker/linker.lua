@@ -2,7 +2,7 @@ local logging = require("gitlinker.commons.logging")
 local strings = require("gitlinker.commons.strings")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
-local async = require("gitlinker.async")
+local async = require("gitlinker.commons.async")
 
 -- example:
 -- git@github.com:linrongbin16/gitlinker.nvim.git

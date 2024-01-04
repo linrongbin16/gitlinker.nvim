@@ -58,6 +58,8 @@ jobs:
           commit_message: "chore(pr): auto-commit"
   unit_test:
     name: Unit Test
+    needs:
+      - luacheck
     strategy:
       matrix:
         nvim_version: [stable, nightly, v0.7.0]
@@ -77,11 +79,35 @@ jobs:
         shell: bash
         run: |
           luarocks install luacheck
-          luarocks install luacov
-          luarocks install cluacov
           luarocks install vusted
-          vusted --coverage --shuffle ./test
+          vusted --shuffle ./test
+  code_coverage:
+    name: Code Coverage
+    needs:
+      - luacheck
+    strategy:
+      matrix:
+        nvim_version: [stable]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          neovim: true
+          version: ${{ matrix.nvim_version }}
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "luajit-2.1.0-beta3"
+      - uses: leafo/gh-actions-luarocks@v4
       - name: Generate Coverage Reports
+        shell: bash
+        run: |
+          luarocks install luacheck
+          luarocks install luacov
+          luarocks install vusted
+          vusted --coverage ./test
+      - name: Upload Coverage Reports
         shell: bash
         run: |
           echo "ls ."
@@ -101,8 +127,8 @@ jobs:
     name: Release
     if: ${{ github.ref == 'refs/heads/master' }}
     needs:
-      - luacheck
       - unit_test
+      - code_coverage
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v3

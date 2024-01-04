@@ -1,10 +1,3 @@
-local _system
-if vim.fn.has("nvim-0.10") == 1 then
-  _system = vim.system
-else
-  _system = require("gitlinker.commons._system").run
-end
-
 local M = {}
 
 --- @alias commons.SpawnLineProcessor fun(line:string):any
@@ -107,6 +100,9 @@ M.run = function(cmd, opts, on_exit)
       end
     end
   end
+
+  local _system = vim.is_callable(vim.system) and vim.system
+    or require("gitlinker.commons._system").run
 
   return _system(cmd, {
     cwd = opts.cwd,
