@@ -1,4 +1,4 @@
-local async = require("gitlinker.async")
+local async = require("gitlinker.commons.async")
 local range = require("gitlinker.range")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
