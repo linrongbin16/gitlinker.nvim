@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.9.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.3...v4.9.0) (2024-01-04)
+
+
+### Features
+
+* make link operation non-blocking ([#183](https://github.com/linrongbin16/gitlinker.nvim/issues/183)) ([a1f4153](https://github.com/linrongbin16/gitlinker.nvim/commit/a1f4153dfe11ded6542b6af21c8e6a506d727440))
+
+
+### Bug Fixes
+
+* **ci:** fix ci pipeline errors ([#184](https://github.com/linrongbin16/gitlinker.nvim/issues/184)) ([13bd6b1](https://github.com/linrongbin16/gitlinker.nvim/commit/13bd6b1babeeca5dbb82dcb74010fadaf9ecf763))
+
 ## [4.8.3](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.2...v4.8.3) (2023-12-14)
 
 
