@@ -55,8 +55,7 @@ PRs are welcomed for other git host websites!
    - Support `/blame` (by default is `/blob`).
 3. Improvements:
    - Use stderr from git command as error message.
-   - Performant child process IO via `uv.spawn`.
-   - Drop off `plenary` dependency.
+   - Async child process IO via coroutine and `uv.spawn`.
 
 ## Requirements
 
