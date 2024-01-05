@@ -353,7 +353,7 @@ local function _blame(lk)
 end
 
 --- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
-local link = function(opts)
+local _link = function(opts)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
@@ -401,7 +401,7 @@ local link = function(opts)
 end
 
 --- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}):string?
-local void_link = async.void(link)
+local link = async.void(_link)
 
 --- @param opts gitlinker.Options
 --- @return table<string, {list_routers:table,map_routers:table}>
@@ -544,7 +544,7 @@ local function setup(opts)
     local lend =
       math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
-    void_link({
+    link({
       action = command_opts.bang and require("gitlinker.actions").system
         or require("gitlinker.actions").clipboard,
       router = function(lk)
