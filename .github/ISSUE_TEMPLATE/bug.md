@@ -1,6 +1,5 @@
 ---
 name: Bug
-about: Failed to parse git remote url
 title: 'Bug:'
 labels: ''
 assignees: ''
