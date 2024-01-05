@@ -1,13 +1,12 @@
 ---
 name: Bug
 about: Create a report to help us improve
-title: 'Bug:'
-labels: ''
-assignees: ''
-
+title: "Bug:"
+labels: ""
+assignees: ""
 ---
 
-1. What's the output of `git config --get remote.origin.url`?
+1. What's the output of `git remote get-url origin`?
 
    It's ...
 
