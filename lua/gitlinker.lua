@@ -30,7 +30,7 @@ local Defaults = {
     browse = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -38,7 +38,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -46,7 +46,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -54,7 +54,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -64,7 +64,7 @@ local Defaults = {
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?p="
-        .. "{string.len(_A.USER) > 0 and (_A.USER .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
+        .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
         .. "{_A.REPO .. '.git'};a=blob;"
         .. "f={_A.FILE};"
         .. "hb={_A.REV}"
@@ -73,7 +73,7 @@ local Defaults = {
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -81,7 +81,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -89,7 +89,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/annotate/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -97,7 +97,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -128,6 +128,8 @@ local function _url_template_engine(lk, template)
   if type(template) ~= "string" or string.len(template) == 0 then
     return template
   end
+
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
   --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
   --- @type gitlinker.UrlTemplateExpr[]
@@ -182,9 +184,13 @@ local function _url_template_engine(lk, template)
       table.insert(results, exp.body)
     else
       local evaluated = vim.fn.luaeval(exp.body, {
-        PROTOCOL = lk.protocol,
-        HOST = lk.host,
-        USER = lk.user,
+        PROTOCOL = lk.protocol or "",
+        USERNAME = lk.username or "",
+        PASSWORD = lk.password or "",
+        HOST = lk.host or "",
+        PORT = lk.port or "",
+        USER = lk.user or "",
+        ORG = lk.org or "",
         REPO = strings.endswith(lk.repo, ".git")
             and lk.repo:sub(1, #lk.repo - 4)
           or lk.repo,
@@ -200,28 +206,17 @@ local function _url_template_engine(lk, template)
           lk.current_branch
         ) > 0) and lk.current_branch or "",
       })
-      -- logger.debug(
-      --   "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
-      --   vim.inspect(exp.body),
-      --   vim.inspect(lk),
-      --   vim.inspect(evaluated)
-      -- )
+      logger:debug(
+        "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
+        vim.inspect(exp.body),
+        vim.inspect(lk),
+        vim.inspect(evaluated)
+      )
       table.insert(results, evaluated)
     end
   end
 
   return table.concat(results, "")
-end
-
---- @param lk gitlinker.Linker
---- @return string
-local function _make_resolved_remote_url(lk)
-  local resolved_remote_url =
-    string.format("%s%s%s%s", lk.protocol, lk.host, lk.host_delimiter, lk.user)
-  if type(lk.repo) == "string" and string.len(lk.repo) > 0 then
-    resolved_remote_url = string.format("%s/%s", resolved_remote_url, lk.repo)
-  end
-  return resolved_remote_url
 end
 
 --- @param lk gitlinker.Linker
@@ -276,28 +271,24 @@ local function _router(router_type, lk)
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
       local pattern = tuple[1]
       local route = tuple[2]
-      local resolved_remote_url = _make_resolved_remote_url(lk)
-      logger:debug(
-        "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s), resolved_remote_url:%s(%s)",
-        vim.inspect(i),
-        vim.inspect(tuple),
-        vim.inspect(string.match(lk.host, pattern)),
-        vim.inspect(lk.host),
-        vim.inspect(string.match(lk.remote_url, pattern)),
-        vim.inspect(lk.remote_url),
-        vim.inspect(string.match(resolved_remote_url, pattern)),
-        vim.inspect(resolved_remote_url)
-      )
+      -- logger:debug(
+      --   "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s)",
+      --   vim.inspect(i),
+      --   vim.inspect(tuple),
+      --   vim.inspect(string.match(lk.host, pattern)),
+      --   vim.inspect(lk.host),
+      --   vim.inspect(string.match(lk.remote_url, pattern)),
+      --   vim.inspect(lk.remote_url)
+      -- )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
-        or string.match(resolved_remote_url, pattern)
       then
-        logger:debug(
-          "|_router| match-1 router:%s with pattern:%s",
-          vim.inspect(route),
-          vim.inspect(pattern)
-        )
+        -- logger:debug(
+        --   "|_router| match-1 router:%s with pattern:%s",
+        --   vim.inspect(route),
+        --   vim.inspect(pattern)
+        -- )
         return _worker(lk, pattern, route)
       end
     end
@@ -308,24 +299,21 @@ local function _router(router_type, lk)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
-      local resolved_remote_url = _make_resolved_remote_url(lk)
-      logger:debug(
-        "|_router| table pattern:%s, match host:%s, remote_url:%s, resolved_remote_url:%s",
-        vim.inspect(pattern),
-        vim.inspect(lk.host),
-        vim.inspect(lk.remote_url),
-        vim.inspect(resolved_remote_url)
-      )
+      -- logger:debug(
+      --   "|_router| table pattern:%s, match host:%s, remote_url:%s",
+      --   vim.inspect(pattern),
+      --   vim.inspect(lk.host),
+      --   vim.inspect(lk.remote_url)
+      -- )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
-        or string.match(resolved_remote_url, pattern)
       then
-        logger:debug(
-          "|_router| match-2 router:%s with pattern:%s",
-          vim.inspect(route),
-          vim.inspect(pattern)
-        )
+        -- logger:debug(
+        --   "|_router| match-2 router:%s with pattern:%s",
+        --   vim.inspect(route),
+        --   vim.inspect(pattern)
+        -- )
         return _worker(lk, pattern, route)
       end
     end
@@ -366,12 +354,12 @@ local link = function(opts)
 
   async.scheduler()
   local ok, url = pcall(opts.router, lk, true)
-  logger:debug(
-    "|link| ok:%s, url:%s, router:%s",
-    vim.inspect(ok),
-    vim.inspect(url),
-    vim.inspect(opts.router)
-  )
+  -- logger:debug(
+  --   "|link| ok:%s, url:%s, router:%s",
+  --   vim.inspect(ok),
+  --   vim.inspect(url),
+  --   vim.inspect(opts.router)
+  -- )
   assert(
     ok and type(url) == "string" and string.len(url) > 0,
     string.format(
@@ -522,7 +510,7 @@ local function setup(opts)
 
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
-  logger:debug("|setup| Configs:%s", vim.inspect(Configs))
+  -- logger:debug("|setup| Configs:%s", vim.inspect(Configs))
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
@@ -533,12 +521,12 @@ local function setup(opts)
     )
         and vim.trim(command_opts.args)
       or nil
-    logger:debug(
-      "|setup| command opts:%s, parsed:%s, range:%s",
-      vim.inspect(command_opts),
-      vim.inspect(args),
-      vim.inspect(r)
-    )
+    -- logger:debug(
+    --   "|setup| command opts:%s, parsed:%s, range:%s",
+    --   vim.inspect(command_opts),
+    --   vim.inspect(args),
+    --   vim.inspect(r)
+    -- )
     local lstart =
       math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend =
@@ -583,7 +571,6 @@ end
 local M = {
   setup = setup,
   link = link,
-  _make_resolved_remote_url = _make_resolved_remote_url,
   _worker = _worker,
   _router = _router,
   _browse = _browse,

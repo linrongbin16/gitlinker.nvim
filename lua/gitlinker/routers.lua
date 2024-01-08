@@ -4,7 +4,7 @@ local logging = require("gitlinker.commons.logging")
 
 --- @class gitlinker.Builder
 --- @field domain string?
---- @field user string?
+--- @field org string?
 --- @field repo string?
 --- @field rev string?
 --- @field location string?
@@ -78,12 +78,8 @@ end
 function Builder:new(lk, range_maker)
   local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
   local o = {
-    domain = string.format(
-      "%s%s",
-      strings.endswith(lk.protocol, "git@") and "https://" or lk.protocol,
-      lk.host
-    ),
-    user = lk.user,
+    domain = string.format("https://%s", lk.host),
+    org = lk.org,
     repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4)
       or lk.repo,
     rev = lk.rev,
@@ -109,7 +105,7 @@ end
 function Builder:build(url)
   return table.concat({
     self.domain,
-    self.user,
+    self.org,
     self.repo,
     url,
     self.rev,
@@ -126,10 +122,10 @@ local function samba_browse(lk)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   logger:debug("|samba_browse| lk:%s", vim.inspect(lk))
   local builder = "https://git.samba.org/?p="
-  -- user
+  -- org
   builder = builder
-    .. (string.len(lk.user) > 0 and string.format("%s/", lk.user) or "")
-  -- user
+    .. (string.len(lk.org) > 0 and string.format("%s/", lk.org) or "")
+  -- repo
   builder = builder .. string.format("%s;a=blob;", lk.repo)
   -- file: 'wscript'
   builder = builder .. string.format("f=%s;", lk.file)

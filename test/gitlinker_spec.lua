@@ -34,7 +34,7 @@ describe("gitlinker", function()
         },
         default_branch = {
           ["^github%.com"] = "https://github.com/"
-            .. "{_A.USER}/"
+            .. "{_A.ORG}/"
             .. "{_A.REPO}/blob/"
             .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
             .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -43,7 +43,7 @@ describe("gitlinker", function()
         },
         current_branch = {
           ["^github%.com"] = "https://github.com/"
-            .. "{_A.USER}/"
+            .. "{_A.ORG}/"
             .. "{_A.REPO}/blob/"
             .. "{_A.CURRENT_BRANCH}/" -- always current branch
             .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -60,10 +60,11 @@ describe("gitlinker", function()
     it("git.samba.org/samba.git with same lstart/lend", function()
       local lk = {
         remote_url = "git@git.samba.org:samba.git",
-        protocol = "git@",
+        protocol = nil,
+        username = "git",
+        password = nil,
         host = "git.samba.org",
-        host_delimiter = ":",
-        user = "",
+        org = "",
         repo = "samba.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "wscript",
@@ -81,10 +82,11 @@ describe("gitlinker", function()
     it("git.samba.org/samba.git with different lstart/lend", function()
       local lk = {
         remote_url = "https://git.samba.org/samba.git",
-        protocol = "https://",
+        protocol = "https",
+        username = nil,
+        password = nil,
         host = "git.samba.org",
-        host_delimiter = "/",
-        user = "",
+        org = "",
         repo = "samba.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "wscript",
@@ -102,10 +104,11 @@ describe("gitlinker", function()
     it("git.samba.org/bbaumbach/samba.git with same lstart/lend", function()
       local lk = {
         remote_url = "git@git.samba.org:bbaumbach/samba.git",
-        protocol = "git@",
+        protocol = nil,
+        username = "git",
+        password = nil,
         host = "git.samba.org",
-        host_delimiter = ":",
-        user = "bbaumbach",
+        org = "bbaumbach",
         repo = "samba.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "wscript",
@@ -125,10 +128,11 @@ describe("gitlinker", function()
       function()
         local lk = {
           remote_url = "https://git.samba.org/bbaumbach/samba.git",
-          protocol = "https://",
+          protocol = "https",
+          username = nil,
+          password = nil,
           host = "git.samba.org",
-          host_delimiter = "/",
-          user = "bbaumbach",
+          org = "bbaumbach",
           repo = "samba.git",
           rev = "399b1d05473c711fc5592a6ffc724e231c403486",
           file = "wscript",
@@ -147,9 +151,11 @@ describe("gitlinker", function()
     it("github with same lstart/lend", function()
       local lk = {
         remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        protocol = nil,
+        username = "git",
+        password = nil,
         host = "github.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -167,9 +173,9 @@ describe("gitlinker", function()
     it("github with different lstart/lend", function()
       local lk = {
         remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "github.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -187,10 +193,11 @@ describe("gitlinker", function()
     it("ssh://git@git.xyz.com with same lstart/lend", function()
       local lk = {
         remote_url = "ssh://git@git.xyz.com/linrongbin16/gitlinker.nvim.git",
-        protocol = "ssh://git@",
+        protocol = "ssh",
+        username = "git",
         host = "git.xyz.com",
-        host_delimiter = "/",
         user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -208,9 +215,10 @@ describe("gitlinker", function()
     it("ssh://git@git.xyz.com with different lstart/lend", function()
       local lk = {
         remote_url = "ssh://git@github.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "ssh://git@",
+        protocol = "ssh",
+        username = "git",
         host = "git.xyz.com",
-        host_delimiter = ":",
+        org = "linrongbin16",
         user = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
@@ -229,9 +237,9 @@ describe("gitlinker", function()
     it("gitlab with same line start and line end", function()
       local lk = {
         remote_url = "https://gitlab.com/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "gitlab.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -249,9 +257,9 @@ describe("gitlinker", function()
     it("gitlab with different line start and line end", function()
       local lk = {
         remote_url = "git@gitlab.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "gitlab.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -269,9 +277,9 @@ describe("gitlinker", function()
     it("bitbucket with same line start and line end", function()
       local lk = {
         remote_url = "git@bitbucket.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "bitbucket.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -289,9 +297,9 @@ describe("gitlinker", function()
     it("bitbucket with different line start and line end", function()
       local lk = {
         remote_url = "https://bitbucket.org/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "bitbucket.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -309,9 +317,9 @@ describe("gitlinker", function()
     it("codeberg with same line start and line end", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "codeberg.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -329,9 +337,9 @@ describe("gitlinker", function()
     it("codeberg with different line start and line end", function()
       local lk = {
         remote_url = "https://codeberg.org/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "codeberg.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -351,9 +359,9 @@ describe("gitlinker", function()
     it("github with same lstart/lend", function()
       local lk = {
         remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "github.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -371,9 +379,9 @@ describe("gitlinker", function()
     it("github with different lstart/lend", function()
       local lk = {
         remote_url = "https://github.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "github.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -391,9 +399,9 @@ describe("gitlinker", function()
     it("gitlab with same lstart/lend", function()
       local lk = {
         remote_url = "git@gitlab.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "gitlab.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -411,9 +419,9 @@ describe("gitlinker", function()
     it("gitlab with different lstart/lend", function()
       local lk = {
         remote_url = "https://gitlab.com:linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "gitlab.com",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -431,9 +439,9 @@ describe("gitlinker", function()
     it("bitbucket with same lstart/lend", function()
       local lk = {
         remote_url = "git@bitbucket.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "bitbucket.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -451,9 +459,9 @@ describe("gitlinker", function()
     it("bitbucket with different lstart/lend", function()
       local lk = {
         remote_url = "https://bitbucket.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "bitbucket.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -471,9 +479,9 @@ describe("gitlinker", function()
     it("codeberg with same lstart/lend", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "codeberg.org",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -491,10 +499,9 @@ describe("gitlinker", function()
     it("codeberg with different lstart/lend", function()
       local lk = {
         remote_url = "https://codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "codeberg.org",
-        host_delimiter = ":",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -510,56 +517,13 @@ describe("gitlinker", function()
       assert_eq(actual, routers.codeberg_blame(lk))
     end)
   end)
-  describe("[_make_resolved_remote_url]", function()
-    it("resolve /", function()
-      local lk = {
-        remote_url = "https://codeberg.org/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
-        host = "my-personal-codeberg.org",
-        host_delimiter = "/",
-        user = "linrongbin16",
-        repo = "gitlinker.nvim.git",
-        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
-        file = "lua/gitlinker/logger.lua",
-        lstart = 13,
-        lend = 21,
-        file_changed = false,
-      }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._make_resolved_remote_url(lk)
-      assert_eq(
-        actual,
-        "https://my-personal-codeberg.org/linrongbin16/gitlinker.nvim.git"
-      )
-    end)
-    it("resolve :", function()
-      local lk = {
-        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
-        host = "my-personal-codeberg.org",
-        host_delimiter = ":",
-        user = "linrongbin16",
-        repo = "gitlinker.nvim.git",
-        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
-        file = "lua/gitlinker/logger.lua",
-        lstart = 13,
-        lend = 21,
-        file_changed = false,
-      }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._make_resolved_remote_url(lk)
-      assert_eq(
-        actual,
-        "git@my-personal-codeberg.org:linrongbin16/gitlinker.nvim.git"
-      )
-    end)
-  end)
   describe("[_worker]", function()
     it("is function", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "my-personal-codeberg.org",
-        host_delimiter = ":",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -576,10 +540,9 @@ describe("gitlinker", function()
     it("is string", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
+        username = "git",
         host = "my-personal-codeberg.org",
-        host_delimiter = ":",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -588,7 +551,7 @@ describe("gitlinker", function()
         file_changed = false,
       }--[[@as gitlinker.Linker]]
       local string_template = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -766,10 +729,9 @@ describe("gitlinker", function()
     it("default_branch", function()
       local lk = {
         remote_url = "https://github.com/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "github.com",
-        host_delimiter = "/",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -788,10 +750,9 @@ describe("gitlinker", function()
     it("current_branch", function()
       local lk = {
         remote_url = "https://github.com/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
+        protocol = "https",
         host = "github.com",
-        host_delimiter = "/",
-        user = "linrongbin16",
+        org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
