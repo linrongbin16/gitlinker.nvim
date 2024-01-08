@@ -329,11 +329,11 @@ You can directly use below builtin APIs:
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the url string from below components:
 
 - `protocol`: The component before `://` delimiter. For example:
-  - `https` in `https://github.com`.
-  - `ssh` in `ssh://github.com`.
+  - The `https` in `https://github.com`.
+  - The `ssh` in `ssh://github.com`.
 - `username`: Optional component after `protocol`, before host name separated by `@`. For example:
-  - `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
-  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (note: ssh protocol can be omitted).
+  - The `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
+  - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (note: the `ssh://` in ssh protocol can be omitted).
 - `password`: Optional component after `username` separated by `:`, before `host` name separated by `@`. For example:
   - `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
