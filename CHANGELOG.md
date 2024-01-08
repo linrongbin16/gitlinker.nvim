@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.9.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.9.0...v4.9.1) (2024-01-08)
+
+
+### Bug Fixes
+
+* **parsing:** fix git url parsing ([#195](https://github.com/linrongbin16/gitlinker.nvim/issues/195)) ([ab44bb7](https://github.com/linrongbin16/gitlinker.nvim/commit/ab44bb7eb3174d963b0ae2224a685f322638c8e6))
+
 ## [4.9.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.8.3...v4.9.0) (2024-01-04)
 
 
