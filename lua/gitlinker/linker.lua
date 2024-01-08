@@ -1,120 +1,8 @@
 local logging = require("gitlinker.commons.logging")
-local strings = require("gitlinker.commons.strings")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
-
--- example:
--- git@github.com:linrongbin16/gitlinker.nvim.git
--- https://github.com/linrongbin16/gitlinker.nvim.git
--- ssh://git@git.xyz.abc/PROJECT_KEY/PROJECT.git
--- https://git.samba.org/samba.git (main repo without user component)
--- https://git.samba.org/ab/samba.git (dev repo with user component)
---
---- @param remote_url string
---- @return {protocol:string?,host:string?,host_delimiter:string?,user:string?,repo:string?}
-local function _parse_remote_url(remote_url)
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
-
-  local PROTOS = { "git@", "https://", "http://" }
-  local INT32_MAX = 2 ^ 31 - 1
-
-  local protocol = nil
-  local protocol_end_pos = nil
-  local host = nil
-  local host_end_pos = nil
-  local host_delimiter = nil
-  local user = nil
-  local repo = nil
-
-  --- @type string
-  local proto = nil
-  --- @type integer?
-  local proto_pos = nil
-  for _, p in ipairs(PROTOS) do
-    proto_pos = strings.find(remote_url, p)
-    if type(proto_pos) == "number" and proto_pos > 0 then
-      proto = p
-      break
-    end
-  end
-  if not proto_pos then
-    error(
-      string.format(
-        "failed to parse remote url protocol:%s",
-        vim.inspect(remote_url)
-      )
-    )
-  end
-
-  logger:debug(
-    "|_parse_remote_url| 1. remote_url:%s, proto_pos:%s (%s)",
-    vim.inspect(remote_url),
-    vim.inspect(proto_pos),
-    vim.inspect(proto)
-  )
-  if type(proto_pos) == "number" and proto_pos > 0 then
-    protocol_end_pos = proto_pos + string.len(proto) - 1
-    protocol = remote_url:sub(1, protocol_end_pos)
-    logger:debug(
-      "|_parse_remote_url| 2. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s)",
-      vim.inspect(remote_url),
-      vim.inspect(proto_pos),
-      vim.inspect(proto),
-      vim.inspect(protocol_end_pos),
-      vim.inspect(protocol)
-    )
-    local first_slash_pos = strings.find(remote_url, "/", protocol_end_pos + 1)
-      or INT32_MAX
-    local first_colon_pos = strings.find(remote_url, ":", protocol_end_pos + 1)
-      or INT32_MAX
-    host_end_pos = math.min(first_slash_pos, first_colon_pos)
-    if not host_end_pos then
-      error(
-        string.format(
-          "failed to parse remote url host:%s",
-          vim.inspect(remote_url)
-        )
-      )
-    end
-    host_delimiter = remote_url:sub(host_end_pos, host_end_pos)
-    host = remote_url:sub(protocol_end_pos + 1, host_end_pos - 1)
-    logger:debug(
-      "|_parse_remote_url| last. remote_url:%s, proto_pos:%s (%s), protocol_end_pos:%s (%s), host_end_pos:%s (%s), host_delimiter:%s",
-      vim.inspect(remote_url),
-      vim.inspect(proto_pos),
-      vim.inspect(proto),
-      vim.inspect(protocol_end_pos),
-      vim.inspect(protocol),
-      vim.inspect(host_end_pos),
-      vim.inspect(host),
-      vim.inspect(host_delimiter)
-    )
-  end
-
-  local user_end_pos = strings.find(remote_url, "/", host_end_pos + 1)
-  if type(user_end_pos) == "number" and user_end_pos > host_end_pos + 1 then
-    user = remote_url:sub(host_end_pos + 1, user_end_pos - 1)
-    repo = remote_url:sub(user_end_pos + 1)
-  else
-    -- if no slash '/', then don't have 'user', but only 'repo'
-    -- example:
-    -- * main repo: https://git.samba.org/?p=samba.git
-    -- * user dev repo: https://git.samba.org/?p=bbaumbach/samba.git
-    repo = remote_url:sub(host_end_pos + 1)
-    user = ""
-  end
-  local result = {
-    protocol = protocol,
-    host = host,
-    host_delimiter = host_delimiter,
-    user = user,
-    repo = repo,
-  }
-  logger:debug("|_parse_remote_url| result:%s", vim.inspect(result))
-  return result
-end
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string,username:string?,password:string?,host:string,org:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
@@ -217,7 +105,6 @@ local function make_linker(remote)
 end
 
 local M = {
-  _parse_remote_url = _parse_remote_url,
   make_linker = make_linker,
 }
 

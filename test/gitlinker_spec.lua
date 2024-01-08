@@ -510,48 +510,6 @@ describe("gitlinker", function()
       assert_eq(actual, routers.codeberg_blame(lk))
     end)
   end)
-  describe("[_make_resolved_remote_url]", function()
-    it("resolve /", function()
-      local lk = {
-        remote_url = "https://codeberg.org/linrongbin16/gitlinker.nvim.git",
-        protocol = "https://",
-        host = "my-personal-codeberg.org",
-        host_delimiter = "/",
-        user = "linrongbin16",
-        repo = "gitlinker.nvim.git",
-        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
-        file = "lua/gitlinker/logger.lua",
-        lstart = 13,
-        lend = 21,
-        file_changed = false,
-      }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._make_resolved_remote_url(lk)
-      assert_eq(
-        actual,
-        "https://my-personal-codeberg.org/linrongbin16/gitlinker.nvim.git"
-      )
-    end)
-    it("resolve :", function()
-      local lk = {
-        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
-        protocol = "git@",
-        host = "my-personal-codeberg.org",
-        host_delimiter = ":",
-        user = "linrongbin16",
-        repo = "gitlinker.nvim.git",
-        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
-        file = "lua/gitlinker/logger.lua",
-        lstart = 13,
-        lend = 21,
-        file_changed = false,
-      }--[[@as gitlinker.Linker]]
-      local actual = gitlinker._make_resolved_remote_url(lk)
-      assert_eq(
-        actual,
-        "git@my-personal-codeberg.org:linrongbin16/gitlinker.nvim.git"
-      )
-    end)
-  end)
   describe("[_worker]", function()
     it("is function", function()
       local lk = {
