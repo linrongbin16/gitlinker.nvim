@@ -459,8 +459,7 @@ The available variables are the same with the `lk` parameter passing to hook fun
 The 2 sugar components derived from `path` are:
 
 - `_A.ORG`
-- `_A.REPO`
-  - **Note:** for easier writing, the `.git` suffix is been removed.
+- `_A.REPO` - **Note:** for easier writing, the `.git` suffix is been removed.
 
 The 2 branch components are:
 
