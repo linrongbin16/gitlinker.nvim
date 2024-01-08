@@ -185,7 +185,7 @@ require('gitlinker').setup({
     browse = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -193,15 +193,15 @@ require('gitlinker').setup({
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
+      -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -209,7 +209,7 @@ require('gitlinker').setup({
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -219,7 +219,7 @@ require('gitlinker').setup({
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?p="
-        .. "{string.len(_A.USER) > 0 and (_A.USER .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
+        .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
         .. "{_A.REPO .. '.git'};a=blob;"
         .. "f={_A.FILE};"
         .. "hb={_A.REV}"
@@ -228,7 +228,7 @@ require('gitlinker').setup({
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -236,7 +236,7 @@ require('gitlinker').setup({
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -244,7 +244,7 @@ require('gitlinker').setup({
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/annotate/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -252,7 +252,7 @@ require('gitlinker').setup({
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -346,11 +346,16 @@ To fully customize url generation, please refer to the implementation of [router
 - `path`: All the left parts after `host` and optional `port`. For example:
   - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
-- `rev`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
-- `default_branch`: git default branch, `master`, `main`, etc, retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
-- `current_branch`: git current branch, `feat-router-types`, etc, retrieved from `git rev-parse --abbrev-ref HEAD`.
-- `file`: file name, e.g. `lua/gitlinker/routers.lua`.
-- `lstart`/`lend`: start/end line numbers, e.g. `#L37-L156`.
+- `rev`: Git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
+- `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
+  - `master`
+  - `main`
+- `current_branch`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
+  - `feat-router-types`
+- `file`: (Relative) file path. For example:
+  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L1`.
+- `lstart`/`lend`: Start/end line numbers. For example:
+  - `37`/`156` in `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
 
 There're also 2 sugar components derived from `path`:
 
@@ -373,21 +378,21 @@ end
 --- @param lk gitlinker.Linker
 local function your_router(lk)
   local builder = "https://"
-  -- host: 'github.com', 'gitlab.com', 'bitbucket.org'
+  -- host
   builder = builder .. lk.host .. "/"
-  -- user: 'linrongbin16', 'neovim'
-  builder = builder .. lk.user .. "/"
-  -- repo: 'gitlinker.nvim.git', 'neovim'
+  -- org
+  builder = builder .. lk.org .. "/"
+  -- repo
   builder = builder
     .. (string_endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo)
     .. "/"
-  -- rev: git commit, e.g. 'e605210941057849491cca4d7f44c0e09f363a69'
+  -- rev
   builder = lk.rev .. "/"
-  -- file: 'lua/gitlinker/logger.lua'
+  -- file
   builder = builder
     .. lk.file
     .. (string_endswith(lk.file, ".md") and "?plain=1" or "")
-  -- line range: start line number, end line number
+  -- line range
   builder = builder .. string.format("&lines=%d", lk.lstart)
   if lk.lend > lk.lstart then
     builder = builder
@@ -414,7 +419,7 @@ require("gitlinker").setup({
   router = {
     browse = {
       ["^github%.your%.host"] = "https://github.your.host/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -429,14 +434,16 @@ The template string use curly braces `{}` to contains lua scripts, and evaluate 
 
 The available variables are the same with the `lk` parameter passing to hook functions, but in upper case, and with the `_A.` prefix:
 
-- `_A.PROTOCOL`: `git@`, `ssh://git@`, `https`, etc.
-- `_A.HOST`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
-- `_A.USER`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
-- `_A.REPO`: `gitlinker.nvim`, `neovim`, etc.
+- `_A.PROTOCOL`
+- `_A.USERNAME`
+- `_A.PASSWORD`
+- `_A.HOST`
+- `_A.ORG`
+- `_A.REPO`
   - **Note:** for easier writing, the `.git` suffix is been removed.
-- `_A.REV`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
-- `_A.DEFAULT_BRANCH`: git default branch, `master`, `main`, etc, retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
-- `_A.CURRENT_BRANCH`: git current branch, `feat-router-types`, etc, retrieved from `git rev-parse --abbrev-ref HEAD`.
+- `_A.REV`
+- `_A.DEFAULT_BRANCH`
+- `_A.CURRENT_BRANCH`
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
 
