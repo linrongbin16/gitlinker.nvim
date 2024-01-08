@@ -78,11 +78,7 @@ end
 function Builder:new(lk, range_maker)
   local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
   local o = {
-    domain = string.format(
-      "%s%s",
-      strings.endswith(lk.protocol, "git@") and "https://" or lk.protocol,
-      lk.host
-    ),
+    domain = string.format("https://%s", lk.host),
     org = lk.org,
     repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4)
       or lk.repo,
