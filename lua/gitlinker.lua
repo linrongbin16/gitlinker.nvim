@@ -214,17 +214,6 @@ local function _url_template_engine(lk, template)
 end
 
 --- @param lk gitlinker.Linker
---- @return string
-local function _make_resolved_remote_url(lk)
-  local resolved_remote_url =
-    string.format("%s%s%s%s", lk.protocol, lk.host, lk.host_delimiter, lk.user)
-  if type(lk.repo) == "string" and string.len(lk.repo) > 0 then
-    resolved_remote_url = string.format("%s/%s", resolved_remote_url, lk.repo)
-  end
-  return resolved_remote_url
-end
-
---- @param lk gitlinker.Linker
 --- @param p string
 --- @param r string|function(lk:gitlinker.Linker):string?
 --- @return string?
@@ -276,22 +265,18 @@ local function _router(router_type, lk)
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
       local pattern = tuple[1]
       local route = tuple[2]
-      local resolved_remote_url = _make_resolved_remote_url(lk)
       logger:debug(
-        "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s), resolved_remote_url:%s(%s)",
+        "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s)",
         vim.inspect(i),
         vim.inspect(tuple),
         vim.inspect(string.match(lk.host, pattern)),
         vim.inspect(lk.host),
         vim.inspect(string.match(lk.remote_url, pattern)),
-        vim.inspect(lk.remote_url),
-        vim.inspect(string.match(resolved_remote_url, pattern)),
-        vim.inspect(resolved_remote_url)
+        vim.inspect(lk.remote_url)
       )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
-        or string.match(resolved_remote_url, pattern)
       then
         logger:debug(
           "|_router| match-1 router:%s with pattern:%s",
@@ -308,18 +293,15 @@ local function _router(router_type, lk)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
-      local resolved_remote_url = _make_resolved_remote_url(lk)
       logger:debug(
-        "|_router| table pattern:%s, match host:%s, remote_url:%s, resolved_remote_url:%s",
+        "|_router| table pattern:%s, match host:%s, remote_url:%s",
         vim.inspect(pattern),
         vim.inspect(lk.host),
-        vim.inspect(lk.remote_url),
-        vim.inspect(resolved_remote_url)
+        vim.inspect(lk.remote_url)
       )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
-        or string.match(resolved_remote_url, pattern)
       then
         logger:debug(
           "|_router| match-2 router:%s with pattern:%s",
@@ -583,7 +565,6 @@ end
 local M = {
   setup = setup,
   link = link,
-  _make_resolved_remote_url = _make_resolved_remote_url,
   _worker = _worker,
   _router = _router,
   _browse = _browse,

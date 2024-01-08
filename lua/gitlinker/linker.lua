@@ -2,6 +2,7 @@ local logging = require("gitlinker.commons.logging")
 local strings = require("gitlinker.commons.strings")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
+local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
 
 -- example:
@@ -115,7 +116,7 @@ local function _parse_remote_url(remote_url)
   return result
 end
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string,host:string,host_delimiter:string,user:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string,username:string?,password:string?,host:string,org:string,repo:string?,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @return gitlinker.Linker?
 local function make_linker(remote)
@@ -138,8 +139,17 @@ local function make_linker(remote)
     return nil
   end
 
-  local parsed_remote_url = _parse_remote_url(remote_url)
-  local resolved_host = git.resolve_host(parsed_remote_url.host)
+  local parsed_url, parsed_err = giturlparser.parse(remote_url)
+  assert(
+    parsed_url ~= nil,
+    string.format(
+      "failed to parse git remote url:%s, error:%s",
+      vim.inspect(remote_url),
+      vim.inspect(parsed_err)
+    )
+  )
+
+  local resolved_host = git.resolve_host(parsed_url.host)
   if not resolved_host then
     return nil
   end
@@ -185,11 +195,12 @@ local function make_linker(remote)
 
   local o = {
     remote_url = remote_url,
-    protocol = parsed_remote_url.protocol,
+    protocol = parsed_url.protocol,
     host = resolved_host,
-    host_delimiter = parsed_remote_url.host_delimiter,
-    user = parsed_remote_url.user,
-    repo = parsed_remote_url.repo,
+    username = parsed_url.user,
+    password = parsed_url.password,
+    org = parsed_url.org,
+    repo = parsed_url.repo,
     rev = rev,
     file = buf_path_on_root,
     ---@diagnostic disable-next-line: need-check-nil
