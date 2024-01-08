@@ -52,6 +52,7 @@ PRs are welcomed for other git host websites!
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
    - Support `/blame` (by default is `/blob`).
+   - Full [git protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) support.
 3. Improvements:
    - Use stderr from git command as error message.
    - Async child process IO via coroutine and `uv.spawn`.
