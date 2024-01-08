@@ -38,7 +38,6 @@ PRs are welcomed for other git host websites!
   - [Highlighting](#highlighting)
   - [Self-host Git Hosts](#self-host-git-hosts)
   - [Fully Customize Urls](#fully-customize-urls)
-  - [GitWeb](#gitweb)
   - [Create Your Own Router](#create-your-own-router)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
@@ -361,6 +360,12 @@ There're also 2 sugar components derived from `path`:
   - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `path/to/the` in `https://github.com/path/to/the/repo.git`.
 
+> [!NOTE]
+>
+> The `org` component can be empty when the `path` only contains 1 slash (`/`), for example:
+>
+> - `ssh://git@host.xyz/repo.git`.
+
 There're also 2 branch components:
 
 - `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
@@ -441,37 +446,24 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.USERNAME`
 - `_A.PASSWORD`
 - `_A.HOST`
-- `_A.ORG`
-- `_A.REPO`
-  - **Note:** for easier writing, the `.git` suffix is been removed.
+- `_A.PORT`
+- `_A.PATH`
 - `_A.REV`
 - `_A.DEFAULT_BRANCH`
 - `_A.CURRENT_BRANCH`
 - `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
 
-### GitWeb
+The 2 sugar components derived from `path` are:
 
-For [GitWeb](https://git-scm.com/book/en/v2/Git-on-the-Server-GitWeb), there're two types of urls: the main repository and the user's dev repository. For example on [git.samba.org](https://git.samba.org/):
+- `_A.ORG`
+- `_A.REPO`
+  - **Note:** for easier writing, the `.git` suffix is been removed.
 
-```bash
-# main repo
-https://git.samba.org/samba.git (`git remote get-url origin`)
-https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l7
-|       |                |                  |          |                                         |
-protocol host            repo               file       rev                                       line number
+The 2 branch components are:
 
-# user's dev repo
-https://git.samba.org/bbaumbach/samba.git (`git remote get-url origin`)
-https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
-|       |                |         |                  |          |                                         |
-protocol host            user      repo               file       rev                                       line number
-```
-
-The difference is: the main repo doesn't have the `user` component, it's just `https://git.samba.org/?p=samba.git`. To support such case, `user` and `repo` components have a little bit different when facing the main repo:
-
-- `lk.user` (`_A.USER`): the value is `` (empty string).
-- `lk.repo`: the value is `samba.git`, for `_A.REPO` the value is `samba` (the `.git` suffix is been removed for easier writing url template).
+- `_A.DEFAULT_BRANCH`
+- `_A.CURRENT_BRANCH`
 
 ### Create Your Own Router
 
@@ -482,7 +474,7 @@ require("gitlinker").setup({
   router = {
     default_branch = {
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -491,7 +483,7 @@ require("gitlinker").setup({
     },
     current_branch = {
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.CURRENT_BRANCH}/" -- always current branch
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -505,10 +497,10 @@ require("gitlinker").setup({
 Then use it just like `blame`:
 
 ```vim
-GitLink default_branch  " copy default branch to clipboard
-GitLink! default_branch " open default branch in browser
-GitLink current_branch  " copy current branch to clipboard
-GitLink! current_branch " open current branch in browser
+GitLink default_branch
+GitLink! default_branch
+GitLink current_branch
+GitLink! current_branch
 ```
 
 ## Highlight Group
