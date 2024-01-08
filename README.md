@@ -348,15 +348,15 @@ To fully customize url generation, please refer to the implementation of [router
   - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
 - `rev`: Git commit. For example:
   - The `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
-- `file`: (Relative) file path. For example:
-  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L1`.
+- `file`: Relative file path. For example:
+  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
 - `lstart`/`lend`: Start/end line numbers. For example:
-  - `37`/`156` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
+  - `3`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L3-L13`.
 
 There're also 2 sugar components derived from `path`:
 
 - `repo`: The last part after the last slash (`/`) in `path`, with around slashes been removed. For example:
-  - `gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - `gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim`.
   - `neovim.git` in `https://github.com/neovim/neovim.git`.
 - `org`: All the other parts before `repo` in `path`, with around slashes been removed. For example:
   - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
