@@ -30,7 +30,7 @@ local Defaults = {
     browse = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -38,7 +38,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -46,7 +46,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/src/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -54,7 +54,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/src/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -64,7 +64,7 @@ local Defaults = {
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
       -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?p="
-        .. "{string.len(_A.USER) > 0 and (_A.USER .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
+        .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
         .. "{_A.REPO .. '.git'};a=blob;"
         .. "f={_A.FILE};"
         .. "hb={_A.REV}"
@@ -73,7 +73,7 @@ local Defaults = {
     blame = {
       -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^github%.com"] = "https://github.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -81,7 +81,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -89,7 +89,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#lines-3:4
       ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/annotate/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
@@ -97,7 +97,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}?display=source" -- '?display=source'
@@ -184,7 +184,7 @@ local function _url_template_engine(lk, template)
       local evaluated = vim.fn.luaeval(exp.body, {
         PROTOCOL = lk.protocol,
         HOST = lk.host,
-        USER = lk.org,
+        USER = lk.user,
         ORG = lk.org,
         REPO = strings.endswith(lk.repo, ".git")
             and lk.repo:sub(1, #lk.repo - 4)
