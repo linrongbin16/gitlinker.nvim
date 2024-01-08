@@ -347,15 +347,10 @@ To fully customize url generation, please refer to the implementation of [router
   - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
 - `rev`: Git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
-- `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - `master`
-  - `main`
-- `current_branch`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
-  - `feat-router-types`
 - `file`: (Relative) file path. For example:
   - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L1`.
 - `lstart`/`lend`: Start/end line numbers. For example:
-  - `37`/`156` in `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
+  - `37`/`156` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
 
 There're also 2 sugar components derived from `path`:
 
@@ -365,6 +360,14 @@ There're also 2 sugar components derived from `path`:
 - `org`: All the other parts before `repo` in `path`, with around slashes been removed. For example:
   - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `path/to/the` in `https://github.com/path/to/the/repo.git`.
+
+There're also 2 branch components:
+
+- `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
+  - `master` in `https://github.com/ruifm/gitlinker.nvim/master/blob/lua/gitlinker/routers.lua#L37-L156`.
+  - `main` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
+- `current_branch`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
+  - `feat-router-types`
 
 For example you can customize the line numbers in form `?&line=1&lines-count=2` like this:
 
