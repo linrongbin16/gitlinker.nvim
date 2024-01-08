@@ -129,6 +129,8 @@ local function _url_template_engine(lk, template)
     return template
   end
 
+  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+
   --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
   --- @type gitlinker.UrlTemplateExpr[]
   local exprs = {}
@@ -201,12 +203,12 @@ local function _url_template_engine(lk, template)
           lk.current_branch
         ) > 0) and lk.current_branch or "",
       })
-      -- logger.debug(
-      --   "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
-      --   vim.inspect(exp.body),
-      --   vim.inspect(lk),
-      --   vim.inspect(evaluated)
-      -- )
+      logger:debug(
+        "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
+        vim.inspect(exp.body),
+        vim.inspect(lk),
+        vim.inspect(evaluated)
+      )
       table.insert(results, evaluated)
     end
   end
@@ -266,24 +268,24 @@ local function _router(router_type, lk)
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
       local pattern = tuple[1]
       local route = tuple[2]
-      logger:debug(
-        "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s)",
-        vim.inspect(i),
-        vim.inspect(tuple),
-        vim.inspect(string.match(lk.host, pattern)),
-        vim.inspect(lk.host),
-        vim.inspect(string.match(lk.remote_url, pattern)),
-        vim.inspect(lk.remote_url)
-      )
+      -- logger:debug(
+      --   "|_router| list i:%d, pattern_route_tuple:%s, match host:%s(%s), remote_url:%s(%s)",
+      --   vim.inspect(i),
+      --   vim.inspect(tuple),
+      --   vim.inspect(string.match(lk.host, pattern)),
+      --   vim.inspect(lk.host),
+      --   vim.inspect(string.match(lk.remote_url, pattern)),
+      --   vim.inspect(lk.remote_url)
+      -- )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
       then
-        logger:debug(
-          "|_router| match-1 router:%s with pattern:%s",
-          vim.inspect(route),
-          vim.inspect(pattern)
-        )
+        -- logger:debug(
+        --   "|_router| match-1 router:%s with pattern:%s",
+        --   vim.inspect(route),
+        --   vim.inspect(pattern)
+        -- )
         return _worker(lk, pattern, route)
       end
     end
@@ -294,21 +296,21 @@ local function _router(router_type, lk)
       and string.len(pattern) > 0
       and (type(route) == "string" or type(route) == "function")
     then
-      logger:debug(
-        "|_router| table pattern:%s, match host:%s, remote_url:%s",
-        vim.inspect(pattern),
-        vim.inspect(lk.host),
-        vim.inspect(lk.remote_url)
-      )
+      -- logger:debug(
+      --   "|_router| table pattern:%s, match host:%s, remote_url:%s",
+      --   vim.inspect(pattern),
+      --   vim.inspect(lk.host),
+      --   vim.inspect(lk.remote_url)
+      -- )
       if
         string.match(lk.host, pattern)
         or string.match(lk.remote_url, pattern)
       then
-        logger:debug(
-          "|_router| match-2 router:%s with pattern:%s",
-          vim.inspect(route),
-          vim.inspect(pattern)
-        )
+        -- logger:debug(
+        --   "|_router| match-2 router:%s with pattern:%s",
+        --   vim.inspect(route),
+        --   vim.inspect(pattern)
+        -- )
         return _worker(lk, pattern, route)
       end
     end
@@ -349,12 +351,12 @@ local link = function(opts)
 
   async.scheduler()
   local ok, url = pcall(opts.router, lk, true)
-  logger:debug(
-    "|link| ok:%s, url:%s, router:%s",
-    vim.inspect(ok),
-    vim.inspect(url),
-    vim.inspect(opts.router)
-  )
+  -- logger:debug(
+  --   "|link| ok:%s, url:%s, router:%s",
+  --   vim.inspect(ok),
+  --   vim.inspect(url),
+  --   vim.inspect(opts.router)
+  -- )
   assert(
     ok and type(url) == "string" and string.len(url) > 0,
     string.format(
@@ -505,7 +507,7 @@ local function setup(opts)
 
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
-  logger:debug("|setup| Configs:%s", vim.inspect(Configs))
+  -- logger:debug("|setup| Configs:%s", vim.inspect(Configs))
 
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
@@ -516,12 +518,12 @@ local function setup(opts)
     )
         and vim.trim(command_opts.args)
       or nil
-    logger:debug(
-      "|setup| command opts:%s, parsed:%s, range:%s",
-      vim.inspect(command_opts),
-      vim.inspect(args),
-      vim.inspect(r)
-    )
+    -- logger:debug(
+    --   "|setup| command opts:%s, parsed:%s, range:%s",
+    --   vim.inspect(command_opts),
+    --   vim.inspect(args),
+    --   vim.inspect(r)
+    -- )
     local lstart =
       math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend =

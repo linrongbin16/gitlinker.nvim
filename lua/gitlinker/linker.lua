@@ -28,6 +28,12 @@ local function make_linker(remote)
   end
 
   local parsed_url, parsed_err = giturlparser.parse(remote_url)
+  logger:debug(
+    "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
+    vim.inspect(remote),
+    vim.inspect(parsed_url),
+    vim.inspect(parsed_err)
+  )
   assert(
     parsed_url ~= nil,
     string.format(

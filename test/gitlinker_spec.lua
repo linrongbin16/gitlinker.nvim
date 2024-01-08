@@ -34,7 +34,7 @@ describe("gitlinker", function()
         },
         default_branch = {
           ["^github%.com"] = "https://github.com/"
-            .. "{_A.USER}/"
+            .. "{_A.ORG}/"
             .. "{_A.REPO}/blob/"
             .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
             .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -43,7 +43,7 @@ describe("gitlinker", function()
         },
         current_branch = {
           ["^github%.com"] = "https://github.com/"
-            .. "{_A.USER}/"
+            .. "{_A.ORG}/"
             .. "{_A.REPO}/blob/"
             .. "{_A.CURRENT_BRANCH}/" -- always current branch
             .. "{_A.FILE}?plain=1" -- '?plain=1'
@@ -185,6 +185,7 @@ describe("gitlinker", function()
         remote_url = "ssh://git@git.xyz.com/linrongbin16/gitlinker.nvim.git",
         protocol = "ssh://git@",
         host = "git.xyz.com",
+        user = "linrongbin16",
         org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
@@ -206,6 +207,7 @@ describe("gitlinker", function()
         protocol = "ssh://git@",
         host = "git.xyz.com",
         org = "linrongbin16",
+        user = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",
@@ -537,7 +539,7 @@ describe("gitlinker", function()
         file_changed = false,
       }--[[@as gitlinker.Linker]]
       local string_template = "https://codeberg.org/"
-        .. "{_A.USER}/"
+        .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/commit/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
