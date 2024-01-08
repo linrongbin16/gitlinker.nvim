@@ -570,7 +570,8 @@ end
 
 local M = {
   setup = setup,
-  void_link, void_link,
+  void_link,
+  void_link,
   _worker = _worker,
   _router = _router,
   _browse = _browse,
