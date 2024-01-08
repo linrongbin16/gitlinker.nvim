@@ -1,0 +1,2 @@
+lua/gitlinker/giturlparser.lua
+lua/gitlinker/commons/*.lua
