@@ -454,8 +454,8 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `_A.REV`
 - `_A.DEFAULT_BRANCH`
 - `_A.CURRENT_BRANCH`
-- `_A.FILE`: file name, e.g. `lua/gitlinker/routers.lua`.
-- `_A.LSTART`/`_A.LEND`: start/end line numbers, e.g. `#L37-L156`.
+- `_A.FILE`
+- `_A.LSTART`/`_A.LEND`
 
 The 2 sugar components derived from `path` are:
 
