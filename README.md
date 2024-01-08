@@ -358,7 +358,7 @@ There're also 2 sugar components derived from `path`:
 - `repo`: The last part after the last slash (`/`) in `path`, with around slashes been removed. For example:
   - `gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim`.
   - `neovim.git` in `https://github.com/neovim/neovim.git`.
-- `org`: All the other parts before `repo` in `path`, with around slashes been removed. For example:
+- `org`: (Optional) all the other parts before `repo` in `path`, with around slashes been removed. For example:
   - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `path/to/the` in `https://github.com/path/to/the/repo.git`.
 
@@ -371,8 +371,8 @@ There're also 2 sugar components derived from `path`:
 There're also 2 branch components:
 
 - `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - `master` in `https://github.com/ruifm/gitlinker.nvim/master/blob/lua/gitlinker/routers.lua#L37-L156`.
-  - `main` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L37-L156`.
+  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
+  - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
 - `current_branch`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
   - `feat-router-types`
 
