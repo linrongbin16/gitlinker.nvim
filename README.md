@@ -494,7 +494,7 @@ require("gitlinker").setup({
 })
 ```
 
-Then use it just like `blame`:
+Then use it just like `browse`:
 
 ```vim
 GitLink default_branch
