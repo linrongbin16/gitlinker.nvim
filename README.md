@@ -323,11 +323,27 @@ You can directly use below builtin APIs:
 
 ### Fully Customize Urls
 
+> [!NOTE]
+>
+> Please refer to [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git url.
+
 To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the url string from below components:
 
-- `protocol`: `git@`, `ssh://git@`, `https`, etc.
-- `host`: `github.com`, `gitlab.com`, `bitbucket.org`, etc.
-- `user`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
+- `protocol`: The component before `://` delimiter. For example:
+  - `https` in `https://github.com`.
+- `username`: The component after `protocol`, before host name separated by `@`. For example:
+  - `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
+  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (note: ssh protocol can be omitted).
+- `password`: The component after `username` separated by `:`, before `host` name separated by `@`. For example:
+  - `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
+  - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
+- `host`: The first component after `protocol`, `username`, `password`. For example:
+  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (note: when using http/https protocol, the `host` name ends with `/`).
+  - `127.0.0.1` in `ssh://127.0.0.1:linrongbin16/gitlinker.nvim` (note: when using ssh protocol, the `host` name ends with `:`, and cannot have the following `port` component).
+- `port`: The component after `host` separated by `:` (note: the ssh protocol cannot have `port` component). For example:
+  - `github.com` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
+  - `127.0.0.1` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
+- `org`: `linrongbin16` (for this plugin), `neovim` (for [neovim](https://github.com/neovim/neovim)), etc.
 - `repo`: `gitlinker.nvim.git`, `neovim.git`, etc.
 - `rev`: git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
 - `default_branch`: git default branch, `master`, `main`, etc, retrieved from `git rev-parse --abbrev-ref origin/HEAD`.
