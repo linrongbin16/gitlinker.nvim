@@ -333,14 +333,14 @@ To fully customize url generation, please refer to the implementation of [router
   - The `ssh` in `ssh://github.com`.
 - `username`: Optional component after `protocol`, before host name separated by `@`. For example:
   - The `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
-  - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (note: the `ssh://` in ssh protocol can be omitted).
+  - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
 - `password`: Optional component after `username` separated by `:`, before `host` name separated by `@`. For example:
-  - `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
-  - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
-- `host`: The first component after `protocol`, `username`, `password`. For example:
-  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (note: when using http/https protocol, the `host` name ends with `/`).
-  - `127.0.0.1` in `ssh://127.0.0.1:linrongbin16/gitlinker.nvim` (note: when using ssh protocol, the `host` name ends with `:`, and cannot have the following `port` component).
-- `port`: The component after `host` separated by `:` (note: the ssh protocol cannot have `port` component). For example:
+  - The `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
+  - The `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
+- `host`: The first component after `protocol` (and optional `username`, `password`). For example:
+  - The `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https, `host` ends with `/`).
+  - The `127.0.0.1` in `ssh://127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for ssh, `host` ends with `:`, and cannot have the following `port` component).
+- `port`: Optional component after `host` separated by `:` (**Note:** ssh protocol cannot have `port` component). For example:
   - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
 - `path`: All the left parts after `host` and optional `port`. For example:
