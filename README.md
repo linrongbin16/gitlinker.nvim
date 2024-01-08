@@ -341,12 +341,13 @@ To fully customize url generation, please refer to the implementation of [router
   - The `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https, `host` ends with `/`).
   - The `127.0.0.1` in `ssh://127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for ssh, `host` ends with `:`, and cannot have the following `port` component).
 - `port`: Optional component after `host` separated by `:` (**Note:** ssh protocol cannot have `port` component). For example:
-  - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
-  - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `path`: All the left parts after `host` and optional `port`. For example:
+  - The `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
+  - The `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
+- `path`: All the left parts after `host` (and optional `port`). For example:
   - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
-- `rev`: Git commit, e.g. `dbf3922382576391fbe50b36c55066c1768b08b6`.
+- `rev`: Git commit. For example:
+  - The `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
 - `file`: (Relative) file path. For example:
   - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/main/blob/lua/gitlinker/routers.lua#L1`.
 - `lstart`/`lend`: Start/end line numbers. For example:
