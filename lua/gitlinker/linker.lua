@@ -87,6 +87,8 @@ local function make_linker(remote)
     host = resolved_host,
     username = parsed_url.user,
     password = parsed_url.password,
+    --- @deprecated please use 'org'
+    user = parsed_url.org,
     org = parsed_url.org,
     repo = parsed_url.repo,
     rev = rev,

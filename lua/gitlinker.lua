@@ -184,7 +184,8 @@ local function _url_template_engine(lk, template)
       local evaluated = vim.fn.luaeval(exp.body, {
         PROTOCOL = lk.protocol,
         HOST = lk.host,
-        USER = lk.user,
+        USER = lk.org,
+        ORG = lk.org,
         REPO = strings.endswith(lk.repo, ".git")
             and lk.repo:sub(1, #lk.repo - 4)
           or lk.repo,
