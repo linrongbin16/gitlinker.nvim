@@ -4,7 +4,7 @@ local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @return gitlinker.Linker?
 local function make_linker(remote)
@@ -90,9 +90,10 @@ local function make_linker(remote)
   local o = {
     remote_url = remote_url,
     protocol = parsed_url.protocol,
-    host = resolved_host,
     username = parsed_url.user,
     password = parsed_url.password,
+    host = resolved_host,
+    port = parsed_url.port,
     --- @deprecated please use 'org'
     user = parsed_url.org,
     org = parsed_url.org,

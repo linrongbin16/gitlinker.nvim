@@ -184,8 +184,11 @@ local function _url_template_engine(lk, template)
       table.insert(results, exp.body)
     else
       local evaluated = vim.fn.luaeval(exp.body, {
-        PROTOCOL = lk.protocol,
-        HOST = lk.host,
+        PROTOCOL = lk.protocol or "",
+        USERNAME = lk.username or "",
+        PASSWORD = lk.password or "",
+        HOST = lk.host or "",
+        PORT = lk.port or "",
         USER = lk.user or "",
         ORG = lk.org or "",
         REPO = strings.endswith(lk.repo, ".git")
