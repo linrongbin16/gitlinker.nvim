@@ -4,3 +4,4 @@ unused = false
 unused_args = false
 exclude_files =
   { "lua/gitlinker/commons/_system.lua", "lua/gitlinker/commons/_json.lua" }
+ignore = { "542" }
