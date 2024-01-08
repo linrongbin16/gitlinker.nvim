@@ -771,13 +771,25 @@ describe("gitlinker", function()
   end)
 
     describe ('[void_link]', function ()
-      it('test', function () 
+      it('link browse', function () 
           gitlinker.void_link({
                 action = require('gitlinker.actions').clipboard,
                 router = function(lk)
         return require('gitlinker')._router('browse', lk)
-      end,lstart = 1,
+      end,
+                lstart = 1,
       lend = 1,
+              })
+          end)
+        it('link blame', function () 
+          gitlinker.void_link({
+                action = require('gitlinker.actions').clipboard,
+                router = function(lk)
+        return require('gitlinker')._router('blame', lk)
+      end,
+                lstart = 1,
+      lend = 1,
+              })
           end)
       end)
 end)
