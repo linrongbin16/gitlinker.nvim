@@ -272,6 +272,15 @@ require('gitlinker').setup({
 })
 ```
 
+> [!IMPORTANT]
+>
+> The `router` option in [Configuration](#configuration) is mapping from git `host` (such as `github.com`, `gitlab.com`) to the expected git url you want to generate.
+>
+> It also support `username` and `password`, for example:
+>
+> - `git@github.com`
+> - `myname:mypass@githost.xyz`
+
 ### Highlighting
 
 To create your own highlighting, please use below config before setup this plugin:
@@ -291,6 +300,8 @@ hi link NvimGitLinkerHighlightTextObject Constant
 ```
 
 > Also see [Highlight Group](#highlight-group).
+
+### Router Mapping
 
 ### Self-host Git Hosts
 
