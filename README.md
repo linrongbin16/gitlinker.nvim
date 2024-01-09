@@ -280,6 +280,8 @@ require('gitlinker').setup({
 >
 > - `git@github.com`
 > - `myname:mypass@githost.xyz`
+>
+> Please see [Fully Customize Urls](#fully-customize-urls) for more details.
 
 ### Highlighting
 
