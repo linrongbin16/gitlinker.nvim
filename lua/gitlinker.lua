@@ -267,6 +267,24 @@ local function _router(router_type, lk)
 
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
+  local match_list = {}
+  -- host: github.com
+  table.insert(match_list, lk.host)
+  -- username@host: git@github.com
+  -- username:password@host: myname:mypass@github.com
+  if strings.not_empty(lk.username) then
+    if strings.not_empty(lk.password) then
+      table.insert(
+        match_list,
+        string.format("%s:%s@%s", lk.username, lk.password, lk.host)
+      )
+    else
+      table.insert(match_list, string.format("%s@%s", lk.username, lk.host))
+    end
+  end
+  -- full remote url from `git remote get-url origin`: https://github.com/linrongbin16/gitlinker.nvim.git
+  table.insert(match_list, lk.remote_url)
+
   for i, tuple in ipairs(Configs._routers[router_type].list_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
       local pattern = tuple[1]
@@ -280,16 +298,15 @@ local function _router(router_type, lk)
       --   vim.inspect(string.match(lk.remote_url, pattern)),
       --   vim.inspect(lk.remote_url)
       -- )
-      if
-        string.match(lk.host, pattern)
-        or string.match(lk.remote_url, pattern)
-      then
-        -- logger:debug(
-        --   "|_router| match-1 router:%s with pattern:%s",
-        --   vim.inspect(route),
-        --   vim.inspect(pattern)
-        -- )
-        return _worker(lk, pattern, route)
+      for j, target in ipairs(match_list) do
+        if string.match(target, pattern) then
+          -- logger:debug(
+          --   "|_router| match-1 router:%s with pattern:%s",
+          --   vim.inspect(route),
+          --   vim.inspect(pattern)
+          -- )
+          return _worker(lk, pattern, route)
+        end
       end
     end
   end
@@ -305,16 +322,15 @@ local function _router(router_type, lk)
       --   vim.inspect(lk.host),
       --   vim.inspect(lk.remote_url)
       -- )
-      if
-        string.match(lk.host, pattern)
-        or string.match(lk.remote_url, pattern)
-      then
-        -- logger:debug(
-        --   "|_router| match-2 router:%s with pattern:%s",
-        --   vim.inspect(route),
-        --   vim.inspect(pattern)
-        -- )
-        return _worker(lk, pattern, route)
+      for j, target in ipairs(match_list) do
+        if string.match(target, pattern) then
+          -- logger:debug(
+          --   "|_router| match-1 router:%s with pattern:%s",
+          --   vim.inspect(route),
+          --   vim.inspect(pattern)
+          -- )
+          return _worker(lk, pattern, route)
+        end
       end
     end
   end
