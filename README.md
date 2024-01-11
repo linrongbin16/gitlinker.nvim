@@ -332,10 +332,10 @@ To fully customize url generation, please refer to the implementation of [router
 - `protocol`: The component before `://` delimiter. For example:
   - The `https` in `https://github.com`.
   - The `ssh` in `ssh://github.com`.
-- `username`: Optional component after `protocol`, before host name separated by `@`. For example:
-  - The `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
+- `username`: Optional component between `protocol` and `host` separated by `@` (or `password` separated by `:`). For example:
+  - The `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
   - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
-- `password`: Optional component after `username` separated by `:`, before `host` name separated by `@`. For example:
+- `password`: Optional component between `username` and `host` after `username` separated by `:`, before `host` name separated by `@`. For example:
   - The `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - The `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
 - `host`: The first component after `protocol` (and optional `username`, `password`). For example:
