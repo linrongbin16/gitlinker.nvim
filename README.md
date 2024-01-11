@@ -344,9 +344,9 @@ To fully customize url generation, please refer to the implementation of [router
 - `port`: Optional component between `host` and `path` (**Note:** ssh protocol cannot have `port` component). For example:
   - The `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - The `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `path`: All the left parts after `host` (and optional `port`). For example:
-  - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `path/to/repo.git` in `git@github.com:path/to/repo.git`.
+- `path`: All the left parts after `host` (and optional `port`) in git remote url (e.g. the output of `git remote get-url origin`). For example:
+  - The `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - The `path/to/repo.git` in `git@github.com:path/to/repo.git`.
 - `rev`: Git commit. For example:
   - The `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
 - `file`: Relative file path. For example:
