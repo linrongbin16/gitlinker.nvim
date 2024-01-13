@@ -56,7 +56,7 @@ PRs are welcomed for other git host websites!
 3. Improvements:
    - Use stderr from git command as error message.
    - Async child process IO via coroutine and `uv.spawn`.
-   - Drop off 'plenary' dependency.
+   - Drop off `plenary` dependency.
 
 ## Requirements
 
@@ -326,56 +326,58 @@ You can directly use below builtin APIs:
 > [!NOTE]
 >
 > Please refer to [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git url.
+>
+> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for builtin routers implementation.
 
-To fully customize url generation, please refer to the implementation of [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua), a router is simply construct the url string from below components:
+To fully customize url generation, please bind the target git host name with a router. The router is simply construct the url string from below components.
 
 - `protocol`: The component before `://` delimiter. For example:
   - The `https` in `https://github.com`.
   - The `ssh` in `ssh://github.com`.
-- `username`: Optional component after `protocol`, before host name separated by `@`. For example:
-  - The `git` in `ssh://git@github.com:linrongbin16/gitlinker.nvim.git`.
+- `username`: Optional component between `protocol` and `host` (and optional `password`) separated by `@`. For example:
+  - The `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
   - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
-- `password`: Optional component after `username` separated by `:`, before `host` name separated by `@`. For example:
-  - The `mypass` in `ssh://myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
+- `password`: Optional component between `username` (separated by `:`) and `host`. For example:
+  - The `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - The `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
-- `host`: The first component after `protocol` (and optional `username`, `password`). For example:
+- `host`: The component between `protocol` (and optional `username`, `password`) and `path`. For example:
   - The `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https, `host` ends with `/`).
-  - The `127.0.0.1` in `ssh://127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for ssh, `host` ends with `:`, and cannot have the following `port` component).
-- `port`: Optional component after `host` separated by `:` (**Note:** ssh protocol cannot have `port` component). For example:
+  - The `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for omitted ssh protocols, `host` ends with `:`, and cannot have the following `port` component).
+- `port`: Optional component between `host` (separated by `:`) and `path` (**Note:** omitted ssh protocols cannot have `port` component). For example:
   - The `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - The `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
 - `path`: All the left parts after `host` (and optional `port`). For example:
-  - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
+  - The `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - The `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
 - `rev`: Git commit. For example:
   - The `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
 - `file`: Relative file path. For example:
-  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
+  - The `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
 - `lstart`/`lend`: Start/end line numbers. For example:
-  - `3`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L3-L13`.
+  - The `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
 
 There're also 2 sugar components derived from `path`:
 
 - `repo`: The last part after the last slash (`/`) in `path`, with around slashes been removed. For example:
-  - `gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim`.
-  - `neovim.git` in `https://github.com/neovim/neovim.git`.
+  - The `gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim`.
+  - The `neovim.git` in `git@192.168.0.1:path/to/the/neovim.git`.
 - `org`: (Optional) all the other parts before `repo` in `path`, with around slashes been removed. For example:
-  - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `path/to/the` in `https://github.com/path/to/the/repo.git`.
+  - The `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - The `path/to/the` in `https://github.com/path/to/the/repo.git`.
 
 > [!NOTE]
 >
 > The `org` component can be empty when the `path` only contains 1 slash (`/`), for example:
 >
-> - `ssh://git@host.xyz/repo.git`.
+> The `org` in `ssh://git@host.xyz/repo.git` is empty.
 
 There're also 2 branch components:
 
 - `default_branch`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
-  - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
+  - The `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
+  - The `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
 - `current_branch`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
-  - `feat-router-types`
+  - `feat-router-types`.
 
 For example you can customize the line numbers in form `?&line=1&lines-count=2` like this:
 
