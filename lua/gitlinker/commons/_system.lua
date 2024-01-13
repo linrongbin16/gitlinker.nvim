@@ -1,4 +1,4 @@
-local uv = vim.loop
+local uv = vim.uv or vim.loop
 
 --- @class SystemOpts
 --- @field stdin? string|string[]|true
