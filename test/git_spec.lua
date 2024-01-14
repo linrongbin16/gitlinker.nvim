@@ -20,11 +20,10 @@ describe("git", function()
     it("_get_remote", function()
       async.run(function()
         return git._get_remote()
-        
-      end, function(r) 
-             print(string.format("_get_remote:%s\n", vim.inspect(r)))
-        assert_eq(type(r), "table")   
-              end)
+      end, function(r)
+        print(string.format("_get_remote:%s\n", vim.inspect(r)))
+        assert_eq(type(r), "table")
+      end)
     end)
     it("get_remote_url", function()
       async.run(function()
@@ -45,16 +44,15 @@ describe("git", function()
     it("_get_rev(@{u})", function()
       async.run(function(input)
         return git._get_rev(input)
-        
       end, function(rev)
-              if rev then
+        if rev then
           print(string.format("_get_rev:%s\n", vim.inspect(rev)))
           assert_eq(type(rev), "string")
           assert_true(string.len(rev) > 0)
         else
           assert_true(rev == nil)
-        end  
-              end, '@{u}')
+        end
+      end, "@{u}")
     end)
     it("_get_rev_name(@{u})", function()
       async.run(function()
