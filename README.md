@@ -350,6 +350,27 @@ The template string use curly braces `{}` to contain lua scripts, and evaluate v
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
+- `lk.username`
+- `lk.password`
+- `lk.host`
+- `lk.port`
+- `lk.path`
+- `lk.rev`
+- `lk.file`
+- `lk.lstart`/`lk.lend`
+
+The 2 sugar components are:
+
+- `lk.org`
+- `lk.repo`: **Note:** the `.git` suffix is not omitted.
+
+The 2 branch components are:
+
+- `lk.default_branch`
+- `lk.current_branch`
+
+Thus you can use below lua function to implement your router:
+
 ```lua
 --- @param s string
 --- @param t string
@@ -395,24 +416,7 @@ require("gitlinker").setup({
 The fields are the same with the url string template, but in upper case, without `_A.` prefix:
 
 - `lk.protocol`
-- `lk.username`
-- `lk.password`
-- `lk.host`
-- `lk.port`
-- `lk.path`
-- `lk.rev`
-- `lk.file`
-- `lk.lstart`/`lk.lend`
 
-The 2 sugar components are:
-
-- `lk.org`
-- `lk.repo`: **Note:** the `.git` suffix is not omitted.
-
-The 2 branch components are:
-
-- `lk.default_branch`
-- `lk.current_branch`
 
 There are several pre-defined lua apis in `gitlinker.router` that you can use:
 
