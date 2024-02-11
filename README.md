@@ -348,7 +348,7 @@ require("gitlinker").setup({
 
 The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), while the error message can be confusing if there's any syntax issue.
 
-You can also bind a lua function to it, it accepts a lua table parameter that contains the same fields, but in lower case (without prefix `_A.`):
+You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
 ```lua
 --- @param s string
