@@ -288,7 +288,7 @@ A router simply constructs the url string from below components (upper case with
 - `_A.USERNAME`: Optional user name component before `@` delimiter, for example:
   - `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
   - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the ssh protocol `ssh://` can be omitted).
-- `_A.PASSWORD`: Optional password component before `:` delimiter, for example:
+- `_A.PASSWORD`: Optional password component after `_A.USERNAME`, for example:
   - `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
 - `_A.HOST`: The host component, for example:
