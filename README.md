@@ -294,7 +294,7 @@ A router simply constructs the url string from below components (upper case with
 - `_A.HOST`: The host component, for example:
   - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https protocol, host ends with `/`).
   - `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for omitted ssh protocol, host ends with `:`, and cannot have `_A.PORT` component).
-- `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `port` component), for example:
+- `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `_A.PORT` component), for example:
   - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
 - `_A.PATH`: All the left components, for example:
