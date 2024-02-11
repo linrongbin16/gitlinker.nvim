@@ -304,30 +304,28 @@ A router simply constructs the url string from below components (upper case with
   - `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
 - `_A.FILE`: Relative file path, for example:
   - The `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
-- `_A.LSTART`/`_A.LEND`: Start/end line numbers. For example:
-  - The `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
+- `_A.LSTART`/`_A.LEND`: Start/end line number, for example:
+  - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
 
-There're also 2 sugar components derived from `_A.PATH`:
+There're 2 sugar components derived from `_A.PATH`:
 
-- `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH`, and the `.git` suffix is been removed for easier writing. For example:
-  - The `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - The `neovim` in `git@192.168.0.1:path/to/the/neovim.git`.
-- `_A.ORG`: (Optional) all the other parts before `_A.REPO`. For example:
-  - The `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - The `path/to/the` in `https://github.com/path/to/the/repo.git`.
+- `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH`, with around slashes been removed (and the `.git` suffix is been removed for easier writing), for example:
+  - `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - `neovim` in `git@192.168.0.1:path/to/the/neovim.git`.
+- `_A.ORG`: All the other parts before `_A.REPO`, with around slashes been removed, for example:
+  - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - `path/to/the` in `https://github.com/path/to/the/repo.git`.
 
-> [!NOTE]
+> [!IMPORTANT]
 >
-> The `ORG` component can be empty when the `PATH` only contains 1 slash (`/`), for example:
->
-> The `ORG` in `ssh://git@host.xyz/repo.git` is empty.
+> The `_A.ORG` component can be empty when the `_A.PATH` contains only 1 slash (`/`), for example: the `_A.ORG` in `ssh://git@host.xyz/repo.git` is empty.
 
-There're also 2 branch components:
+There're 2 branch components:
 
-- `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - The `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
-  - The `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
-- `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
+- `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`, for example:
+  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
+  - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
+- `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`, for example:
   - `feat-router-types`.
 
 For example you can customize the line numbers in form `?&line=1&lines-count=2` like this:
