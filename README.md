@@ -297,7 +297,7 @@ A router simply constructs the url string from below components (upper case with
 - `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `_A.PORT` component), for example:
   - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `_A.PATH`: All the left components, for example:
+- `_A.PATH`: All the other parts in the output of the `git remote get-url origin`, for example:
   - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
 - `_A.REV`: Git commit, for example:
