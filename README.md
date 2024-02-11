@@ -350,6 +350,7 @@ The template string use curly braces `{}` to contain lua scripts, and evaluate v
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
+- `lk.protocol`
 - `lk.username`
 - `lk.password`
 - `lk.host`
@@ -413,12 +414,7 @@ require("gitlinker").setup({
 })
 ```
 
-The fields are the same with the url string template, but in upper case, without `_A.` prefix:
-
-- `lk.protocol`
-
-
-There are several pre-defined lua apis in `gitlinker.router` that you can use:
+There are some pre-defined lua apis in `gitlinker.router` that you can use:
 
 - `github_browse`/`github_blame`: for github.com.
 - `gitlab_browse`/`gitlab_blame`: for gitlab.com.
@@ -432,10 +428,10 @@ For example if you need to bind a github enterprise domain, you can use:
 require('gitlinker').setup({
   router = {
     browse = {
-      ["^github%.enterprise%.io"] = require('gitlinker.router').github_browse,
+      ["^github%.your%.host"] = require('gitlinker.router').github_browse,
     },
     blame = {
-      ["^github%.enterprise%.io"] = require('gitlinker.router').github_blame,
+      ["^github%.your%.host"] = require('gitlinker.router').github_blame,
     },
   }
 })
