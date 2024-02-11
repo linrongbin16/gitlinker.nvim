@@ -287,22 +287,22 @@ A router simply constructs the url string from below components (upper case with
   - `ssh` in `ssh://github.com`.
 - `_A.USERNAME`: Optional user name component before `@` delimiter, for example:
   - `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
-  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
-- `_A.PASSWORD`: Optional component between `username` (separated by `:`) and `host`. For example:
-  - The `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
-  - The `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
-- `_A.HOST`: The component between `protocol` (and optional `username`, `password`) and `path`. For example:
-  - The `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https, `host` ends with `/`).
-  - The `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for omitted ssh protocols, `host` ends with `:`, and cannot have the following `port` component).
-- `_A.PORT`: Optional component between `host` (separated by `:`) and `path` (**Note:** omitted ssh protocols cannot have `port` component). For example:
-  - The `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
-  - The `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `_A.PATH`: All the left parts after `host` (and optional `port`). For example:
-  - The `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - The `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
-- `_A.REV`: Git commit. For example:
-  - The `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
-- `_A.FILE`: Relative file path. For example:
+  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the ssh protocol `ssh://` can be omitted).
+- `_A.PASSWORD`: Optional password component before `:` delimiter, for example:
+  - `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
+  - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
+- `_A.HOST`: The host component, for example:
+  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https protocol, host ends with `/`).
+  - `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for omitted ssh protocol, host ends with `:`, and cannot have `_A.PORT` component).
+- `_A.PORT`: Optional port component before `:` delimiter (**Note:** omitted ssh protocols cannot have `port` component), for example:
+  - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
+  - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
+- `_A.PATH`: All the left components, for example:
+  - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
+  - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
+- `_A.REV`: Git commit, for example:
+  - `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
+- `_A.FILE`: Relative file path, for example:
   - The `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
 - `_A.LSTART`/`_A.LEND`: Start/end line numbers. For example:
   - The `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
