@@ -282,12 +282,12 @@ To create customized urls for other git hosts, please bind the target git host n
 
 A router simply constructs the url string from below components (upper case with prefix `_A.`):
 
-- `_A.PROTOCOL`: Network protocol, for example:
-  - The `https` in `https://github.com`.
-  - The `ssh` in `ssh://github.com`.
-- `_A.USERNAME`: Optional component between `_A.PROTOCOL` and `_A.HOST` (and optional `password`) separated by `@`. For example:
-  - The `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
-  - The `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
+- `_A.PROTOCOL`: Network protocol before `://` delimiter, for example:
+  - `https` in `https://github.com`.
+  - `ssh` in `ssh://github.com`.
+- `_A.USERNAME`: Optional user name component before `@` delimiter, for example:
+  - `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
+  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the `ssh://` in ssh protocol can be omitted).
 - `_A.PASSWORD`: Optional component between `username` (separated by `:`) and `host`. For example:
   - The `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - The `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
