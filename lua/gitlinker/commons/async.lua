@@ -1,4 +1,3 @@
----@diagnostic disable: undefined-doc-name, luadoc-miss-module-name, deprecated
 --- Small async library for Neovim plugins
 --- @module async
 

@@ -18,7 +18,7 @@ end
 M.tbl_get = function(t, ...)
   local e = t --[[@as table]]
   for _, k in ipairs({ ... }) do
-    if M.tbl_not_empty(e) and e[k] ~= nil then
+    if type(e) == "table" and e[k] ~= nil then
       e = e[k]
     else
       return nil

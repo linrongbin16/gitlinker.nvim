@@ -50,8 +50,7 @@ function Formatter:new(fmt, opts)
   assert(type(fmt) == "string")
 
   opts = opts or { datefmt = "%Y-%m-%d %H:%M:%S", msecsfmt = "%06d" }
-  opts.datefmt = type(opts.datefmt) == "string" and opts.datefmt
-    or "%Y-%m-%d %H:%M:%S"
+  opts.datefmt = type(opts.datefmt) == "string" and opts.datefmt or "%Y-%m-%d %H:%M:%S"
   opts.msecsfmt = type(opts.msecsfmt) == "string" and opts.msecsfmt or "%06d"
 
   local o = {
@@ -95,10 +94,7 @@ function Formatter:format(meta)
         return false
       end
 
-      return strings.startswith(
-        string.sub(self.fmt, idx, endpos),
-        FORMATTING_TAGS[tag]
-      )
+      return strings.startswith(string.sub(self.fmt, idx, endpos), FORMATTING_TAGS[tag])
     end
     return impl
   end
@@ -195,8 +191,7 @@ function ConsoleHandler:write(meta)
   local msg_lines = vim.split(meta.MESSAGE, "\n", { plain = true })
   for _, line in ipairs(msg_lines) do
     local chunks = {}
-    local line_meta =
-      vim.tbl_deep_extend("force", vim.deepcopy(meta), { MESSAGE = line })
+    local line_meta = vim.tbl_deep_extend("force", vim.deepcopy(meta), { MESSAGE = line })
     local record = self.formatter:format(line_meta)
     table.insert(chunks, {
       record,
@@ -230,9 +225,8 @@ function FileHandler:new(filepath, filemode, formatter)
   assert(filemode == "a" or filemode == "w" or filemode == nil)
 
   if formatter == nil then
-    formatter = Formatter:new(
-      "%(asctime)s,%(msecs)d [%(filename)s:%(lineno)d] %(levelname)s: %(message)s"
-    )
+    formatter =
+      Formatter:new("%(asctime)s,%(msecs)d [%(filename)s:%(lineno)d] %(levelname)s: %(message)s")
   end
 
   filemode = filemode ~= nil and string.lower(filemode) or "a"
@@ -240,10 +234,7 @@ function FileHandler:new(filepath, filemode, formatter)
 
   if filemode == "w" then
     filehandle = io.open(filepath, "w")
-    assert(
-      filehandle ~= nil,
-      string.format("failed to open file:%s", vim.inspect(filepath))
-    )
+    assert(filehandle ~= nil, string.format("failed to open file:%s", vim.inspect(filepath)))
   end
 
   local o = {
@@ -513,8 +504,7 @@ M.setup = function(opts)
     local SEPARATOR = IS_WINDOWS and "\\" or "/"
     local filepath = string.format(
       "%s%s",
-      type(conf.file_log_dir) == "string" and (conf.file_log_dir .. SEPARATOR)
-        or "",
+      type(conf.file_log_dir) == "string" and (conf.file_log_dir .. SEPARATOR) or "",
       conf.file_log_name
     )
     local file_handler = FileHandler:new(filepath, conf.file_log_mode or "a")
@@ -541,10 +531,7 @@ end
 --- @param logger commons.logging.Logger
 M.add = function(logger)
   assert(type(logger) == "table")
-  assert(
-    (type(logger.name) == "string" and string.len(logger.name) > 0)
-      or logger.name ~= nil
-  )
+  assert((type(logger.name) == "string" and string.len(logger.name) > 0) or logger.name ~= nil)
   assert(NAMESPACE[logger.name] == nil)
   NAMESPACE[logger.name] = logger
 end

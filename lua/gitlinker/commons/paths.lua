@@ -63,8 +63,7 @@ end
 M._normalize_slash = function(p, opts)
   assert(type(p) == "string")
   opts = opts or { double_backslash = false }
-  opts.double_backslash = type(opts.double_backslash) == "boolean"
-      and opts.double_backslash
+  opts.double_backslash = type(opts.double_backslash) == "boolean" and opts.double_backslash
     or false
 
   -- '\\\\' => '\\'
@@ -126,8 +125,7 @@ end
 M.normalize = function(p, opts)
   assert(type(p) == "string")
   opts = opts or { double_backslash = false, expand = false, resolve = false }
-  opts.double_backslash = type(opts.double_backslash) == "boolean"
-      and opts.double_backslash
+  opts.double_backslash = type(opts.double_backslash) == "boolean" and opts.double_backslash
     or false
   opts.expand = type(opts.expand) == "boolean" and opts.expand or false
   opts.resolve = type(opts.resolve) == "boolean" and opts.resolve or false

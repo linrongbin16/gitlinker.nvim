@@ -83,10 +83,7 @@ end
 M.max = function(f, a, ...)
   assert(
     type(f) == "function",
-    string.format(
-      "first param 'f' must be unary-function returns number value:%s",
-      vim.inspect(f)
-    )
+    string.format("first param 'f' must be unary-function returns number value:%s", vim.inspect(f))
   )
   local maximal_item = a
   local maximal_value = f(a)
@@ -107,10 +104,7 @@ end
 M.min = function(f, a, ...)
   assert(
     type(f) == "function",
-    string.format(
-      "first param 'f' must be unary-function returns number value:%s",
-      vim.inspect(f)
-    )
+    string.format("first param 'f' must be unary-function returns number value:%s", vim.inspect(f))
   )
   local minimal_item = a
   local minimal_value = f(a)

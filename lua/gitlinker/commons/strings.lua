@@ -142,8 +142,7 @@ M.startswith = function(s, t, opts)
   assert(type(t) == "string")
 
   opts = opts or { ignorecase = false }
-  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase
-    or false
+  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase or false
 
   if opts.ignorecase then
     return string.len(s) >= string.len(t) and s:sub(1, #t):lower() == t:lower()
@@ -161,15 +160,41 @@ M.endswith = function(s, t, opts)
   assert(type(t) == "string")
 
   opts = opts or { ignorecase = false }
-  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase
-    or false
+  opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase or false
 
   if opts.ignorecase then
-    return string.len(s) >= string.len(t)
-      and s:sub(#s - #t + 1):lower() == t:lower()
+    return string.len(s) >= string.len(t) and s:sub(#s - #t + 1):lower() == t:lower()
   else
     return string.len(s) >= string.len(t) and s:sub(#s - #t + 1) == t
   end
+end
+
+--- @param s string
+--- @param p string
+--- @param r string
+--- @return string, integer
+M.replace = function(s, p, r)
+  assert(type(s) == "string")
+  assert(type(p) == "string")
+  assert(type(r) == "string")
+
+  local sn = string.len(s)
+  local pn = string.len(p)
+  local pos = 1
+  local matched = 0
+  local result = s
+
+  while pos <= sn do
+    pos = M.find(result, p, pos) --[[@as integer]]
+    if type(pos) ~= "number" then
+      break
+    end
+    result = string.sub(result, 1, pos - 1) .. r .. string.sub(result, pos + pn)
+    pos = pos + pn
+    matched = matched + 1
+  end
+
+  return result, matched
 end
 
 --- @param c string
