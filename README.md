@@ -270,9 +270,6 @@ require('gitlinker').setup({
 })
 ```
 
-### Self-host Git Hosts
-
-For s
 ### Customize Urls
 
 > [!NOTE]
