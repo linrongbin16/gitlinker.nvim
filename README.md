@@ -272,33 +272,7 @@ require('gitlinker').setup({
 
 ### Self-host Git Hosts
 
-For self-host git host websites, please add more bindings in `router` option.
-
-Below example shows how to apply the github style routers to a self-host github websites, e.g. `github.your.host`:
-
-```lua
-require('gitlinker').setup({
-  router = {
-    browse = {
-      -- add your host here
-      ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
-    },
-    blame = {
-      -- add your host here
-      ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
-    },
-  },
-})
-```
-
-You can directly use below builtin APIs:
-
-- `github_browse`/`github_blame`: for github.com.
-- `gitlab_browse`/`gitlab_blame`: for gitlab.com.
-- `bitbucket_browse`/`bitbucket_blame`: for bitbucket.org.
-- `codeberg_browse`/`codeberg_blame`: for codeberg.org.
-- `samba_browse`: for git.samba.org (blame not support).
-
+For s
 ### Customize Urls
 
 > [!NOTE]
@@ -423,15 +397,7 @@ require("gitlinker").setup({
 })
 ```
 
-Quite a lot of engineering effort, isn't it? You can also use the url template, which should be easier to define the url schema:
-
-> The url template is also the default implementation of builtin routers (see `router` option in [Configuration](#configuration)), but the error message could be confusing if there's any syntax issue.
-
-
-
-
-
-The available variables are the same with the `lk` parameter passing to hook functions, but in upper case, and with the `_A.` prefix:
+The fields are the same with the url string template, but in upper case, without `_A.` prefix:
 
 - `lk.protocol`
 - `lk.username`
@@ -443,15 +409,38 @@ The available variables are the same with the `lk` parameter passing to hook fun
 - `lk.file`
 - `lk.lstart`/`lk.lend`
 
-The 2 sugar components:
+The 2 sugar components are:
 
 - `lk.org`
 - `lk.repo`: **Note:** the `.git` suffix is not omitted.
 
-The 2 branch components:
+The 2 branch components are:
 
 - `lk.default_branch`
 - `lk.current_branch`
+
+There are several pre-defined lua apis in `gitlinker.router` that you can use:
+
+- `github_browse`/`github_blame`: for github.com.
+- `gitlab_browse`/`gitlab_blame`: for gitlab.com.
+- `bitbucket_browse`/`bitbucket_blame`: for bitbucket.org.
+- `codeberg_browse`/`codeberg_blame`: for codeberg.org.
+- `samba_browse`: for git.samba.org (blame not support).
+
+For example if you need to bind a github enterprise domain, you can use:
+
+```lua
+require('gitlinker').setup({
+  router = {
+    browse = {
+      ["^github%.enterprise%.io"] = require('gitlinker.router').github_browse,
+    },
+    blame = {
+      ["^github%.enterprise%.io"] = require('gitlinker.router').github_blame,
+    },
+  }
+})
+```
 
 ### Create Your Own Router
 
