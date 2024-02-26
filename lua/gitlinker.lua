@@ -350,7 +350,6 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
-  _merge_routers = _merge_routers,
 }
 
 return M
