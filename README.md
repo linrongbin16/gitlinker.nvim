@@ -176,6 +176,8 @@ For complete default options, please see [configs.lua](https://github.com/linron
 > [!NOTE]
 >
 > Please refer to [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git url.
+>
+> Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more details about default router implementation.
 
 #### String Template
 
@@ -248,8 +250,6 @@ require("gitlinker").setup({
 ```
 
 The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (while the error message can be confusing if there's any syntax issue).
-
-Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more details about default router implementation.
 
 #### Lua Function
 
