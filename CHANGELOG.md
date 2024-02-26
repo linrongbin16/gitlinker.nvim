@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.9.1...v4.10.0) (2024-02-26)
+
+
+### Features
+
+* **router:** add 'default_branch' router type ([#207](https://github.com/linrongbin16/gitlinker.nvim/issues/207)) ([7fbefed](https://github.com/linrongbin16/gitlinker.nvim/commit/7fbefed2a723553a67ee9d7d6f56289b43621600))
+
 ## [4.9.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.9.0...v4.9.1) (2024-01-08)
 
 
