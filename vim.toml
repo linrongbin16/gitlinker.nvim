@@ -1,0 +1,17 @@
+[selene]
+base = "lua51"
+
+[vim]
+any = true
+
+[it]
+any = true
+
+[describe]
+any = true
+
+[before_each]
+any = true
+
+[assert]
+any = true
