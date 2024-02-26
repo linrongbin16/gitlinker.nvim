@@ -108,7 +108,7 @@ You could use below command:
 - `GitLink blame`: copy the `/blame` url to clipboard.
 - `GitLink! blame`: open the `/blame` url in browser.
 
-There're 2 **routers** provided:
+There're **2 routers** provided:
 
 - `browse`: generate the `/blob` url (default).
 - `blame`: generate the `/blame` url.
