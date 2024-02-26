@@ -360,7 +360,7 @@ You can also bind a lua function to it, which accepts a lua table parameter that
 - `lk.file`
 - `lk.lstart`/`lk.lend`
 
-The 2 sugar components are:
+The 2 derived components are:
 
 - `lk.org`
 - `lk.repo`: **Note:** the `.git` suffix is not omitted.
