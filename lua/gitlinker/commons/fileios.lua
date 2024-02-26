@@ -136,6 +136,51 @@ M.FileLineReader = FileLineReader
 
 -- FileLineReader }
 
+-- CachedFileReader {
+
+--- @class commons.CachedFileReader
+--- @field filename string
+--- @field cache string?
+local CachedFileReader = {}
+
+--- @param filename string
+--- @return commons.CachedFileReader
+function CachedFileReader:open(filename)
+  local o = {
+    filename = filename,
+    cache = nil,
+  }
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+
+--- @param opts {trim:boolean?}?
+--- @return string?
+function CachedFileReader:read(opts)
+  opts = opts or {}
+  opts.trim = type(opts.trim) == "boolean" and opts.trim or false
+
+  if self.cache == nil then
+    self.cache = M.readfile(self.filename)
+  end
+  if self.cache == nil then
+    return self.cache
+  end
+  return opts.trim and vim.trim(self.cache) or self.cache
+end
+
+--- @return string?
+function CachedFileReader:reset()
+  local saved = self.cache
+  self.cache = nil
+  return saved
+end
+
+M.CachedFileReader = CachedFileReader
+
+-- CachedFileReader }
+
 --- @param filename string
 --- @param opts {trim:boolean?}?
 --- @return string?
@@ -227,8 +272,8 @@ end
 --- @param filename string
 --- @return string[]|nil
 M.readlines = function(filename)
-  local reader = M.FileLineReader:open(filename) --[[@as commons.FileLineReader]]
-  if not reader then
+  local ok, reader = pcall(M.FileLineReader.open, M.FileLineReader, filename) --[[@as commons.FileLineReader]]
+  if not ok or reader == nil then
     return nil
   end
   local results = {}
