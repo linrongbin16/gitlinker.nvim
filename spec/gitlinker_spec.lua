@@ -123,31 +123,28 @@ describe("gitlinker", function()
       )
       assert_eq(actual, routers.samba_browse(lk))
     end)
-    it(
-      "git.samba.org/bbaumbach/samba.git with different lstart/lend",
-      function()
-        local lk = {
-          remote_url = "https://git.samba.org/bbaumbach/samba.git",
-          protocol = "https",
-          username = nil,
-          password = nil,
-          host = "git.samba.org",
-          org = "bbaumbach",
-          repo = "samba.git",
-          rev = "399b1d05473c711fc5592a6ffc724e231c403486",
-          file = "wscript",
-          file_changed = false,
-          lstart = 12,
-          lend = 37,
-        }--[[@as gitlinker.Linker]]
-        local actual = gitlinker._browse(lk)
-        assert_eq(
-          actual,
-          "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12"
-        )
-        assert_eq(actual, routers.samba_browse(lk))
-      end
-    )
+    it("git.samba.org/bbaumbach/samba.git with different lstart/lend", function()
+      local lk = {
+        remote_url = "https://git.samba.org/bbaumbach/samba.git",
+        protocol = "https",
+        username = nil,
+        password = nil,
+        host = "git.samba.org",
+        org = "bbaumbach",
+        repo = "samba.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "wscript",
+        file_changed = false,
+        lstart = 12,
+        lend = 37,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12"
+      )
+      assert_eq(actual, routers.samba_browse(lk))
+    end)
     it("github with same lstart/lend", function()
       local lk = {
         remote_url = "git@github.com:linrongbin16/gitlinker.nvim.git",
@@ -657,10 +654,7 @@ describe("gitlinker", function()
           local p = tuple[1]
           local r = tuple[2]
           if p == "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim" then
-            assert_eq(
-              r,
-              "https://git.xyz.com/linrongbin16/gitlinker.nvim/browse"
-            )
+            assert_eq(r, "https://git.xyz.com/linrongbin16/gitlinker.nvim/browse")
             browse_m = browse_m + 1
           elseif p == "^git%.xyz%.com" then
             assert_eq(r, "https://git.xyz.com/browse")
@@ -695,10 +689,7 @@ describe("gitlinker", function()
           local p = tuple[1]
           local r = tuple[2]
           if p == "^https://git%.xyz%.com/linrongbin16/gitlinker.nvim" then
-            assert_eq(
-              r,
-              "https://git.xyz.com/linrongbin16/gitlinker.nvim/blame"
-            )
+            assert_eq(r, "https://git.xyz.com/linrongbin16/gitlinker.nvim/blame")
             blame_m = blame_m + 1
           elseif p == "^git%.xyz%.com" then
             assert_eq(r, "https://git.xyz.com/blame")

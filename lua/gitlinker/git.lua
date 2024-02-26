@@ -93,9 +93,7 @@ local function get_remote_url(remote)
   local args = { "git", "remote", "get-url", remote }
   local result = run_cmd(args)
   if not result:has_out() then
-    result:print_err(
-      "fatal: failed to get remote url by remote '" .. remote .. "'"
-    )
+    result:print_err("fatal: failed to get remote url by remote '" .. remote .. "'")
     return nil
   end
   -- logger.debug(
@@ -146,9 +144,7 @@ local function is_file_in_rev(file, revspec)
   local args = { "git", "cat-file", "-e", revspec .. ":" .. file }
   local result = run_cmd(args)
   if result:has_err() then
-    result:print_err(
-      "fatal: '" .. file .. "' does not exist in remote '" .. revspec .. "'"
-    )
+    result:print_err("fatal: '" .. file .. "' does not exist in remote '" .. revspec .. "'")
     return false
   end
   -- logger.debug(
@@ -222,8 +218,7 @@ local function resolve_host(host)
   if vim.fn.executable("ssh") <= 0 then
     return host
   end
-  local errmsg =
-    string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
+  local errmsg = string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
   local args = { "ssh", "-ttG", host }
   local result = run_cmd(args)
 
@@ -322,10 +317,7 @@ local function get_closest_remote_compatible_rev(remote)
     return remote_rev
   end
 
-  logger:err(
-    "fatal: failed to get closest revision in that exists in remote '%s'",
-    remote
-  )
+  logger:err("fatal: failed to get closest revision in that exists in remote '%s'", remote)
   return nil
 end
 
@@ -380,10 +372,7 @@ local function get_branch_remote()
     upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
 
   if not remote_from_upstream_branch then
-    logger:err(
-      "fatal: cannot parse remote name from remote branch '%s'",
-      upstream_branch
-    )
+    logger:err("fatal: cannot parse remote name from remote branch '%s'", upstream_branch)
     return nil
   end
 
@@ -405,19 +394,13 @@ end
 --- @return string?
 local function get_default_branch(remote)
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
-  local args =
-    { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
+  local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug(
-    "|get_default_branch| running %s: %s",
-    vim.inspect(args),
-    vim.inspect(result.stdout)
-  )
-  local splits =
-    vim.split(result.stdout[1], "/", { plain = true, trimempty = true })
+  logger:debug("|get_default_branch| running %s: %s", vim.inspect(args), vim.inspect(result.stdout))
+  local splits = vim.split(result.stdout[1], "/", { plain = true, trimempty = true })
   return splits[#splits]
 end
 
@@ -429,11 +412,7 @@ local function get_current_branch()
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug(
-    "|get_current_branch| running %s: %s",
-    vim.inspect(args),
-    vim.inspect(result.stdout)
-  )
+  logger:debug("|get_current_branch| running %s: %s", vim.inspect(args), vim.inspect(result.stdout))
   return result.stdout[1]
 end
 

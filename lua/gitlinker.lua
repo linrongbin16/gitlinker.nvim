@@ -143,12 +143,8 @@ local function _url_template_engine(lk, template)
       table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
     end
-    table.insert(
-      exprs,
-      { plain = true, body = string.sub(template, i, open_pos - 1) }
-    )
-    local close_pos =
-      strings.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
+    table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
+    local close_pos = strings.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     assert(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
@@ -159,11 +155,7 @@ local function _url_template_engine(lk, template)
     )
     table.insert(exprs, {
       plain = false,
-      body = string.sub(
-        template,
-        open_pos + string.len(OPEN_BRACE),
-        close_pos - 1
-      ),
+      body = string.sub(template, open_pos + string.len(OPEN_BRACE), close_pos - 1),
     })
     -- logger.debug(
     --   "|routers.url_template| expressions:%s (%d-%d)",
@@ -191,20 +183,23 @@ local function _url_template_engine(lk, template)
         PORT = lk.port or "",
         USER = lk.user or "",
         ORG = lk.org or "",
-        REPO = strings.endswith(lk.repo, ".git")
-            and lk.repo:sub(1, #lk.repo - 4)
-          or lk.repo,
+        REPO = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
-        LEND = (type(lk.lend) == "number" and lk.lend > lk.lstart) and lk.lend
-          or lk.lstart,
-        DEFAULT_BRANCH = (type(lk.default_branch) == "string" and string.len(
-          lk.default_branch
-        ) > 0) and lk.default_branch or "",
-        CURRENT_BRANCH = (type(lk.current_branch) == "string" and string.len(
-          lk.current_branch
-        ) > 0) and lk.current_branch or "",
+        LEND = (type(lk.lend) == "number" and lk.lend > lk.lstart) and lk.lend or lk.lstart,
+        DEFAULT_BRANCH = (
+          type(lk.default_branch) == "string"
+          and string.len(lk.default_branch) > 0
+        )
+            and lk.default_branch
+          or "",
+        CURRENT_BRANCH = (
+          type(lk.current_branch) == "string"
+          and string.len(lk.current_branch) > 0
+        )
+            and lk.current_branch
+          or "",
       })
       logger:debug(
         "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
@@ -231,11 +226,7 @@ local function _worker(lk, p, r)
   else
     assert(
       false,
-      string.format(
-        "unsupported router %s on pattern %s",
-        vim.inspect(r),
-        vim.inspect(p)
-      )
+      string.format("unsupported router %s on pattern %s", vim.inspect(r), vim.inspect(p))
     )
     return nil
   end
@@ -252,17 +243,11 @@ local function _router(router_type, lk)
   )
   assert(
     type(Configs._routers[router_type].list_routers) == "table",
-    string.format(
-      "invalid router type %s! 'list_routers' missing.",
-      vim.inspect(router_type)
-    )
+    string.format("invalid router type %s! 'list_routers' missing.", vim.inspect(router_type))
   )
   assert(
     type(Configs._routers[router_type].map_routers) == "table",
-    string.format(
-      "invalid router type %s! 'map_routers' missing.",
-      vim.inspect(router_type)
-    )
+    string.format("invalid router type %s! 'map_routers' missing.", vim.inspect(router_type))
   )
 
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
@@ -280,10 +265,7 @@ local function _router(router_type, lk)
       --   vim.inspect(string.match(lk.remote_url, pattern)),
       --   vim.inspect(lk.remote_url)
       -- )
-      if
-        string.match(lk.host, pattern)
-        or string.match(lk.remote_url, pattern)
-      then
+      if string.match(lk.host, pattern) or string.match(lk.remote_url, pattern) then
         -- logger:debug(
         --   "|_router| match-1 router:%s with pattern:%s",
         --   vim.inspect(route),
@@ -305,10 +287,7 @@ local function _router(router_type, lk)
       --   vim.inspect(lk.host),
       --   vim.inspect(lk.remote_url)
       -- )
-      if
-        string.match(lk.host, pattern)
-        or string.match(lk.remote_url, pattern)
-      then
+      if string.match(lk.host, pattern) or string.match(lk.remote_url, pattern) then
         -- logger:debug(
         --   "|_router| match-2 router:%s with pattern:%s",
         --   vim.inspect(route),
@@ -318,13 +297,7 @@ local function _router(router_type, lk)
       end
     end
   end
-  assert(
-    false,
-    string.format(
-      "%s not support, please bind it in 'router'!",
-      vim.inspect(lk.host)
-    )
-  )
+  assert(false, string.format("%s not support, please bind it in 'router'!", vim.inspect(lk.host)))
   return nil
 end
 
@@ -379,8 +352,7 @@ local link = function(opts)
   end
 
   if Configs.message then
-    local msg = lk.file_changed
-        and string.format("%s (lines can be wrong due to file change)", url)
+    local msg = lk.file_changed and string.format("%s (lines can be wrong due to file change)", url)
       or url
     logger:info(msg)
   end
@@ -515,10 +487,7 @@ local function setup(opts)
   -- command
   vim.api.nvim_create_user_command(Configs.command.name, function(command_opts)
     local r = range.make_range()
-    local args = (
-      type(command_opts.args) == "string"
-      and string.len(command_opts.args) > 0
-    )
+    local args = (type(command_opts.args) == "string" and string.len(command_opts.args) > 0)
         and vim.trim(command_opts.args)
       or nil
     -- logger:debug(
@@ -527,10 +496,8 @@ local function setup(opts)
     --   vim.inspect(args),
     --   vim.inspect(r)
     -- )
-    local lstart =
-      math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local lend =
-      math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+    local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+    local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
     void_link({
       action = command_opts.bang and require("gitlinker.actions").system

@@ -80,17 +80,11 @@ function Builder:new(lk, range_maker)
   local o = {
     domain = string.format("https://%s", lk.host),
     org = lk.org,
-    repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4)
-      or lk.repo,
+    repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
     rev = lk.rev,
     location = string.format(
       "%s%s",
-      lk.file
-        .. (
-          strings.endswith(lk.file, ".md", { ignorecase = true })
-            and "?plain=1"
-          or ""
-        ),
+      lk.file .. (strings.endswith(lk.file, ".md", { ignorecase = true }) and "?plain=1" or ""),
       type(r) == "string" and r or ""
     ),
   }
@@ -123,8 +117,7 @@ local function samba_browse(lk)
   logger:debug("|samba_browse| lk:%s", vim.inspect(lk))
   local builder = "https://git.samba.org/?p="
   -- org
-  builder = builder
-    .. (string.len(lk.org) > 0 and string.format("%s/", lk.org) or "")
+  builder = builder .. (string.len(lk.org) > 0 and string.format("%s/", lk.org) or "")
   -- repo
   builder = builder .. string.format("%s;a=blob;", lk.repo)
   -- file: 'wscript'
