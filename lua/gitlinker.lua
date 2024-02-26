@@ -139,7 +139,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example:
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript#l6
-      -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript#l7
+      -- user repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?p="
         .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
         .. "{_A.REPO .. '.git'};a=blob;"
