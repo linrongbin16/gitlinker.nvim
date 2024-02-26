@@ -39,7 +39,7 @@ PRs are welcomed for other git host websites!
     - [String Template](#string-template)
     - [Lua Function](#lua-function)
   - [Create Your Own Router](#create-your-own-router)
-- [Highlight Group](#highlight-group)
+  - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
 
@@ -371,7 +371,7 @@ GitLink file_only
 GitLink! file_only
 ```
 
-## Highlight Group
+### Highlight Group
 
 | Highlight Group                  | Default Group | Description                          |
 | -------------------------------- | ------------- | ------------------------------------ |
