@@ -39,7 +39,7 @@ local Defaults = {
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blob/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
         .. "{_A.ORG}/"
-        .. "{_A.REPO}/blob/"
+        .. "{_A.REPO}/-/blob/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
@@ -82,7 +82,7 @@ local Defaults = {
       -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
       ["^gitlab%.com"] = "https://gitlab.com/"
         .. "{_A.ORG}/"
-        .. "{_A.REPO}/blame/"
+        .. "{_A.REPO}/-/blame/"
         .. "{_A.REV}/"
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
@@ -103,6 +103,48 @@ local Defaults = {
         .. "{_A.FILE}?display=source" -- '?display=source'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+    },
+    default_branch = {
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker.lua#L3-L4
+      ["^github%.com"] = "https://github.com/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.DEFAULT_BRANCH}/"
+        .. "{_A.FILE}?plain=1" -- '?plain=1'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://gitlab.com/linrongbin16/test/-/blob/main/test.lua#L3-L4
+      ["^gitlab%.com"] = "https://gitlab.com/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/-/blob/"
+        .. "{_A.DEFAULT_BRANCH}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
+      ["^bitbucket%.org"] = "https://bitbucket.org/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/src/"
+        .. "{_A.DEFAULT_BRANCH}/"
+        .. "{_A.FILE}"
+        .. "#lines-{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/branch/main/LICENSE#L4-L6
+      ["^codeberg%.org"] = "https://codeberg.org/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/src/branch/"
+        .. "{_A.DEFAULT_BRANCH}/"
+        .. "{_A.FILE}?display=source" -- '?display=source'
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      -- example:
+      -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript#l6
+      -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript#l7
+      ["^git%.samba%.org"] = "https://git.samba.org/?p="
+        .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
+        .. "{_A.REPO .. '.git'};a=blob;"
+        .. "f={_A.FILE}"
+        .. "#l{_A.LSTART}",
     },
   },
 
