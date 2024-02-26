@@ -307,7 +307,7 @@ A router simply constructs the url string from below components (upper case with
 - `_A.LSTART`/`_A.LEND`: Start/end line number, for example:
   - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
 
-There're 2 sugar components derived from `_A.PATH`:
+There're 2 more sugar components derived from `_A.PATH`:
 
 - `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH`, with around slashes been removed (and the `.git` suffix is been removed for easier writing), for example:
   - `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
@@ -320,7 +320,7 @@ There're 2 sugar components derived from `_A.PATH`:
 >
 > The `_A.ORG` component can be empty when the `_A.PATH` contains only 1 slash (`/`), for example: the `_A.ORG` in `ssh://git@host.xyz/repo.git` is empty.
 
-There're 2 branch components:
+There're 2 more sugar components for git branches:
 
 - `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`, for example:
   - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
@@ -346,7 +346,7 @@ require("gitlinker").setup({
 })
 ```
 
-The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), while the error message can be confusing if there's any syntax issue.
+The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (while the error message can be confusing if there's any syntax issue).
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
