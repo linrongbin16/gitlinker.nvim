@@ -445,28 +445,17 @@ require('gitlinker').setup({
 
 ### Create Your Own Router
 
-You can even create your own router (e.g. use the same engine with `browse`/`blame`), for example create the `default_branch`/`current_branch` router type:
+You can even create your own router (e.g. use the same engine with `browse`/`blame`), for example create the `file_only` router type (generate link without line numbers):
 
 ```lua
 require("gitlinker").setup({
   router = {
-    default_branch = {
+    file_only = {
       ["^github%.com"] = "https://github.com/"
         .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
-        .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
-        .. "{_A.FILE}?plain=1" -- '?plain=1'
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-    },
-    current_branch = {
-      ["^github%.com"] = "https://github.com/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/blob/"
-        .. "{_A.CURRENT_BRANCH}/" -- always current branch
-        .. "{_A.FILE}?plain=1" -- '?plain=1'
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
     },
   },
 })
@@ -475,10 +464,8 @@ require("gitlinker").setup({
 Then use it just like `browse`:
 
 ```vim
-GitLink default_branch
-GitLink! default_branch
-GitLink current_branch
-GitLink! current_branch
+GitLink file_only
+GitLink! file_only
 ```
 
 ## Highlight Group
@@ -493,14 +480,13 @@ To develop the project and make PR, please setup with:
 
 - [lua_ls](https://github.com/LuaLS/lua-language-server).
 - [stylua](https://github.com/JohnnyMorganz/StyLua).
-- [luarocks](https://luarocks.org/).
-- [luacheck](https://github.com/mpeterv/luacheck).
+- [selene](https://github.com/Kampfkarren/selene).
 
 To run unit tests, please install below dependencies:
 
 - [vusted](https://github.com/notomo/vusted).
 
-Then test with `vusted ./test`.
+Then test with `vusted ./spec`.
 
 ## Contribute
 
