@@ -175,7 +175,7 @@ require('gitlinker').setup({
   -- user command
   command = {
     name = "GitLink",
-    desc = "Generate git link",
+    desc = "Generate git permanent link",
   },
 
   -- router bindings
