@@ -79,7 +79,7 @@ local Defaults = {
         .. "{_A.FILE}?plain=1" -- '?plain=1'
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-      -- example: https://gitlab.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      -- example: https://gitlab.com/linrongbin16/test/-/blame/e1c498a4bae9af6e61a2f37e7ae622b2cc629319/test.lua#L4-8
       ["^gitlab%.com"] = "https://gitlab.com/"
         .. "{_A.ORG}/"
         .. "{_A.REPO}/-/blame/"
