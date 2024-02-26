@@ -10,7 +10,7 @@
 <a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim/main?label=codecov" /></a>
 </p>
 
-> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias, `/blame` url support and other improvements.
+> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias, blame support and other improvements.
 
 A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
@@ -51,7 +51,7 @@ PRs are welcomed for other git host websites!
    - Windows (+wsl2) support.
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
-   - Support `/blame` (by default is `/blob`).
+   - Support blame url.
    - Full [git protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) support.
 3. Improvements:
    - Use stderr from git command as error message.
@@ -103,22 +103,23 @@ return require('pckr').add(
 
 You could use below command:
 
-- `GitLink`: copy the `/blob` url to clipboard.
-- `GitLink!`: open the `/blob` url in browser.
-- `GitLink blame`: copy the `/blame` url to clipboard.
-- `GitLink! blame`: open the `/blame` url in browser.
+- `GitLink(!)`: copy the `/blob` url to clipboard (use `!` to open in browser).
+- `GitLink(!) blame`: copy the `blame` url to clipboard (use `!` to open in browser).
+- `GitLink(!) default_branch`: copy the `main`/`master` url to clipboard (use `!` to open in browser).
 
-There're **2 routers** provided:
+There're **3 routers** provided:
 
 - `browse`: generate the `/blob` url (default).
 - `blame`: generate the `/blame` url.
+- `default_branch`: generate the `/main`/`master` url.
 
 > [!NOTE]
 >
-> They also work for other git host websites, for example for bitbucket.org.
+> Routers can work for any git hosts, for example for bitbucket.org.
 >
 > - `browse`: generate the `/src` url (default).
 > - `blame`: generate the `/annotate` url.
+> - `default_branch`: generate the `/main` or `/master` url based on actual project.
 
 By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes, please use `remote=xxx` arguments. For example:
 
