@@ -104,14 +104,14 @@ return require('pckr').add(
 You could use below command:
 
 - `GitLink(!)`: copy the `/blob` url to clipboard (use `!` to open in browser).
-- `GitLink(!) blame`: copy the `blame` url to clipboard (use `!` to open in browser).
-- `GitLink(!) default_branch`: copy the `main`/`master` url to clipboard (use `!` to open in browser).
+- `GitLink(!) blame`: copy the `/blame` url to clipboard (use `!` to open in browser).
+- `GitLink(!) default_branch`: copy the `/main` or `/master` url to clipboard (use `!` to open in browser).
 
 There're **3 routers** provided:
 
 - `browse`: generate the `/blob` url (default).
 - `blame`: generate the `/blame` url.
-- `default_branch`: generate the `/main`/`master` url.
+- `default_branch`: generate the `/main` or `/master` url.
 
 > [!NOTE]
 >
