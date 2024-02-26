@@ -17,10 +17,6 @@ local Defaults = {
 
   -- user command
   command = {
-    -- to copy link to clipboard, use: 'GitLink'
-    -- to open link in browser, use bang: 'GitLink!'
-    -- to use blame router, use: 'GitLink blame'
-    -- to use browse router, use: 'GitLink browse' (which is the default router)
     name = "GitLink",
     desc = "Generate git permanent link",
   },
