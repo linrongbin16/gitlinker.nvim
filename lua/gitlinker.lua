@@ -1,10 +1,12 @@
 local async = require("gitlinker.commons.async")
-local range = require("gitlinker.range")
+local strings = require("gitlinker.commons.strings")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
+
+local config = require("gitlinker.configs")
+local range = require("gitlinker.range")
 local linker = require("gitlinker.linker")
 local highlight = require("gitlinker.highlight")
-local strings = require("gitlinker.commons.strings")
 
 --- @alias gitlinker.Options table<any, any>
 --- @type gitlinker.Options
