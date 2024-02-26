@@ -176,8 +176,6 @@ For complete default options, please see [configs.lua](https://github.com/linron
 > [!NOTE]
 >
 > Please refer to [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git url.
->
-> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for builtin routers implementation.
 
 #### String Template
 
@@ -251,7 +249,13 @@ require("gitlinker").setup({
 
 The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (while the error message can be confusing if there's any syntax issue).
 
+Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more details about default router implementation.
+
 #### Lua Function
+
+> [!NOTE]
+>
+> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for builtin routers implementation.
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
