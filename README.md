@@ -36,6 +36,8 @@ PRs are welcomed for other git host websites!
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Customize Urls](#customize-urls)
+    - [String Template](#string-template)
+    - [Lua Function](#lua-function)
   - [Create Your Own Router](#create-your-own-router)
 - [Highlight Group](#highlight-group)
 - [Development](#development)
@@ -278,6 +280,8 @@ require('gitlinker').setup({
 >
 > Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for builtin routers implementation.
 
+#### String Template
+
 To create customized urls for other git hosts, please bind the target git host name with a new router.
 
 A router simply constructs the url string from below components (upper case with prefix `_A.`):
@@ -347,6 +351,8 @@ require("gitlinker").setup({
 ```
 
 The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (while the error message can be confusing if there's any syntax issue).
+
+#### Lua Function
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
