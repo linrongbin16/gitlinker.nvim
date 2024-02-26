@@ -350,25 +350,25 @@ The template string use curly braces `{}` to contain lua scripts, and evaluate v
 
 You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
 
-- `lk.protocol`
-- `lk.username`
-- `lk.password`
-- `lk.host`
-- `lk.port`
-- `lk.path`
-- `lk.rev`
-- `lk.file`
-- `lk.lstart`/`lk.lend`
+- `protocol`
+- `username`
+- `password`
+- `host`
+- `port`
+- `path`
+- `rev`
+- `file`
+- `lstart`/`lend`
 
 The 2 derived components are:
 
-- `lk.org`
-- `lk.repo`: **Note:** the `.git` suffix is not omitted.
+- `org`
+- `repo`: **Note:** the `.git` suffix is not omitted.
 
 The 2 branch components are:
 
-- `lk.default_branch`
-- `lk.current_branch`
+- `default_branch`
+- `current_branch`
 
 Thus you can use below lua function to implement your router:
 
