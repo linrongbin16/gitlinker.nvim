@@ -176,10 +176,12 @@ For complete default options, please see [configs.lua](https://github.com/linron
 > [!NOTE]
 >
 > Please refer to [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git url.
->
-> Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more details about default router implementation.
 
 #### String Template
+
+> [!NOTE]
+>
+> Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
 
 To create customized urls for other git hosts, please bind the target git host name with a new router.
 
