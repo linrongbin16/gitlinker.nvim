@@ -181,7 +181,7 @@ For complete default options, please see [configs.lua](https://github.com/linron
 
 > [!NOTE]
 >
-> Please refer to [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
+> Please refer to the `router` field in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
 
 To create customized urls for other git hosts, please bind the target git host name with a new router.
 
