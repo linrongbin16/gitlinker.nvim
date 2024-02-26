@@ -8,4 +8,6 @@ coverage:
         threshold: 90%
 ignore:
   - "lua/gitlinker/commons/*.lua"
+  - "lua/gitlinker/commons/*/*.lua"
+  - "lua/gitlinker/commons/*/*/*.lua"
   - "lua/gitlinker/giturlparser.lua"

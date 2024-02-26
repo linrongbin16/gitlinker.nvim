@@ -205,10 +205,14 @@ M.asyncreadfile = function(filename, on_complete, opts)
   opts = opts or { trim = false }
   opts.trim = type(opts.trim) == "boolean" and opts.trim or false
 
-  local open_result, open_err = uv.fs_open(filename, "r", 438, function(open_err, fd)
-    if open_err then
+  local open_result, open_err = uv.fs_open(filename, "r", 438, function(open_complete_err, fd)
+    if open_complete_err then
       error(
-        string.format("failed to open(r) file %s: %s", vim.inspect(filename), vim.inspect(open_err))
+        string.format(
+          "failed to complete open(r) file %s: %s",
+          vim.inspect(filename),
+          vim.inspect(open_complete_err)
+        )
       )
       return
     end
