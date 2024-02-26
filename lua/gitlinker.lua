@@ -52,7 +52,7 @@ local Defaults = {
         .. "{_A.FILE}"
         .. "#lines-{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
-      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L5-L6
+      -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.ORG}/"
         .. "{_A.REPO}/src/commit/"
@@ -62,7 +62,7 @@ local Defaults = {
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example:
       -- main repo: https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=83e8971c0f1c1db8c3574f83107190ac1ac23db0#l6
-      -- dev repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
+      -- user repo: https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=8de348e9d025d336a7985a9025fe08b7096c0394#l7
       ["^git%.samba%.org"] = "https://git.samba.org/?p="
         .. "{string.len(_A.ORG) > 0 and (_A.ORG .. '/') or ''}" -- 'p=samba.git;' or 'p=bbaumbach/samba.git;'
         .. "{_A.REPO .. '.git'};a=blob;"
@@ -71,7 +71,7 @@ local Defaults = {
         .. "#l{_A.LSTART}",
     },
     blame = {
-      -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L4
+      -- example: https://github.com/linrongbin16/gitlinker.nvim/blame/9679445c7a24783d27063cd65f525f02def5f128/lua/gitlinker.lua#L3-L7
       ["^github%.com"] = "https://github.com/"
         .. "{_A.ORG}/"
         .. "{_A.REPO}/blame/"
