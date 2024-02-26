@@ -1,0 +1,15 @@
+std = "vim"
+
+exclude = [
+  "lua/gitlinker/commons/*.lua",
+  "lua/gitlinker/commons/*/*.lua",
+  "lua/gitlinker/commons/*/*/*.lua",
+  "lua/gitlinker/giturlparser.lua",
+]
+
+[lints]
+mixed_table = "allow"
+unused_variable = "allow"
+incorrect_standard_library_use = "allow"
+global_usage = "allow"
+if_same_then_else = "allow"

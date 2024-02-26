@@ -1,4 +1,3 @@
----
 name: CI
 on:
   pull_request:
@@ -20,8 +19,8 @@ jobs:
       - uses: ytanikin/PRConventionalCommits@1.1.0
         with:
           task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","break"]'
-  luacheck:
-    name: Lua Check
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,14 +30,16 @@ jobs:
           level: Information
           configpath: ".luarc.json"
           neodev-version: stable
-      - uses: lunarmodules/luacheck@v1
-        with:
-          args: lua --config .luacheckrc
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Selene
+        run: |
+          cargo binstall --no-confirm selene
+          selene --config selene.toml ./lua
       - uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
-          args: --config-path .stylua.toml ./lua ./test
+          args: --config-path .stylua.toml ./lua ./spec
       - name: Install commons.nvim
         if: ${{ github.ref != 'refs/heads/master' }}
         shell: bash
@@ -67,7 +68,7 @@ jobs:
   unit_test:
     name: Unit Test
     needs:
-      - luacheck
+      - lint
     strategy:
       matrix:
         nvim_version: [stable, nightly, v0.7.0]
@@ -86,13 +87,12 @@ jobs:
       - name: Run Test Cases
         shell: bash
         run: |
-          luarocks install luacheck
           luarocks install vusted
-          vusted --shuffle ./test
+          vusted --shuffle ./spec
   code_coverage:
     name: Code Coverage
     needs:
-      - luacheck
+      - lint
     strategy:
       matrix:
         nvim_version: [stable]
@@ -111,10 +111,9 @@ jobs:
       - name: Generate Coverage Reports
         shell: bash
         run: |
-          luarocks install luacheck
           luarocks install luacov
           luarocks install vusted
-          vusted --coverage ./test
+          vusted --coverage ./spec
       - name: Upload Coverage Reports
         shell: bash
         run: |

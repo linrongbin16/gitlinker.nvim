@@ -133,10 +133,7 @@ function _RingBufferIterator:has_next()
   if self.index <= 0 or self.index > self.ringbuf.size then
     return false
   end
-  if
-    self.index ~= self.initial_index
-    and self.ringbuf:_inc(self.index) == self.initial_index
-  then
+  if self.index ~= self.initial_index and self.ringbuf:_inc(self.index) == self.initial_index then
     return false
   end
 
@@ -186,10 +183,7 @@ function _RingBufferRIterator:has_next()
   if self.index <= 0 or self.index > self.ringbuf.size then
     return false
   end
-  if
-    self.index ~= self.initial_index
-    and self.ringbuf:_dec(self.index) == self.initial_index
-  then
+  if self.index ~= self.initial_index and self.ringbuf:_dec(self.index) == self.initial_index then
     return false
   end
 

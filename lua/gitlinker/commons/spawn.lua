@@ -1,4 +1,13 @@
+local NVIM_VERSION_0_10 = false
+
+do
+  NVIM_VERSION_0_10 = require("gitlinker.commons.versions").ge({ 0, 10 })
+end
+
 local M = {}
+
+M.system = (NVIM_VERSION_0_10 and vim.is_callable(vim.system)) and vim.system
+  or require("gitlinker.commons._system").run
 
 --- @alias commons.SpawnLineProcessor fun(line:string):any
 --- @alias commons.SpawnOpts {on_stdout:commons.SpawnLineProcessor, on_stderr:commons.SpawnLineProcessor, [string]:any}
@@ -54,10 +63,8 @@ M.run = function(cmd, opts, on_exit)
       stdout_buffer = stdout_buffer and (stdout_buffer .. data) or data
       -- search buffer and process each line
       local i = _process(stdout_buffer, opts.on_stdout)
-      -- truncate the printed lines if found any
-      stdout_buffer = i <= #stdout_buffer
-          and stdout_buffer:sub(i, #stdout_buffer)
-        or nil
+      -- truncate the processed lines if still exists any
+      stdout_buffer = i <= #stdout_buffer and stdout_buffer:sub(i, #stdout_buffer) or nil
     elseif stdout_buffer then
       -- foreach the data_buffer and find every line
       local i = _process(stdout_buffer, opts.on_stdout)
@@ -88,9 +95,7 @@ M.run = function(cmd, opts, on_exit)
     if data then
       stderr_buffer = stderr_buffer and (stderr_buffer .. data) or data
       local i = _process(stderr_buffer, opts.on_stderr)
-      stderr_buffer = i <= #stderr_buffer
-          and stderr_buffer:sub(i, #stderr_buffer)
-        or nil
+      stderr_buffer = i <= #stderr_buffer and stderr_buffer:sub(i, #stderr_buffer) or nil
     elseif stderr_buffer then
       local i = _process(stderr_buffer, opts.on_stderr)
       if i <= #stderr_buffer then
@@ -101,10 +106,7 @@ M.run = function(cmd, opts, on_exit)
     end
   end
 
-  local _system = vim.is_callable(vim.system) and vim.system
-    or require("gitlinker.commons._system").run
-
-  return _system(cmd, {
+  return M.system(cmd, {
     cwd = opts.cwd,
     env = opts.env,
     clear_env = opts.clear_env,

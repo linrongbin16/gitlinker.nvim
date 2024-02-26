@@ -144,7 +144,7 @@ end
 --- @param p string
 --- @param start integer
 --- @return giturlparser._GitUrlPath
-M._make_path = function(p, start)
+M._parse_path = function(p, start)
   assert(type(start) == "number")
 
   -- local inspect = require("inspect")
@@ -206,7 +206,7 @@ end
 --- @param p string
 --- @param start integer
 --- @return giturlparser._GitUrlHost
-M._make_host = function(p, start)
+M._parse_host = function(p, start)
   assert(type(start) == "number")
   assert(not M._startswith(p, "/"))
 
@@ -233,7 +233,7 @@ M._make_host = function(p, start)
     then
       -- port end with '/'
       port, port_pos = M._make(p, first_colon_pos + 1, first_slash_pos - 1)
-      path_obj = M._make_path(p, first_slash_pos)
+      path_obj = M._parse_path(p, first_slash_pos)
     else
       -- path not found, port end until url end
       port, port_pos = M._make(p, first_colon_pos + 1, plen)
@@ -246,10 +246,10 @@ M._make_host = function(p, start)
     if type(first_slash_pos) == "number" and first_slash_pos > start then
       -- host end with '/'
       host, host_pos = M._make(p, start, first_slash_pos - 1)
-      path_obj = M._make_path(p, first_slash_pos)
+      path_obj = M._parse_path(p, first_slash_pos)
     else
       -- first slash not found, host is omitted, path end until url end
-      path_obj = M._make_path(p, start)
+      path_obj = M._parse_path(p, start)
     end
   end
 
@@ -267,7 +267,7 @@ end
 --- @param p string
 --- @param start integer
 --- @return giturlparser._GitUrlHost
-M._make_host_with_omit_ssh = function(p, start)
+M._parse_host_with_omit_ssh = function(p, start)
   assert(type(start) == "number")
   assert(not M._startswith(p, "/"))
 
@@ -285,10 +285,10 @@ M._make_host_with_omit_ssh = function(p, start)
   if type(first_colon_pos) == "number" and first_colon_pos > start then
     -- host end with ':', path start with ':'
     host, host_pos = M._make(p, start, first_colon_pos - 1)
-    path_obj = M._make_path(p, first_colon_pos + 1)
+    path_obj = M._parse_path(p, first_colon_pos + 1)
   else
     -- host not found, path start from beginning
-    path_obj = M._make_path(p, start)
+    path_obj = M._parse_path(p, start)
   end
 
   return {
@@ -306,7 +306,7 @@ end
 --- @param start integer
 --- @param ssh_protocol_omitted boolean?
 --- @return giturlparser._GitUrlUser
-M._make_user = function(p, start, ssh_protocol_omitted)
+M._parse_user = function(p, start, ssh_protocol_omitted)
   assert(type(start) == "number")
   assert(not M._startswith(p, "/"))
 
@@ -371,8 +371,8 @@ M._make_user = function(p, start, ssh_protocol_omitted)
   --   )
   -- )
   host_obj = ssh_protocol_omitted
-      and M._make_host_with_omit_ssh(p, host_start_pos)
-    or M._make_host(p, host_start_pos)
+      and M._parse_host_with_omit_ssh(p, host_start_pos)
+    or M._parse_host(p, host_start_pos)
 
   return {
     user = user,
@@ -398,7 +398,7 @@ M.parse = function(url)
     -- protocol end with '://'
     local protocol, protocol_pos = M._make(url, 1, protocol_delimiter_pos - 1)
 
-    local user_obj = M._make_user(url, protocol_delimiter_pos + 3)
+    local user_obj = M._parse_user(url, protocol_delimiter_pos + 3)
     local host_obj = user_obj.host_obj
     local path_obj = host_obj.path_obj
 
@@ -432,7 +432,7 @@ M.parse = function(url)
     -- find first ':', host end position on omitted ssh protocol
     local first_colon_pos = M._find(url, ":")
     if type(first_colon_pos) == "number" and first_colon_pos > 1 then
-      local user_obj = M._make_user(url, 1, true)
+      local user_obj = M._parse_user(url, 1, true)
       local host_obj = user_obj.host_obj
       local path_obj = host_obj.path_obj
 
@@ -463,7 +463,7 @@ M.parse = function(url)
       -- host not found
 
       -- treat as local file path, either absolute/relative
-      local path_obj = M._make_path(url, 1)
+      local path_obj = M._parse_path(url, 1)
       return {
         -- no protocol
         -- no user

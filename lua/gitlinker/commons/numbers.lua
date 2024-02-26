@@ -4,46 +4,79 @@ local M = {}
 M.INT32_MAX = 2147483647
 M.INT32_MIN = -2147483648
 
+M._RELATIVE_PRECISION = 1e-09
+M._ABSOLUTE_PRECISION = 0.0
+
+-- https://docs.python.org/3/library/math.html#math.isclose
+--
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.eq = function(a, b)
-  return type(a) == "number" and type(b) == "number" and a == b
+M.eq = function(a, b, rel_tol, abs_tol)
+  if type(a) ~= "number" or type(b) ~= "number" then
+    return false
+  end
+  if a == b then
+    return true
+  end
+
+  rel_tol = rel_tol or M._RELATIVE_PRECISION
+  abs_tol = abs_tol or M._ABSOLUTE_PRECISION
+
+  return math.abs(a - b) <= math.max(rel_tol * math.max(math.abs(a), math.abs(b)), abs_tol)
 end
 
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.ne = function(a, b)
-  return not M.eq(a, b)
+M.ne = function(a, b, rel_tol, abs_tol)
+  return not M.eq(a, b, rel_tol, abs_tol)
 end
 
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.gt = function(a, b)
-  return type(a) == "number" and type(b) == "number" and a > b
+M.gt = function(a, b, rel_tol, abs_tol)
+  if type(a) ~= "number" or type(b) ~= "number" then
+    return false
+  end
+  return M.ne(a, b, rel_tol, abs_tol) and a > b
 end
 
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.ge = function(a, b)
-  return M.gt(a, b) or M.eq(a, b)
+M.ge = function(a, b, rel_tol, abs_tol)
+  return M.gt(a, b, rel_tol, abs_tol) or M.eq(a, b, rel_tol, abs_tol)
 end
 
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.lt = function(a, b)
-  return type(a) == "number" and type(b) == "number" and a < b
+M.lt = function(a, b, rel_tol, abs_tol)
+  if type(a) ~= "number" or type(b) ~= "number" then
+    return false
+  end
+  return M.ne(a, b, rel_tol, abs_tol) and a < b
 end
 
 --- @param a number?
 --- @param b number?
+--- @param rel_tol number?
+--- @param abs_tol number?
 --- @return boolean
-M.le = function(a, b)
-  return M.lt(a, b) or M.eq(a, b)
+M.le = function(a, b, rel_tol, abs_tol)
+  return M.lt(a, b, rel_tol, abs_tol) or M.eq(a, b, rel_tol, abs_tol)
 end
 
 --- @param value number
@@ -83,10 +116,7 @@ end
 M.max = function(f, a, ...)
   assert(
     type(f) == "function",
-    string.format(
-      "first param 'f' must be unary-function returns number value:%s",
-      vim.inspect(f)
-    )
+    string.format("first param 'f' must be unary-function returns number value:%s", vim.inspect(f))
   )
   local maximal_item = a
   local maximal_value = f(a)
@@ -107,10 +137,7 @@ end
 M.min = function(f, a, ...)
   assert(
     type(f) == "function",
-    string.format(
-      "first param 'f' must be unary-function returns number value:%s",
-      vim.inspect(f)
-    )
+    string.format("first param 'f' must be unary-function returns number value:%s", vim.inspect(f))
   )
   local minimal_item = a
   local minimal_value = f(a)
@@ -129,15 +156,8 @@ end
 --- @return number
 M.random = function(m, n)
   local rand_result, rand_err = require("gitlinker.commons.uv").random(4)
-  if rand_result == nil then
-    if m == nil and n == nil then
-      return math.random()
-    elseif m ~= nil and n == nil then
-      return math.random(m)
-    else
-      return math.random(m --[[@as integer]], n --[[@as integer]])
-    end
-  end
+  assert(rand_result ~= nil, rand_err)
+
   local bytes = {
     string.byte(rand_result --[[@as string]], 1, -1),
   }
