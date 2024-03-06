@@ -346,7 +346,7 @@ local function setup(opts)
   end
 end
 
---- @param opts:{router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,remote:string?}?
+--- @param opts:{router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
 --- @return string?
 local function link_api(opts)
   opts = opts
@@ -374,6 +374,8 @@ local function link_api(opts)
     router = opts.router,
     lstart = opts.lstart,
     lend = opts.lend,
+    message = opts.message,
+    highlight_duration = opts.highlight_duration,
     remote = opts.remote,
   })
 end
