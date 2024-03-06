@@ -1,5 +1,5 @@
+local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
-local strings = require("gitlinker.commons.strings")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
 
@@ -27,13 +27,13 @@ local function _url_template_engine(lk, template)
   local i = 1
   local n = string.len(template)
   while i <= n do
-    local open_pos = strings.find(template, OPEN_BRACE, i)
+    local open_pos = str.find(template, OPEN_BRACE, i)
     if not open_pos then
       table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
     end
     table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
-    local close_pos = strings.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
+    local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     assert(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
@@ -72,7 +72,7 @@ local function _url_template_engine(lk, template)
         PORT = lk.port or "",
         USER = lk.user or "",
         ORG = lk.org or "",
-        REPO = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
+        REPO = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
@@ -265,7 +265,7 @@ local function _parse_args(args)
   local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
   for _, a in ipairs(args_splits) do
     if string.len(a) > 0 then
-      if strings.startswith(a, "remote=") then
+      if str.startswith(a, "remote=") then
         remote = a:sub(8)
       else
         router_type = a

@@ -1,6 +1,7 @@
-local strings = require("gitlinker.commons.strings")
-local range = require("gitlinker.range")
+local str = require("gitlinker.commons.str")
 local logging = require("gitlinker.commons.logging")
+
+local range = require("gitlinker.range")
 
 --- @class gitlinker.Builder
 --- @field domain string?
@@ -80,11 +81,11 @@ function Builder:new(lk, range_maker)
   local o = {
     domain = string.format("https://%s", lk.host),
     org = lk.org,
-    repo = strings.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
+    repo = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
     rev = lk.rev,
     location = string.format(
       "%s%s",
-      lk.file .. (strings.endswith(lk.file, ".md", { ignorecase = true }) and "?plain=1" or ""),
+      lk.file .. (str.endswith(lk.file, ".md", { ignorecase = true }) and "?plain=1" or ""),
       type(r) == "string" and r or ""
     ),
   }

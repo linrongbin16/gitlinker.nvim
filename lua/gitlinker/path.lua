@@ -1,15 +1,15 @@
 --- @param cwd string?
 --- @return string?
 local function buffer_relpath(cwd)
-  local paths = require("gitlinker.commons.paths")
+  local path = require("gitlinker.commons.path")
 
   cwd = cwd or vim.fn.getcwd()
   cwd = vim.fn.resolve(cwd)
-  cwd = paths.normalize(cwd, { double_backslash = true, expand = true })
+  cwd = path.normalize(cwd, { double_backslash = true, expand = true })
 
   local bufpath = vim.api.nvim_buf_get_name(0)
   bufpath = vim.fn.resolve(bufpath)
-  bufpath = paths.normalize(bufpath, { double_backslash = true, expand = true })
+  bufpath = path.normalize(bufpath, { double_backslash = true, expand = true })
 
   -- logger.debug(
   --     "|path.buffer_relpath| enter, cwd:%s, bufpath:%s",

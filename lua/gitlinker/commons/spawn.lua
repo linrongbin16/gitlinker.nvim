@@ -1,7 +1,7 @@
 local NVIM_VERSION_0_10 = false
 
 do
-  NVIM_VERSION_0_10 = require("gitlinker.commons.versions").ge({ 0, 10 })
+  NVIM_VERSION_0_10 = require("gitlinker.commons.version").ge({ 0, 10 })
 end
 
 local M = {}
@@ -27,11 +27,11 @@ M.run = function(cmd, opts, on_exit)
   --- @param fn_line_processor commons.SpawnLineProcessor
   --- @return integer
   local function _process(buffer, fn_line_processor)
-    local strings = require("gitlinker.commons.strings")
+    local str = require("gitlinker.commons.str")
 
     local i = 1
     while i <= #buffer do
-      local newline_pos = strings.find(buffer, "\n", i)
+      local newline_pos = str.find(buffer, "\n", i)
       if not newline_pos then
         break
       end

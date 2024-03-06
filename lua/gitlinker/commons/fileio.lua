@@ -20,7 +20,7 @@ function FileLineReader:open(filename, batchsize)
   if type(handler) ~= "number" then
     error(
       string.format(
-        "|commons.fileios - FileLineReader:open| failed to fs_open file: %s",
+        "|commons.fileio - FileLineReader:open| failed to fs_open file: %s",
         vim.inspect(filename)
       )
     )
@@ -30,7 +30,7 @@ function FileLineReader:open(filename, batchsize)
   if type(fstat) ~= "table" then
     error(
       string.format(
-        "|commons.fileios - FileLineReader:open| failed to fs_fstat file: %s",
+        "|commons.fileio - FileLineReader:open| failed to fs_fstat file: %s",
         vim.inspect(filename)
       )
     )
@@ -67,7 +67,7 @@ function FileLineReader:_read_chunk()
   if read_err then
     error(
       string.format(
-        "|commons.fileios - FileLineReader:_read_chunk| failed to fs_read file: %s, read_error:%s, read_name:%s",
+        "|commons.fileio - FileLineReader:_read_chunk| failed to fs_read file: %s, read_error:%s, read_name:%s",
         vim.inspect(self.filename),
         vim.inspect(read_err),
         vim.inspect(read_name)
@@ -91,12 +91,12 @@ end
 function FileLineReader:next()
   --- @return string?
   local function impl()
-    local strings = require("gitlinker.commons.strings")
+    local str = require("gitlinker.commons.str")
     if self.buffer == nil then
       return nil
     end
     self.buffer = self.buffer:gsub("\r\n", "\n")
-    local nextpos = strings.find(self.buffer, "\n")
+    local nextpos = str.find(self.buffer, "\n")
     if nextpos then
       local line = self.buffer:sub(1, nextpos - 1)
       self.buffer = self.buffer:sub(nextpos + 1)
@@ -293,10 +293,13 @@ end
 M.asyncreadlines = function(filename, opts)
   assert(type(opts) == "table")
   assert(type(opts.on_line) == "function")
+  ---@diagnostic disable-next-line: undefined-field
   local batchsize = opts.batchsize or 4096
 
   local function _handle_error(err, msg)
+    ---@diagnostic disable-next-line: undefined-field
     if type(opts.on_error) == "function" then
+      ---@diagnostic disable-next-line: undefined-field
       opts.on_error(err)
     else
       error(
@@ -333,11 +336,11 @@ M.asyncreadlines = function(filename, opts)
         local buffer = nil
 
         local function _process(buf, fn_line_processor)
-          local strings = require("gitlinker.commons.strings")
+          local str = require("gitlinker.commons.str")
 
           local i = 1
           while i <= #buf do
-            local newline_pos = strings.find(buf, "\n", i)
+            local newline_pos = str.find(buf, "\n", i)
             if not newline_pos then
               break
             end
@@ -388,7 +391,9 @@ M.asyncreadlines = function(filename, opts)
                     if close_complete_err then
                       _handle_error(close_complete_err, "fs_close complete")
                     end
+                    ---@diagnostic disable-next-line: undefined-field
                     if type(opts.on_complete) == "function" then
+                      ---@diagnostic disable-next-line: undefined-field
                       opts.on_complete(fsize)
                     end
                   end

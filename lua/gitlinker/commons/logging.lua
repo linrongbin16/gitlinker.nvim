@@ -79,7 +79,7 @@ local FORMATTING_TAGS = {
 --- @param meta table<string,any>
 --- @return string
 function Formatter:format(meta)
-  local strings = require("gitlinker.commons.strings")
+  local str = require("gitlinker.commons.str")
 
   local n = string.len(self.fmt)
 
@@ -94,7 +94,7 @@ function Formatter:format(meta)
         return false
       end
 
-      return strings.startswith(string.sub(self.fmt, idx, endpos), FORMATTING_TAGS[tag])
+      return str.startswith(string.sub(self.fmt, idx, endpos), FORMATTING_TAGS[tag])
     end
     return impl
   end

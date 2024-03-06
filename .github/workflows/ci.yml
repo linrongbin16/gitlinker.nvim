@@ -10,15 +10,15 @@ concurrency:
   group: ${{ github.ref }}-ci
   cancel-in-progress: true
 jobs:
-  pr_conventional_commit:
-    name: Conventional Commit
+  commits:
+    name: Commits
     if: ${{ github.ref != 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ytanikin/PRConventionalCommits@1.1.0
-        with:
-          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert","break"]'
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   lint:
     name: Lint
     runs-on: ubuntu-latest

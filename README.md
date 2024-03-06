@@ -169,7 +169,7 @@ require('gitlinker').setup(opts)
 
 The `opts` is an optional lua table that override the default options.
 
-For complete default options, please see [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua).
+For complete default options, please see `Defaults` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua).
 
 ### Customize Urls
 
@@ -181,7 +181,7 @@ For complete default options, please see [configs.lua](https://github.com/linron
 
 > [!NOTE]
 >
-> Please refer to the `router` field in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
+> Please refer to `Defaults.router` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
 
 To create customized urls for other git hosts, please bind the target git host name with a new router.
 
