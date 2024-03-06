@@ -352,10 +352,10 @@ local function link_api(opts)
       router_type = "browse",
       action = require("gitlinker.actions").clipboard,
     }
+
   opts.router_type = str.not_empty(opts.router_type) and opts.router_type or "browse"
   opts.action = vim.is_callable(opts.action) and opts.action
     or require("gitlinker.actions").clipboard
-
   opts.router = vim.is_callable(opts.router) and opts.router
     or function(lk)
       return _router(opts.router_type, lk)
