@@ -1,4 +1,5 @@
 local str = require("gitlinker.commons.str")
+local num = require("gitlinker.commons.num")
 local async = require("gitlinker.commons.async")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
@@ -201,7 +202,7 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
 local link = function(opts)
   local confs = configs.get()
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
@@ -340,6 +341,30 @@ local function setup(opts)
     if not highlight.hl_group_exists(hl_group) then
       vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
     end
+  end
+end
+
+--- @param opts:{router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,remote:string?}?
+--- @return string?
+local function link_api(opts)
+  opts = opts
+    or {
+      router_type = "browse",
+      action = require("gitlinker.actions").clipboard,
+    }
+  opts.router_type = str.not_empty(opts.router_type) and opts.router_type or "browse"
+  opts.action = vim.is_callable(opts.action) and opts.action
+    or require("gitlinker.actions").clipboard
+
+  local router = vim.is_callable(opts.router) and opts.router
+    or function(lk)
+      return _router(opts.router_type, lk)
+    end
+
+  if not num.ge(opts.lstart, 0) and not num.ge(opts.lend, 0) then
+    local r = range.make_range()
+    opts.lstart = math.min(r.lstart, r.lend)
+    opts.lend = math.max(r.lstart, r.lend)
   end
 end
 
