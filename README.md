@@ -60,7 +60,7 @@ PRs are welcomed for other git host websites!
 
 ## Requirements
 
-- Neovim &ge; v0.7.
+- Neovim &ge; 0.7.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
 - [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
