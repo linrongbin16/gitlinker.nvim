@@ -202,7 +202,7 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?}
 local _link = function(opts)
   local confs = configs.get()
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
@@ -236,12 +236,14 @@ local _link = function(opts)
     opts.action(url --[[@as string]])
   end
 
-  if confs.highlight_duration > 0 then
+  local highlight_duration = opts.highlight_duration or confs.highlight_duration
+  if highlight_duration > 0 then
     highlight.show({ lstart = lk.lstart, lend = lk.lend })
     vim.defer_fn(highlight.clear, confs.highlight_duration)
   end
 
-  if confs.message then
+  local message = type(opts.message) == "boolean" and opts.message or confs.message
+  if message then
     local msg = lk.file_changed and string.format("%s (lines can be wrong due to file change)", url)
       or url
     logger:info(msg)
