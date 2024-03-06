@@ -203,7 +203,7 @@ local function _blame(lk)
 end
 
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}
-local link = function(opts)
+local _link = function(opts)
   local confs = configs.get()
   local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
@@ -251,7 +251,7 @@ local link = function(opts)
 end
 
 --- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}):string?
-local void_link = async.void(link)
+local void_link = async.void(_link)
 
 --- @param args string?
 --- @return {router_type:string,remote:string?}
@@ -356,7 +356,7 @@ local function link_api(opts)
   opts.action = vim.is_callable(opts.action) and opts.action
     or require("gitlinker.actions").clipboard
 
-  local router = vim.is_callable(opts.router) and opts.router
+  opts.router = vim.is_callable(opts.router) and opts.router
     or function(lk)
       return _router(opts.router_type, lk)
     end
@@ -366,6 +366,14 @@ local function link_api(opts)
     opts.lstart = math.min(r.lstart, r.lend)
     opts.lend = math.max(r.lstart, r.lend)
   end
+
+  void_link({
+    action = opts.action,
+    router = opts.router,
+    lstart = opts.lstart,
+    lend = opts.lend,
+    remote = opts.remote,
+  })
 end
 
 local M = {
@@ -375,6 +383,8 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
+
+  link = link_api,
 }
 
 return M
