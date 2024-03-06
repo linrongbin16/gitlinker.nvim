@@ -264,7 +264,7 @@ M.setchar = function(s, pos, ch)
   assert(string.len(ch) == 1)
 
   local n = string.len(s)
-  pos = require("gitlinker.commons.tables").list_index(pos, n)
+  pos = require("gitlinker.commons.tbl").list_index(pos, n)
 
   local buffer = ""
   if pos > 1 then
