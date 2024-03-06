@@ -251,7 +251,7 @@ local _link = function(opts)
 end
 
 --- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}):string?
-local void_link = async.void(_link)
+local _void_link = async.void(_link)
 
 --- @param args string?
 --- @return {router_type:string,remote:string?}
@@ -308,7 +308,7 @@ local function setup(opts)
     local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
-    void_link({
+    _void_link({
       action = command_opts.bang and require("gitlinker.actions").system
         or require("gitlinker.actions").clipboard,
       router = function(lk)
@@ -367,7 +367,7 @@ local function link_api(opts)
     opts.lend = math.max(r.lstart, r.lend)
   end
 
-  void_link({
+  _void_link({
     action = opts.action,
     router = opts.router,
     lstart = opts.lstart,
@@ -378,7 +378,7 @@ end
 
 local M = {
   setup = setup,
-  void_link = void_link,
+  _void_link = _void_link,
   _worker = _worker,
   _router = _router,
   _browse = _browse,
