@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.11.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.10.0...v4.11.0) (2024-03-07)
+
+
+### Features
+
+* **api:** add 'link' api ([#215](https://github.com/linrongbin16/gitlinker.nvim/issues/215)) ([46dcc5d](https://github.com/linrongbin16/gitlinker.nvim/commit/46dcc5d86929426761c442437432f4a8bdba16ae))
+
 ## [4.10.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.9.1...v4.10.0) (2024-02-26)
 
 
