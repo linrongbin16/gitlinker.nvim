@@ -5,54 +5,64 @@ describe("gitlinker", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
+  vim.opt.swapfile = false
+  vim.api.nvim_command("cd " .. cwd)
+  vim.cmd([[ edit lua/gitlinker.lua ]])
   local gitlinker = require("gitlinker")
-
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-    vim.opt.swapfile = false
-    pcall(gitlinker.setup, {
-      debug = true,
-      file_log = true,
-      router = {
-        browse = {
-          ["^git%.xyz%.com"] = "https://git.xyz.com/"
-            .. "{_A.USER}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.REV}/"
-            .. "{_A.FILE}?plain=1"
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        blame = {
-          ["^git%.xyz%.com"] = "https://git.xyz.com/"
-            .. "{_A.USER}/"
-            .. "{_A.REPO}/blame/"
-            .. "{_A.REV}/"
-            .. "{_A.FILE}?plain=1"
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        default_branch = {
-          ["^github%.com"] = "https://github.com/"
-            .. "{_A.ORG}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
-            .. "{_A.FILE}?plain=1" -- '?plain=1'
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        current_branch = {
-          ["^github%.com"] = "https://github.com/"
-            .. "{_A.ORG}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.CURRENT_BRANCH}/" -- always current branch
-            .. "{_A.FILE}?plain=1" -- '?plain=1'
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
+  gitlinker.setup({
+    debug = true,
+    file_log = true,
+    router = {
+      browse = {
+        ["^git%.xyz%.com"] = "https://git.xyz.com/"
+          .. "{_A.USER}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.REV}/"
+          .. "{_A.FILE}?plain=1"
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       },
-    })
-    vim.cmd([[ edit lua/gitlinker.lua ]])
+      blame = {
+        ["^git%.xyz%.com"] = "https://git.xyz.com/"
+          .. "{_A.USER}/"
+          .. "{_A.REPO}/blame/"
+          .. "{_A.REV}/"
+          .. "{_A.FILE}?plain=1"
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+      default_branch = {
+        ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
+          .. "{_A.FILE}?plain=1" -- '?plain=1'
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+      current_branch = {
+        ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.CURRENT_BRANCH}/" -- always current branch
+          .. "{_A.FILE}?plain=1" -- '?plain=1'
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+    },
+  })
+
+  before_each(function() end)
+  after_each(function()
+    local done = false
+    vim.defer_fn(function()
+      done = true
+    end, 100)
+    for i = 1, 50 do
+      vim.wait(10, function()
+        return done
+      end)
+    end
   end)
 
   local routers = require("gitlinker.routers")
@@ -701,21 +711,13 @@ describe("gitlinker", function()
 
   describe("[link]", function()
     it("browse", function()
-      vim.cmd("edit README.md")
-      local done = false
       gitlinker.link()
       gitlinker.link({})
       gitlinker.link({
         action = function(url)
-          done = true
           print(string.format("link-browse-1:%s\n", vim.inspect(url)))
         end,
       })
-      for i = 1, 50 do
-        vim.wait(10, function()
-          return done
-        end)
-      end
     end)
     it("blame", function()
       gitlinker._void_link({
