@@ -172,9 +172,10 @@ require("gitlinker").link(opts)
 
     > Please refer to [`gitlinker.Action`](#gitlinkeraction) for more details.
 
-  - `lstart`/`lend`: Visual selected line range, e.g. start & end line numbers. By default both are `nil`, this API will automatically try to find user selected line range. You can also overwrite these two fields to force the line numbers in generated url.
-  - `message`: Whether print message in nvim command line. By default use the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
-  - `highlight_duration`: How long (milliseconds) to highlight the line range. By default use the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `lstart`/`lend`: Visual selected line range, e.g. start & end line numbers. By default both are `nil`, it will automatically try to find user selected line range. You can also overwrite these two fields to force the line numbers in generated url.
+  - `message`: Whether print message in nvim command line. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `highlight_duration`: How long (milliseconds) to highlight the line range. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `remote`: Specify the git remote. By default is `nil`, it uses the first detected git remote (usually it's `origin`).
 
 #### Returns:
 
@@ -224,6 +225,7 @@ For now we have below builtin actions:
 <br/>
 
 ```lua
+-- with command:
 -- browse
 vim.keymap.set(
   {"n", 'v'},
@@ -262,6 +264,63 @@ vim.keymap.set(
   "<leader>gD",
   "<cmd>GitLink! default_branch<cr>",
   { silent = true, noremap = true, desc = "Open default branch link in browser" }
+)
+
+-- with api:
+-- browse
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gl",
+  require("gitlinker").link,
+  { silent = true, noremap = true, desc = "GitLink" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gL",
+  function()
+    require("gitlinker").link({ action = require("gitlinker.actions").system })
+  end,
+  { silent = true, noremap = true, desc = "GitLink!" }
+)
+-- blame
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gb",
+  function()
+    require("gitlinker").link({ router_type = "blame" })
+  end,
+  { silent = true, noremap = true, desc = "GitLink blame" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gB",
+  function()
+    require("gitlinker").link({
+      router_type = "blame",
+      action = require("gitlinker.actions").system,
+    })
+  end,
+  { silent = true, noremap = true, desc = "GitLink! blame" }
+)
+-- default branch
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gd",
+  function()
+    require("gitlinker").link({ router_type = "default_branch" })
+  end,
+  { silent = true, noremap = true, desc = "GitLink default_branch" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gD",
+  function()
+    require("gitlinker").link({
+      router_type = "default_branch",
+      action = require("gitlinker.actions").system,
+    })
+  end,
+  { silent = true, noremap = true, desc = "GitLink! default_branch" }
 )
 ```
 

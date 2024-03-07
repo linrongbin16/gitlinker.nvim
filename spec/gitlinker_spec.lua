@@ -698,4 +698,23 @@ describe("gitlinker", function()
       })
     end)
   end)
+
+  describe("[link]", function()
+    it("browse", function()
+      local actual1 = gitlinker.link()
+      print(string.format("link-browse-1:%s\n", vim.inspect(actual1)))
+      local actual2 = gitlinker.link({})
+      print(string.format("link-browse-2:%s\n", vim.inspect(actual2)))
+    end)
+    it("blame", function()
+      gitlinker._void_link({
+        action = require("gitlinker.actions").clipboard,
+        router = function(lk)
+          return require("gitlinker")._router("blame", lk)
+        end,
+        lstart = 1,
+        lend = 1,
+      })
+    end)
+  end)
 end)
