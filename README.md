@@ -282,6 +282,7 @@ vim.keymap.set(
 
 ```lua
 -- with lua api:
+
 -- browse
 vim.keymap.set(
   {"n", 'v'},
