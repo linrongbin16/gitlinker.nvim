@@ -8,7 +8,7 @@ local async = require("gitlinker.commons.async")
 --- @param remote string?
 --- @return gitlinker.Linker?
 local function make_linker(remote)
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
 
   local root = git.get_root()
   if not root then

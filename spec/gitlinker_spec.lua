@@ -5,57 +5,113 @@ describe("gitlinker", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
+  vim.opt.swapfile = false
+  vim.api.nvim_command("cd " .. cwd)
+  vim.cmd([[ edit lua/gitlinker.lua ]])
   local gitlinker = require("gitlinker")
-
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-    vim.opt.swapfile = false
-    pcall(gitlinker.setup, {
-      debug = true,
-      file_log = true,
-      router = {
-        browse = {
-          ["^git%.xyz%.com"] = "https://git.xyz.com/"
-            .. "{_A.USER}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.REV}/"
-            .. "{_A.FILE}?plain=1"
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        blame = {
-          ["^git%.xyz%.com"] = "https://git.xyz.com/"
-            .. "{_A.USER}/"
-            .. "{_A.REPO}/blame/"
-            .. "{_A.REV}/"
-            .. "{_A.FILE}?plain=1"
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        default_branch = {
-          ["^github%.com"] = "https://github.com/"
-            .. "{_A.ORG}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
-            .. "{_A.FILE}?plain=1" -- '?plain=1'
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
-        current_branch = {
-          ["^github%.com"] = "https://github.com/"
-            .. "{_A.ORG}/"
-            .. "{_A.REPO}/blob/"
-            .. "{_A.CURRENT_BRANCH}/" -- always current branch
-            .. "{_A.FILE}?plain=1" -- '?plain=1'
-            .. "#L{_A.LSTART}"
-            .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-        },
+  gitlinker.setup({
+    debug = true,
+    file_log = true,
+    router = {
+      browse = {
+        ["^git%.xyz%.com"] = "https://git.xyz.com/"
+          .. "{_A.USER}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.REV}/"
+          .. "{_A.FILE}?plain=1"
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       },
-    })
-    vim.cmd([[ edit lua/gitlinker.lua ]])
+      blame = {
+        ["^git%.xyz%.com"] = "https://git.xyz.com/"
+          .. "{_A.USER}/"
+          .. "{_A.REPO}/blame/"
+          .. "{_A.REV}/"
+          .. "{_A.FILE}?plain=1"
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+      default_branch = {
+        ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.DEFAULT_BRANCH}/" -- always 'master'/'main' branch
+          .. "{_A.FILE}?plain=1" -- '?plain=1'
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+      current_branch = {
+        ["^github%.com"] = "https://github.com/"
+          .. "{_A.ORG}/"
+          .. "{_A.REPO}/blob/"
+          .. "{_A.CURRENT_BRANCH}/" -- always current branch
+          .. "{_A.FILE}?plain=1" -- '?plain=1'
+          .. "#L{_A.LSTART}"
+          .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      },
+    },
+  })
+
+  before_each(function() end)
+  after_each(function()
+    local done = false
+    vim.defer_fn(function()
+      done = true
+    end, 100)
+    for i = 1, 50 do
+      vim.wait(10, function()
+        return done
+      end)
+    end
   end)
 
   local routers = require("gitlinker.routers")
+
+  describe("[_url_template_engine]", function()
+    it("test nil parameters", function()
+      assert_eq(gitlinker._url_template_engine(nil, "asdfasdf"), nil)
+      assert_eq(gitlinker._url_template_engine({}, nil), nil)
+      assert_eq(gitlinker._url_template_engine({}, ""), nil)
+    end)
+    it("test-1", function()
+      local lk = {
+        remote_url = "git@git.samba.org:samba.git",
+        protocol = nil,
+        username = "git",
+        password = nil,
+        host = "git.samba.org",
+        org = "",
+        repo = "samba.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "wscript",
+        file_changed = false,
+        lstart = 13,
+        lend = 13,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._url_template_engine(lk, "https://{_A.HOST}")
+      print(string.format("_url_template_engine-1:%s\n", vim.inspect(actual)))
+      assert_eq(actual, "https://git.samba.org")
+    end)
+    it("test-2", function()
+      local lk = {
+        remote_url = "git@git.samba.org:samba.git",
+        protocol = nil,
+        username = "git",
+        password = nil,
+        host = "git.samba.org",
+        org = "",
+        repo = "samba.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "wscript",
+        file_changed = false,
+        lstart = 13,
+        lend = 13,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._url_template_engine(lk, "https://samba.git")
+      print(string.format("_url_template_engine-2:%s\n", vim.inspect(actual)))
+      assert_eq(actual, "https://samba.git")
+    end)
+  end)
   describe("[_browse]", function()
     it("git.samba.org/samba.git with same lstart/lend", function()
       local lk = {
@@ -560,6 +616,30 @@ describe("gitlinker", function()
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L21"
       )
     end)
+    it("is invalid", function()
+      local lk = {
+        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
+        username = "git",
+        host = "my-personal-codeberg.org",
+        org = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local string_template = "https://codeberg.org/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/blame/commit/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}"
+      local ok, actual = pcall(gitlinker._worker, lk, "pattern", { string_template })
+      assert_false(ok)
+      assert_eq(type(actual), "string")
+    end)
   end)
   describe("[user router types]", function()
     it("default_branch", function()
@@ -606,9 +686,9 @@ describe("gitlinker", function()
     end)
   end)
 
-  describe("[void_link]", function()
+  describe("[_void_link]", function()
     it("link browse", function()
-      gitlinker.void_link({
+      gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
           return require("gitlinker")._router("browse", lk)
@@ -618,7 +698,7 @@ describe("gitlinker", function()
       })
     end)
     it("link blame", function()
-      gitlinker.void_link({
+      gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
           return require("gitlinker")._router("blame", lk)
@@ -626,6 +706,24 @@ describe("gitlinker", function()
         lstart = 1,
         lend = 1,
       })
+    end)
+  end)
+
+  describe("[link]", function()
+    it("browse", function()
+      gitlinker.link()
+      gitlinker.link({})
+      gitlinker.link({
+        action = function(url)
+          print(string.format("link-browse-1:%s\n", vim.inspect(url)))
+        end,
+      })
+    end)
+    it("blame", function()
+      gitlinker.link({ router_type = "blame" })
+    end)
+    it("default_branch", function()
+      gitlinker.link({ router_type = "default_branch" })
     end)
   end)
 end)
