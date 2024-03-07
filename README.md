@@ -134,6 +134,10 @@ There're several arguments:
 
 ### API
 
+> [!NOTE]
+>
+> Highly recommend to read [Customize Urls](#customize-urls) before this section, which helps understand the internal design of this plugin.
+
 You can also use the `link` API to generate git permlink:
 
 ```lua
@@ -142,7 +146,7 @@ You can also use the `link` API to generate git permlink:
 --- @alias gitlinker.Action fun(url:string):any
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
 --- @return string?
-M.link = function(opts)
+require("gitlinker").link(opts)
 ```
 
 #### Parameters:
@@ -150,10 +154,12 @@ M.link = function(opts)
 - `opts`: (Optional) lua table that contains below fields:
 
   - `router_type`: Which router type should this API use. By default is `nil`, means `browse`. It has below builtin options:
+
     - `browse`
     - `blame`
     - `default_branch`
-  - `router`: Which router implementation should this API use. By default is `nil`, this API will use the configured router implementations when this plugin is been setup (see [Configuration](#configuration)). You can **_dynamically_** overwrite the generate behavior by pass a router in this field.
+
+  - `router`: Which router implementation should this API use. By default is `nil`, it uses the configured router implementations while this plugin is been setup (see [Configuration](#configuration)). You can **_dynamically_** overwrite the generate behavior by pass a router in this field.
 
     > Please refer to [`gitlinker.Router`](#gitlinkerrouter) for more details.
 
@@ -165,8 +171,8 @@ M.link = function(opts)
     > Please refer to [`gitlinker.Action`](#gitlinkeraction) for more details.
 
   - `lstart`/`lend`: Visual selected line range, e.g. start & end line numbers. By default both are `nil`, this API will automatically try to find user selected line range. You can also overwrite these two fields to force the line numbers in generated url.
-  - `message`: Whether print message in nvim command line. By default use the configured value when this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
-  - `highlight_duration`: How long (milliseconds) to highlight the line range. By default use the configured value when this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `message`: Whether print message in nvim command line. By default use the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `highlight_duration`: How long (milliseconds) to highlight the line range. By default use the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
 
 #### Returns:
 
