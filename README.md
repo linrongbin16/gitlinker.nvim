@@ -35,7 +35,7 @@ PRs are welcomed for other git host websites!
 - [Installation](#installation)
 - [Usage](#usage)
   - [Command](#command)
-  - [Api](#api)
+  - [API](#api)
   - [Recommended Key Mappings](#recommended-key-mappings)
 - [Configuration](#configuration)
   - [Customize Urls](#customize-urls)
@@ -106,7 +106,7 @@ return require('pckr').add(
 
 ### Command
 
-This plugin provides a single command `GitLink`:
+You can use the user command `GitLink` to generate git permlink:
 
 - `GitLink(!)`: copy the `/blob` url to clipboard (use `!` to open in browser).
 - `GitLink(!) blame`: copy the `/blame` url to clipboard (use `!` to open in browser).
@@ -131,6 +131,83 @@ There're several arguments:
 - `remote`: by default `GitLink` will use the first detected remote (usually it's `origin`), but if you need to specify other remotes, please use `remote=xxx`. For example:
   - `GitLink remote=upstream`: copy `blob` url to clipboard for `upstream`.
   - `GitLink! blame remote=upstream`: open `blame` url in browser for `upstream`.
+
+### API
+
+You can also use the `link` API to generate git permlink:
+
+```lua
+--- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
+--- @alias gitlinker.Action fun(url:string):any
+--- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
+--- @return string?
+M.link = function(opts)
+```
+
+#### Parameters:
+
+- `opts`: (Optional) lua table that contains below fields:
+
+  - `router_type`: Which router type should this API use. By default is `nil`, means `browse`. It has below builtin options:
+    - `browse`
+    - `blame`
+    - `default_branch`
+  - `router`: Which router implementation should this API use. By default is `nil`, this API will use the configured router implementations when this plugin is been setup (see [Configuration](#configuration)). You can **_dynamically_** overwrite the generate behavior by pass a router in this field.
+
+    > Please refer to [`gitlinker.Router`](#gitlinkerrouter) for more details.
+
+  - `action`: What action should this API behave. By default is `nil`, this API will copy the generated link to clipboard. It has below builtin options:
+
+    - `require("gitlinker.actions").clipboard`: Copy generated link to clipboard.
+    - `require("gitlinker.actions").system`: Open generated link in browser.
+
+    > Please refer to [`gitlinker.Action`](#gitlinkeraction) for more details.
+
+  - `lstart`/`lend`: Visual selected line range, e.g. start & end line numbers. By default both are `nil`, this API will automatically try to find user selected line range. You can also overwrite these two fields to force the line numbers in generated url.
+  - `message`: Whether print message in nvim command line. By default use the configured value when this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+  - `highlight_duration`: How long (milliseconds) to highlight the line range. By default use the configured value when this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
+
+#### Returns:
+
+- It returns the generated link as a `string` type, if success.
+- It returns `nil` and print error message in nvim command line, if failed.
+
+##### `gitlinker.Router`
+
+`gitlinker.Router` is a lua function that implements a router for a git host. It use below function signature:
+
+```lua
+function(lk:gitlinker.Linker):string?
+```
+
+**Parameters:**
+
+- `lk`: Lua table that presents the `gitlinker.Linker` data type. It contains all the information (fields) you need to generate a git link, e.g. the `protocol`, `host`, `username`, `path`, `rev`, etc.
+
+  > Please refer to [Customize Urls - Lua Function](#lua-function) for more details.
+
+**Returns:**
+
+- It returns the generated link as a `string` type, if success.
+- It returns `nil`, if failed.
+
+##### `gitlinker.Action`
+
+`gitlinker.Action` is a lua function that do some operations with a generated git link. It use below function signature:
+
+```lua
+function(url:string):any
+```
+
+**Parameters:**
+
+- `url`: The generated git link. For example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7.
+
+For now we have below builtin actions:
+
+- `require("gitlinker.actions").clipboard`: Copy url to clipboard.
+- `require("gitlinker.actions").system`: Open url in browser.
 
 ### Recommended Key Mappings
 
