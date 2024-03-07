@@ -228,7 +228,10 @@ local _link = function(opts)
     opts.action(url --[[@as string]])
   end
 
-  local highlight_duration = opts.highlight_duration or confs.highlight_duration
+  local highlight_duration = confs.highlight_duration
+  if type(opts.highlight_duration) == "number" then
+    highlight_duration = opts.highlight_duration
+  end
   if highlight_duration > 0 then
     highlight.show({ lstart = lk.lstart, lend = lk.lend })
     vim.defer_fn(highlight.clear, confs.highlight_duration)
