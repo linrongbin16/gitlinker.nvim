@@ -145,7 +145,6 @@ You can also use the `link` API to generate git permlink:
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
---- @return string?
 require("gitlinker").link(opts)
 ```
 
@@ -176,11 +175,6 @@ require("gitlinker").link(opts)
   - `message`: Whether print message in nvim command line. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
   - `highlight_duration`: How long (milliseconds) to highlight the line range. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
   - `remote`: Specify the git remote. By default is `nil`, it uses the first detected git remote (usually it's `origin`).
-
-#### Returns:
-
-- It returns the generated link as a `string` type, if success.
-- It returns `nil` and print error message in nvim command line, if failed.
 
 ##### `gitlinker.Router`
 
@@ -217,6 +211,22 @@ For now we have below builtin actions:
 
 - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
 - `require("gitlinker.actions").system`: Open url in browser.
+
+If you only need to get the generated url, instead of do some actions, you can pass a lua function to accept the url:
+
+```lua
+local generated_url = nil
+
+require("gitlinker").link({
+  action = function(url)
+    generated_url = url
+  end,
+})
+
+print("generated url:" .. generated_url)
+```
+
+> The `link` API cannot directly return the generated url because it uses lua coroutine to run underground git commands.
 
 ### Recommended Key Mappings
 

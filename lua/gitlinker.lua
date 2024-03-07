@@ -339,7 +339,6 @@ local function setup(opts)
 end
 
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
---- @return string?
 local function link_api(opts)
   opts = opts
     or {
@@ -361,7 +360,7 @@ local function link_api(opts)
     opts.lend = math.max(r.lstart, r.lend)
   end
 
-  return _void_link({
+  _void_link({
     action = opts.action,
     router = opts.router,
     lstart = opts.lstart,

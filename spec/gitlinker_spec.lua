@@ -720,13 +720,8 @@ describe("gitlinker", function()
       })
     end)
     it("blame", function()
-      gitlinker._void_link({
+      gitlinker.link({
         action = require("gitlinker.actions").clipboard,
-        router = function(lk)
-          return require("gitlinker")._router("blame", lk)
-        end,
-        lstart = 1,
-        lend = 1,
       })
     end)
   end)
