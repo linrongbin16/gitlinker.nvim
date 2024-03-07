@@ -227,7 +227,7 @@ require("gitlinker").link({
 ### Recommended Key Mappings
 
 <details>
-<summary><i>Click here to see lua scripts with vim command</i></summary>
+<summary><i>Click here to see key mappings with vim command</i></summary>
 <br/>
 
 ```lua
@@ -272,13 +272,15 @@ vim.keymap.set(
   "<cmd>GitLink! default_branch<cr>",
   { silent = true, noremap = true, desc = "Open default branch link in browser" }
 )
+```
 
 </details>
 
 <details>
-<summary><i>Click here to see lua scripts with lua api</i></summary>
+<summary><i>Click here to see key mappings with lua api</i></summary>
 <br/>
 
+```lua
 -- with lua api:
 -- browse
 vim.keymap.set(
