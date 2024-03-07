@@ -361,7 +361,7 @@ local function link_api(opts)
     opts.lend = math.max(r.lstart, r.lend)
   end
 
-  _void_link({
+  return _void_link({
     action = opts.action,
     router = opts.router,
     lstart = opts.lstart,

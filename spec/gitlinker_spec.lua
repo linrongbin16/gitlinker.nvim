@@ -701,10 +701,21 @@ describe("gitlinker", function()
 
   describe("[link]", function()
     it("browse", function()
-      local actual1 = gitlinker.link()
-      print(string.format("link-browse-1:%s\n", vim.inspect(actual1)))
-      local actual2 = gitlinker.link({})
-      print(string.format("link-browse-2:%s\n", vim.inspect(actual2)))
+      vim.cmd("edit README.md")
+      local done = false
+      gitlinker.link()
+      gitlinker.link({})
+      gitlinker.link({
+        action = function(url)
+          done = true
+          print(string.format("link-browse-1:%s\n", vim.inspect(url)))
+        end,
+      })
+      for i = 1, 50 do
+        vim.wait(10, function()
+          return done
+        end)
+      end
     end)
     it("blame", function()
       gitlinker._void_link({
