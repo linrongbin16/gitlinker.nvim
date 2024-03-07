@@ -522,7 +522,7 @@ M.has = function(name)
 end
 
 --- @param name string
---- @return commons.logging.Logger?
+--- @return commons.logging.Logger
 M.get = function(name)
   assert(type(name) == "string")
   return NAMESPACE[name]
