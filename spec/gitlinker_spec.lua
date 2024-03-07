@@ -720,9 +720,10 @@ describe("gitlinker", function()
       })
     end)
     it("blame", function()
-      gitlinker.link({
-        action = require("gitlinker.actions").clipboard,
-      })
+      gitlinker.link({ router_type = "blame" })
+    end)
+    it("default_branch", function()
+      gitlinker.link({ router_type = "default_branch" })
     end)
   end)
 end)
