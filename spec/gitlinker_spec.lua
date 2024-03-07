@@ -58,8 +58,30 @@ describe("gitlinker", function()
   local routers = require("gitlinker.routers")
 
   describe("[_url_template_engine]", function()
-    it("test nil parameters", function() end)
-    it("test-1", function() end)
+    it("test nil parameters", function()
+      assert_eq(gitlinker._url_template_engine(nil, "asdfasdf"), nil)
+      assert_eq(gitlinker._url_template_engine({}, nil), nil)
+      assert_eq(gitlinker._url_template_engine({}, ""), nil)
+    end)
+    it("test-1", function()
+      local lk = {
+        remote_url = "git@git.samba.org:samba.git",
+        protocol = nil,
+        username = "git",
+        password = nil,
+        host = "git.samba.org",
+        org = "",
+        repo = "samba.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "wscript",
+        file_changed = false,
+        lstart = 13,
+        lend = 13,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._url_template_engine(lk, "https://{_A.HOST}")
+      print(string.format("_url_template_engine-1:%s\n", vim.inspect(actual)))
+      assert_eq(actual, "https://git.samba.org")
+    end)
   end)
   describe("[_browse]", function()
     it("git.samba.org/samba.git with same lstart/lend", function()
