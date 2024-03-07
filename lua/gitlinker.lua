@@ -382,13 +382,14 @@ local function link_api(opts)
 end
 
 local M = {
-  setup = setup,
+  _url_template_engine = _url_template_engine,
   _void_link = _void_link,
   _worker = _worker,
   _router = _router,
   _browse = _browse,
   _blame = _blame,
 
+  setup = setup,
   link = link_api,
 }
 
