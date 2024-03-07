@@ -152,7 +152,7 @@ You can also use the `link` API to generate git permlink:
 require("gitlinker").link(opts)
 ```
 
-#### Parameters:
+**Parameters:**
 
 - `opts`: (Optional) lua table that contains below fields:
 
