@@ -31,7 +31,7 @@ end
 
 --- @param default string
 function CmdResult:print_err(default)
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   if self:has_err() then
     for _, e in ipairs(self.stderr) do
       logger:err("%s", e)
@@ -260,7 +260,7 @@ end
 --- @param remote string
 --- @return string?
 local function get_closest_remote_compatible_rev(remote)
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
@@ -348,7 +348,7 @@ end
 
 --- @return string?
 local function get_branch_remote()
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   -- origin/upstream
   local remotes = _get_remote()
   if not remotes then
@@ -393,7 +393,7 @@ end
 --- @param remote string
 --- @return string?
 local function get_default_branch(remote)
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
@@ -406,7 +406,7 @@ end
 
 --- @return string?
 local function get_current_branch()
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
   local result = run_cmd(args)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then

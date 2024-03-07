@@ -124,21 +124,23 @@ end
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _router(router_type, lk)
+  local logger = logging.get("gitlinker")
   local confs = configs.get()
-  assert(
+  logger:ensure(
     type(confs._routers[router_type]) == "table",
-    string.format("unknown router type %s!", vim.inspect(router_type))
+    "unknown router type %s!",
+    vim.inspect(router_type)
   )
-  assert(
+  logger:ensure(
     type(confs._routers[router_type].list_routers) == "table",
-    string.format("invalid router type %s! 'list_routers' missing.", vim.inspect(router_type))
+    "invalid router type %s! 'list_routers' missing.",
+    vim.inspect(router_type)
   )
-  assert(
+  logger:ensure(
     type(confs._routers[router_type].map_routers) == "table",
-    string.format("invalid router type %s! 'map_routers' missing.", vim.inspect(router_type))
+    "invalid router type %s! 'map_routers' missing.",
+    vim.inspect(router_type)
   )
-
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
 
   for i, tuple in ipairs(confs._routers[router_type].list_routers) do
     if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
@@ -185,7 +187,7 @@ local function _router(router_type, lk)
       end
     end
   end
-  assert(false, string.format("%s not support, please bind it in 'router'!", vim.inspect(lk.host)))
+  logger:ensure(false, "%s not support, please bind it in 'router'!", vim.inspect(lk.host))
   return nil
 end
 
@@ -204,7 +206,7 @@ end
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?}
 local _link = function(opts)
   local confs = configs.get()
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
   local lk = linker.make_linker(opts.remote)
@@ -290,7 +292,7 @@ local function setup(opts)
     file_log_name = "gitlinker.log",
   })
 
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
 
   -- logger:debug("|setup| confs:%s", vim.inspect(confs))
 
