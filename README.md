@@ -226,7 +226,7 @@ require("gitlinker").link({
 })
 ```
 
-> The `link` API is running in async way because it uses lua coroutine to avoid editor blocking.
+> The `link` API is running in async mode and cannot directly returns the generated link, because it uses lua coroutine to avoid blocking IO.
 
 </details>
 
