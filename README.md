@@ -34,6 +34,8 @@ PRs are welcomed for other git host websites!
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Command](#command)
+  - [Api](#api)
 - [Configuration](#configuration)
   - [Customize Urls](#customize-urls)
     - [String Template](#string-template)
@@ -101,13 +103,15 @@ return require('pckr').add(
 
 ## Usage
 
-You could use below command:
+### Command
+
+This plugin provides a single command `GitLink`:
 
 - `GitLink(!)`: copy the `/blob` url to clipboard (use `!` to open in browser).
 - `GitLink(!) blame`: copy the `/blame` url to clipboard (use `!` to open in browser).
 - `GitLink(!) default_branch`: copy the `/main` or `/master` url to clipboard (use `!` to open in browser).
 
-There're **3 routers** provided:
+There're several **router types**:
 
 - `browse`: generate the `/blob` url (default).
 - `blame`: generate the `/blame` url.
@@ -115,16 +119,17 @@ There're **3 routers** provided:
 
 > [!NOTE]
 >
-> Routers can work for any git hosts, for example for bitbucket.org.
+> A router type is a general collection of router implementations binding on different git hosts, thus it can work for any git hosts, for example for [bitbucket.org](https://bitbucket.org/):
 >
-> - `browse`: generate the `/src` url (default).
-> - `blame`: generate the `/annotate` url.
-> - `default_branch`: generate the `/main` or `/master` url based on actual project.
+> - `browse` generate the `/src` url (default): https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
+> - `blame` generate the `/annotate` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
+> - `default_branch` generate the `/main` or `/master` url based on actual project: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
 
-By default `GitLink` will use the first detected remote (`origin`), but if you need to specify other remotes, please use `remote=xxx` arguments. For example:
+There're several arguments:
 
-- `GitLink remote=upstream`: copy `upstream` url to clipboard.
-- `GitLink! remote=upstream`: open `upstream` url in browser.
+- `remote`: by default `GitLink` will use the first detected remote (usually it's `origin`), but if you need to specify other remotes, please use `remote=xxx`. For example:
+  - `GitLink remote=upstream`: copy `blob` url to clipboard for `upstream`.
+  - `GitLink! blame remote=upstream`: open `blame` url in browser for `upstream`.
 
 <details>
 <summary><i>Click here to see recommended key mappings</i></summary>
