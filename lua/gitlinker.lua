@@ -224,13 +224,11 @@ local _link = function(opts)
   --   vim.inspect(url),
   --   vim.inspect(opts.router)
   -- )
-  assert(
-    ok and type(url) == "string" and string.len(url) > 0,
-    string.format(
-      "fatal: failed to generate permanent url from remote (%s): %s",
-      vim.inspect(lk.remote_url),
-      vim.inspect(url)
-    )
+  logger:ensure(
+    ok and str.not_empty(url),
+    "fatal: failed to generate permanent url from remote (%s): %s",
+    vim.inspect(lk.remote_url),
+    vim.inspect(url)
   )
 
   if opts.action then
@@ -247,7 +245,7 @@ local _link = function(opts)
   if message then
     local msg = lk.file_changed and string.format("%s (lines can be wrong due to file change)", url)
       or url
-    logger:info(msg)
+    logger:info(msg --[[@as string]])
   end
 
   return url

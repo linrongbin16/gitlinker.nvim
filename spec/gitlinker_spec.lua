@@ -56,6 +56,11 @@ describe("gitlinker", function()
   end)
 
   local routers = require("gitlinker.routers")
+
+  describe("[_url_template_engine]", function()
+    it("test nil parameters", function() end)
+    it("test-1", function() end)
+  end)
   describe("[_browse]", function()
     it("git.samba.org/samba.git with same lstart/lend", function()
       local lk = {
