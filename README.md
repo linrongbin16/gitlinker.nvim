@@ -136,7 +136,7 @@ There're several arguments:
 
 > [!NOTE]
 >
-> Highly recommend to read [Customize Urls](#customize-urls) before this section, which helps understand the internal design of this plugin.
+> Highly recommend reading [Customize Urls](#customize-urls) before this section, which helps understanding the router design of this plugin.
 
 You can also use the `link` API to generate git permlink:
 
