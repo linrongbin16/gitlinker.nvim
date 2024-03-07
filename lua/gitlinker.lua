@@ -19,7 +19,7 @@ local function _url_template_engine(lk, template)
     return template
   end
 
-  local logger = logging.get("gitlinker") --[[@as commons.logging.Logger]]
+  local logger = logging.get("gitlinker")
 
   --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
   --- @type gitlinker.UrlTemplateExpr[]
@@ -35,13 +35,11 @@ local function _url_template_engine(lk, template)
     end
     table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
     local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
-    assert(
+    logger:ensure(
       type(close_pos) == "number" and close_pos > open_pos,
-      string.format(
-        "failed to evaluate url template(%s) at pos %d",
-        vim.inspect(template),
-        open_pos + string.len(OPEN_BRACE)
-      )
+      "failed to evaluate url template(%s) at pos %d",
+      vim.inspect(template),
+      open_pos + string.len(OPEN_BRACE)
     )
     table.insert(exprs, {
       plain = false,
@@ -112,7 +110,8 @@ local function _worker(lk, p, r)
   elseif type(r) == "string" then
     return _url_template_engine(lk, r)
   else
-    assert(
+    local logger = logging.get("gitlinker")
+    logger:ensure(
       false,
       string.format("unsupported router %s on pattern %s", vim.inspect(r), vim.inspect(p))
     )
