@@ -64,6 +64,28 @@ require("lazy").setup({
         mode = { "n", "x" },
         desc = "GitLink! blame",
       },
+      {
+        "<leader>gd",
+        function()
+          require("gitlinker").link({
+            action = require("gitlinker.actions").clipboard,
+            router_type = "default_branch",
+          })
+        end,
+        mode = { "n", "x" },
+        desc = "GitLink default_branch",
+      },
+      {
+        "<leader>gD",
+        function()
+          require("gitlinker").link({
+            action = require("gitlinker.actions").system,
+            router_type = "default_branch",
+          })
+        end,
+        mode = { "n", "x" },
+        desc = "GitLink! default_branch",
+      },
     },
   },
 }, {
