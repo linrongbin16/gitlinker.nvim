@@ -234,7 +234,16 @@ local _link = function(opts)
     vim.defer_fn(highlight.clear, confs.highlight_duration)
   end
 
-  local message = type(opts.message) == "boolean" and opts.message or confs.message
+  local message = confs.message
+  if type(opts.message) == "boolean" then
+    message = opts.message
+  end
+  logger:debug(
+    "|_link| message:%s, opts:%s, confs:%s",
+    vim.inspect(message),
+    vim.inspect(opts),
+    vim.inspect(confs)
+  )
   if message then
     local msg = lk.file_changed and string.format("%s (lines can be wrong due to file change)", url)
       or url

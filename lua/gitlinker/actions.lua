@@ -20,7 +20,7 @@ local function system(url)
   else
     job = vim.fn.jobstart({ "xdg-open", url })
   end
-  vim.fn.jobwait({ job })
+  -- vim.fn.jobwait({ job })
 end
 
 local M = {

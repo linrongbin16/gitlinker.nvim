@@ -212,21 +212,17 @@ For now we have below builtin actions:
 - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
 - `require("gitlinker.actions").system`: Open url in browser.
 
-If you only need to get the generated url, instead of do some actions, you can pass a lua function to accept the url:
+If you only need to get the generated url, instead of do some actions, you can pass a callback function to accept the url:
 
 ```lua
-local generated_url = nil
-
 require("gitlinker").link({
   action = function(url)
-    generated_url = url
+    print("generated url:" .. vim.inspect(url))
   end,
 })
-
-print("generated url:" .. generated_url)
 ```
 
-> The `link` API cannot directly return the generated url because it uses lua coroutine to run underground git commands.
+> The `link` API is running in async way because it uses lua coroutine to avoid editor blocking.
 
 ### Recommended Key Mappings
 
