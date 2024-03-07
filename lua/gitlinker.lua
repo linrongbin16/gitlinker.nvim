@@ -374,8 +374,8 @@ end
 
 local M = {
   _url_template_engine = _url_template_engine,
-  _void_link = _void_link,
   _worker = _worker,
+  _void_link = _void_link,
   _router = _router,
   _browse = _browse,
   _blame = _blame,

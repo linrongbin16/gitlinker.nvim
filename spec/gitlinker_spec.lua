@@ -606,6 +606,30 @@ describe("gitlinker", function()
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L13-L21"
       )
     end)
+    it("is invalid", function()
+      local lk = {
+        remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
+        username = "git",
+        host = "my-personal-codeberg.org",
+        org = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 13,
+        lend = 21,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local string_template = "https://codeberg.org/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/blame/commit/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}"
+      local ok, actual = pcall(gitlinker._worker, lk, "pattern", { string_template })
+      assert_false(ok)
+      assert_eq(type(actual), "string")
+    end)
   end)
   describe("[user router types]", function()
     it("default_branch", function()
