@@ -161,6 +161,8 @@ require("gitlinker").link(opts)
 
   - `router`: Which router implementation should this API use. By default is `nil`, it uses the configured router implementations while this plugin is been setup (see [Configuration](#configuration)). You can **_dynamically_** overwrite the generate behavior by pass a router in this field.
 
+    > Once you set this field, you will get full control of generating the url, and `router_type` field will no longer take effect.
+    >
     > Please refer to [`gitlinker.Router`](#gitlinkerrouter) for more details.
 
   - `action`: What action should this API behave. By default is `nil`, this API will copy the generated link to clipboard. It has below builtin options:
