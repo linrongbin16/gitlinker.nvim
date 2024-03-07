@@ -134,6 +134,10 @@ There're several arguments:
 
 ### API
 
+<details>
+<summary><i>Click here to see lua api</i></summary>
+<br/>
+
 > [!NOTE]
 >
 > Highly recommend reading [Customize Urls](#customize-urls) before this section, which helps understanding the router design of this plugin.
@@ -223,6 +227,8 @@ require("gitlinker").link({
 ```
 
 > The `link` API is running in async way because it uses lua coroutine to avoid editor blocking.
+
+</details>
 
 ### Recommended Key Mappings
 
