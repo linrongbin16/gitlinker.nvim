@@ -1,3 +1,4 @@
+local tbl = require("gitlinker.commons.tbl")
 local str = require("gitlinker.commons.str")
 local num = require("gitlinker.commons.num")
 local async = require("gitlinker.commons.async")
@@ -11,12 +12,12 @@ local highlight = require("gitlinker.highlight")
 
 --- @param lk gitlinker.Linker
 --- @param template string
---- @return string
+--- @return string?
 local function _url_template_engine(lk, template)
   local OPEN_BRACE = "{"
   local CLOSE_BRACE = "}"
-  if type(template) ~= "string" or string.len(template) == 0 then
-    return template
+  if str.empty(template) or tbl.tbl_empty(lk) then
+    return nil
   end
 
   local logger = logging.get("gitlinker")
