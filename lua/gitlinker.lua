@@ -76,17 +76,9 @@ local function _url_template_engine(lk, template)
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
-        LEND = (type(lk.lend) == "number" and lk.lend > lk.lstart) and lk.lend or lk.lstart,
-        DEFAULT_BRANCH = (
-          type(lk.default_branch) == "string" and string.len(lk.default_branch) > 0
-        )
-            and lk.default_branch
-          or "",
-        CURRENT_BRANCH = (
-          type(lk.current_branch) == "string" and string.len(lk.current_branch) > 0
-        )
-            and lk.current_branch
-          or "",
+        LEND = num.ge(lk.lend, lk.lstart) and lk.lend or lk.lstart,
+        DEFAULT_BRANCH = str.not_empty(lk.default_branch) and lk.default_branch or "",
+        CURRENT_BRANCH = str.not_empty(lk.current_branch) and lk.current_branch or "",
       })
       logger:debug(
         "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
