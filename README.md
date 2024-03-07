@@ -36,6 +36,7 @@ PRs are welcomed for other git host websites!
 - [Usage](#usage)
   - [Command](#command)
   - [Api](#api)
+  - [Recommended Key Mappings](#recommended-key-mappings)
 - [Configuration](#configuration)
   - [Customize Urls](#customize-urls)
     - [String Template](#string-template)
@@ -131,8 +132,10 @@ There're several arguments:
   - `GitLink remote=upstream`: copy `blob` url to clipboard for `upstream`.
   - `GitLink! blame remote=upstream`: open `blame` url in browser for `upstream`.
 
+### Recommended Key Mappings
+
 <details>
-<summary><i>Click here to see recommended key mappings</i></summary>
+<summary><i>Click here to see lua scripts</i></summary>
 <br/>
 
 ```lua
@@ -161,6 +164,19 @@ vim.keymap.set(
   "<leader>gB",
   "<cmd>GitLink! blame<cr>",
   { silent = true, noremap = true, desc = "Open git blame link in browser" }
+)
+-- default branch
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gd",
+  "<cmd>GitLink default_branch<cr>",
+  { silent = true, noremap = true, desc = "Copy default branch link to clipboard" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gD",
+  "<cmd>GitLink! default_branch<cr>",
+  { silent = true, noremap = true, desc = "Open default branch link in browser" }
 )
 ```
 
