@@ -5,11 +5,14 @@ describe("gitlinker", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  vim.opt.swapfile = false
-  vim.api.nvim_command("cd " .. cwd)
-  vim.cmd([[ edit lua/gitlinker.lua ]])
+  before_each(function()
+    vim.api.nvim_command("cd " .. cwd)
+    vim.opt.swapfile = false
+    vim.cmd([[edit lua/gitlinker.lua]])
+  end)
+
   local gitlinker = require("gitlinker")
-  gitlinker.setup({
+  pcall(gitlinker.setup, {
     debug = true,
     file_log = true,
     router = {
@@ -51,19 +54,6 @@ describe("gitlinker", function()
       },
     },
   })
-
-  before_each(function() end)
-  after_each(function()
-    local done = false
-    vim.defer_fn(function()
-      done = true
-    end, 100)
-    for i = 1, 50 do
-      vim.wait(10, function()
-        return done
-      end)
-    end
-  end)
 
   local routers = require("gitlinker.routers")
 
