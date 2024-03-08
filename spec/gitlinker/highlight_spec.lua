@@ -5,9 +5,8 @@ describe("highlight", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-  end)
+  vim.api.nvim_command("cd " .. cwd)
+  before_each(function() end)
 
   require("gitlinker").setup()
   local highlight = require("gitlinker.highlight")
