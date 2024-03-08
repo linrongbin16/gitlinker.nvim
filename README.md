@@ -134,13 +134,13 @@ There're several arguments:
 
 ### API
 
-<details>
-<summary><i>Click here to see lua api</i></summary>
-<br/>
-
 > [!NOTE]
 >
 > Highly recommend reading [Customize Urls](#customize-urls) before this section, which helps understanding the router design of this plugin.
+
+<details>
+<summary><i>Click here to see lua api</i></summary>
+<br/>
 
 You can also use the `link` API to generate git permlink:
 
