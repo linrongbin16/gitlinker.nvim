@@ -138,6 +138,10 @@ There're several arguments:
 >
 > Highly recommend reading [Customize Urls](#customize-urls) before this section, which helps understanding the router design of this plugin.
 
+<details>
+<summary><i>Click here to see lua api</i></summary>
+<br/>
+
 You can also use the `link` API to generate git permlink:
 
 ```lua
@@ -148,7 +152,7 @@ You can also use the `link` API to generate git permlink:
 require("gitlinker").link(opts)
 ```
 
-#### Parameters:
+**Parameters:**
 
 - `opts`: (Optional) lua table that contains below fields:
 
@@ -222,7 +226,9 @@ require("gitlinker").link({
 })
 ```
 
-> The `link` API is running in async way because it uses lua coroutine to avoid editor blocking.
+> The `link` API is running in async mode and cannot directly returns the generated link, because it uses lua coroutine to avoid blocking IO.
+
+</details>
 
 ### Recommended Key Mappings
 
