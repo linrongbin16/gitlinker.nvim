@@ -88,7 +88,7 @@ jobs:
         shell: bash
         run: |
           luarocks install vusted
-          vusted --shuffle ./spec
+          vusted ./spec
   code_coverage:
     name: Code Coverage
     needs:
