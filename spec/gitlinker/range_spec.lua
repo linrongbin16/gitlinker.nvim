@@ -5,10 +5,9 @@ describe("range", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-    vim.opt.swapfile = false
-  end)
+  vim.api.nvim_command("cd " .. cwd)
+  vim.opt.swapfile = false
+  before_each(function() end)
 
   local range = require("gitlinker.range")
   local gitlinker = require("gitlinker")

@@ -5,11 +5,10 @@ describe("git", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-    vim.opt.swapfile = false
-    vim.cmd([[ edit lua/gitlinker.lua ]])
-  end)
+  vim.api.nvim_command("cd " .. cwd)
+  vim.opt.swapfile = false
+  vim.cmd([[ edit lua/gitlinker.lua ]])
+  before_each(function() end)
 
   local async = require("gitlinker.commons.async")
   local git = require("gitlinker.git")

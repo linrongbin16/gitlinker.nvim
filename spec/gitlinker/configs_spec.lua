@@ -5,9 +5,8 @@ describe("gitlinker", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-  end)
+  vim.api.nvim_command("cd " .. cwd)
+  before_each(function() end)
 
   local configs = require("gitlinker.configs")
 
