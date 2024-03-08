@@ -5,13 +5,12 @@ describe("linker", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
-  before_each(function()
-    vim.api.nvim_command("cd " .. cwd)
-    vim.opt.swapfile = false
-    local gitlinker = require("gitlinker")
-    pcall(gitlinker.setup, {})
-    vim.cmd([[ edit lua/gitlinker.lua ]])
-  end)
+  vim.api.nvim_command("cd " .. cwd)
+  vim.opt.swapfile = false
+  local gitlinker = require("gitlinker")
+  pcall(gitlinker.setup, {})
+  vim.cmd([[ edit lua/gitlinker.lua ]])
+  -- before_each(function() end)
 
   local async = require("gitlinker.commons.async")
   local github_actions = os.getenv("GITHUB_ACTIONS") == "true"
