@@ -111,12 +111,14 @@ You can use the user command `GitLink` to generate git permlink:
 - `GitLink(!)`: copy the `/blob` url to clipboard (use `!` to open in browser).
 - `GitLink(!) blame`: copy the `/blame` url to clipboard (use `!` to open in browser).
 - `GitLink(!) default_branch`: copy the `/main` or `/master` url to clipboard (use `!` to open in browser).
+- `GitLink(!) current_branch`: copy the current branch url to clipboard (use `!` to open in browser).
 
 There're several **router types**:
 
 - `browse`: generate the `/blob` url (default).
 - `blame`: generate the `/blame` url.
 - `default_branch`: generate the `/main` or `/master` url.
+- `current_branch`: generate the current branch url.
 
 > [!NOTE]
 >
@@ -124,7 +126,8 @@ There're several **router types**:
 >
 > - `browse` generate the `/src` url (default): https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
 > - `blame` generate the `/annotate` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
-> - `default_branch` generate the `/main` or `/master` url based on actual project: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
+> - `default_branch` generate the `/main` or `/master` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
+> - `current_branch` generate the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
 
 There're several arguments:
 
@@ -161,6 +164,7 @@ require("gitlinker").link(opts)
     - `browse`
     - `blame`
     - `default_branch`
+    - `current_branch`
 
   - `router`: Which router implementation should this API use. By default is `nil`, it uses the configured router implementations while this plugin is been setup (see [Configuration](#configuration)). You can **_dynamically_** overwrite the generate behavior by pass a router in this field.
 
@@ -278,6 +282,19 @@ vim.keymap.set(
   "<cmd>GitLink! default_branch<cr>",
   { silent = true, noremap = true, desc = "Open default branch link in browser" }
 )
+-- default branch
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gc",
+  "<cmd>GitLink current_branch<cr>",
+  { silent = true, noremap = true, desc = "Copy current branch link to clipboard" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gD",
+  "<cmd>GitLink! current_branch<cr>",
+  { silent = true, noremap = true, desc = "Open current branch link in browser" }
+)
 ```
 
 </details>
@@ -343,6 +360,26 @@ vim.keymap.set(
     })
   end,
   { silent = true, noremap = true, desc = "GitLink! default_branch" }
+)
+-- default branch
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gc",
+  function()
+    require("gitlinker").link({ router_type = "current_branch" })
+  end,
+  { silent = true, noremap = true, desc = "GitLink current_branch" }
+)
+vim.keymap.set(
+  {"n", 'v'},
+  "<leader>gC",
+  function()
+    require("gitlinker").link({
+      router_type = "current_branch",
+      action = require("gitlinker.actions").system,
+    })
+  end,
+  { silent = true, noremap = true, desc = "GitLink! current_branch" }
 )
 ```
 
