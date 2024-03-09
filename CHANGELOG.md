@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.11.0...v4.12.0) (2024-03-09)
+
+
+### Features
+
+* **router:** add 'current_branch' router ([#220](https://github.com/linrongbin16/gitlinker.nvim/issues/220)) ([38ac7df](https://github.com/linrongbin16/gitlinker.nvim/commit/38ac7dfde273fd9342a88c4a0d523708d15e409c))
+
 ## [4.11.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.10.0...v4.11.0) (2024-03-07)
 
 
