@@ -144,13 +144,6 @@ jobs:
           release-type: simple
           package-name: gitlinker.nvim
       - uses: actions/checkout@v4
-      - uses: rickstaa/action-create-tag@v1
-        if: ${{ steps.release.outputs.release_created }}
-        with:
-          tag: stable
-          message: "Current stable release: ${{ steps.release.outputs.tag_name }}"
-          tag_exists_error: false
-          force_push_tag: true
       - uses: nvim-neorocks/luarocks-tag-release@v5
         if: ${{ steps.release.outputs.release_created }}
         env:
