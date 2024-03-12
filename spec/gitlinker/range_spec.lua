@@ -1,6 +1,6 @@
 local cwd = vim.fn.getcwd()
 
-describe("range", function()
+describe("gitlinker.range", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
