@@ -129,11 +129,12 @@ There're several **router types**:
 > - `default_branch` generate the `/main` or `/master` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
 > - `current_branch` generate the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
 
-There're several arguments:
+To specify the remote when there're multiple git remotes, add `remote=xxx` parameter, for example:
 
-- `remote`: by default `GitLink` will use the first detected remote (usually it's `origin`), but if you need to specify other remotes, please use `remote=xxx`. For example:
-  - `GitLink remote=upstream`: copy `blob` url to clipboard for `upstream`.
-  - `GitLink! blame remote=upstream`: open `blame` url in browser for `upstream`.
+- `GitLink remote=upstream`: copy `blob` url to clipboard for the `upstream` remote.
+- `GitLink! blame remote=upstream`: open `blame` url in browser for the `upstream` remote.
+
+> By default `GitLink` will use the first detected remote (usually it's `origin`).
 
 ### API
 
