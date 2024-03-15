@@ -270,6 +270,7 @@ M._merge_routers = function(opts)
   return result
 end
 
+--- @alias gitlinker.Options table<string, any>
 --- @param opts gitlinker.Options?
 --- @return gitlinker.Options
 M.setup = function(opts)
