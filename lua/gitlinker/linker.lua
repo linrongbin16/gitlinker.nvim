@@ -3,7 +3,6 @@ local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
-local uri = require("gitlinker.commons.uri")
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
@@ -62,7 +61,6 @@ local function make_linker(remote)
 
   async.scheduler()
   local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
-  local buf_path_on_root_encoded = uri.encode(buf_path_on_root) --[[@as string]]
   -- logger.debug(
   --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
   --     vim.inspect(root),
@@ -101,7 +99,7 @@ local function make_linker(remote)
     org = parsed_url.org,
     repo = parsed_url.repo,
     rev = rev,
-    file = buf_path_on_root_encoded,
+    file = buf_path_on_root,
     ---@diagnostic disable-next-line: need-check-nil
     lstart = nil,
     ---@diagnostic disable-next-line: need-check-nil
