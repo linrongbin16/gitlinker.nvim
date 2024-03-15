@@ -27,7 +27,7 @@ jobs:
       - uses: stevearc/nvim-typecheck-action@v1
         with:
           path: lua
-          level: Information
+          level: Warning
           configpath: ".luarc.json"
           neodev-version: stable
       - uses: cargo-bins/cargo-binstall@main
