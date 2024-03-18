@@ -112,7 +112,7 @@ local function make_linker(remote)
     current_branch = current_branch,
   }
 
-  logger:debug("|make_linker| o:%s", vim.inspect(o))
+  logger:debug(string.format("|make_linker| o:%s", vim.inspect(o)))
   return o
 end
 
