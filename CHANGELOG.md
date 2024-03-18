@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.0...v4.12.1) (2024-03-18)
+
+
+### Bug Fixes
+
+* **url:** fix url encoding issue ([#226](https://github.com/linrongbin16/gitlinker.nvim/issues/226)) ([4b80c8b](https://github.com/linrongbin16/gitlinker.nvim/commit/4b80c8b067961783e645face5a57a2c20c23f4ed))
+
 ## [4.12.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.11.0...v4.12.0) (2024-03-09)
 
 
