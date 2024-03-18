@@ -76,11 +76,13 @@ PRs are welcomed for other git host websites!
 ```lua
 require("lazy").setup({
   {
-    'linrongbin16/gitlinker.nvim',
-    config = function()
-      require('gitlinker').setup()
-    end,
-  },
+    "linrongbin16/gitlinker.nvim",
+    cmd = "GitLink",
+    opts = {},
+    keys = {
+      { "<leader>gy", "<cmd>GitLink<cr>", desc = "Yank git link" },
+    },
+  }
 })
 ```
 
