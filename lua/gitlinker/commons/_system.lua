@@ -1,3 +1,4 @@
+---@diagnostic disable
 local uv = vim.uv or vim.loop
 
 --- @class vim.SystemOpts

@@ -7,8 +7,8 @@ on:
     branches:
       - master
 concurrency:
-  group: ${{ github.ref }}-ci
-  cancel-in-progress: true
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: ${{ !contains(github.ref, 'master') }}
 jobs:
   commits:
     name: Commits
@@ -24,10 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: JohnnyMorganz/stylua-action@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --config-path .stylua.toml ./lua ./spec
       - uses: stevearc/nvim-typecheck-action@v1
         with:
           path: lua
-          level: Information
+          level: Warning
           configpath: ".luarc.json"
           neodev-version: stable
       - uses: cargo-bins/cargo-binstall@main
@@ -35,11 +40,6 @@ jobs:
         run: |
           cargo binstall --no-confirm selene
           selene --config selene.toml ./lua
-      - uses: JohnnyMorganz/stylua-action@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: --config-path .stylua.toml ./lua ./spec
       - name: Install commons.nvim
         if: ${{ github.ref != 'refs/heads/master' }}
         shell: bash
