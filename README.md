@@ -408,9 +408,7 @@ For complete default options, please see `Defaults` in [configs.lua](https://git
 >
 > Please refer to `Defaults.router` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
 
-To create customized urls for other git hosts, please bind the target git host name with a new router.
-
-A router simply constructs the url string from below components (upper case with prefix `_A.`):
+To create customized urls for other git hosts, please bind the target git host name with a new router. A router simply constructs the url string from below components (upper case with prefix `_A.`):
 
 - `_A.PROTOCOL`: Network protocol before `://` delimiter, for example:
   - `https` in `https://github.com`.
