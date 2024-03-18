@@ -248,8 +248,8 @@ local _link = function(opts)
     vim.inspect(confs)
   )
   if message then
-    local msg = lk.file_changed and string.format("%s (lines can be wrong due to file change)", url)
-      or url
+    local msg = lk.file_changed and url .. " (lines can be wrong due to file change)" or url --[[@as string]]
+    msg = msg:gsub("%%", "%%%%")
     logger:info(msg --[[@as string]])
   end
 
