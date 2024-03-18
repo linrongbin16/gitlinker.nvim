@@ -8,7 +8,7 @@ on:
       - master
 concurrency:
   group: ${{ github.ref }}-ci
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !contains(github.ref, 'master') }}
 jobs:
   commits:
     name: Commits
