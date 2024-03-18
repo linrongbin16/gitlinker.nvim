@@ -28,14 +28,16 @@ local function make_linker(remote)
     return nil
   end
 
-  local parsed_url, parsed_err = giturlparser.parse(remote_url)
+  local parsed_url, parsed_err = giturlparser.parse(remote_url) --[[@as table, string?]]
   logger:debug(
-    "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
-    vim.inspect(remote),
-    vim.inspect(parsed_url),
-    vim.inspect(parsed_err)
+    string.format(
+      "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
+      vim.inspect(remote),
+      vim.inspect(parsed_url),
+      vim.inspect(parsed_err)
+    )
   )
-  assert(
+  logger:ensure(
     parsed_url ~= nil,
     string.format(
       "failed to parse git remote url:%s, error:%s",
@@ -43,7 +45,6 @@ local function make_linker(remote)
       vim.inspect(parsed_err)
     )
   )
-
   local resolved_host = git.resolve_host(parsed_url.host)
   if not resolved_host then
     return nil
