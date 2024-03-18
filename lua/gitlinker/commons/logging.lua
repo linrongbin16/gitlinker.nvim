@@ -318,9 +318,8 @@ end
 
 --- @param dbg debuginfo?
 --- @param lvl integer
---- @param fmt string
---- @param ... any
-function Logger:_log(dbg, lvl, fmt, ...)
+--- @param msg string
+function Logger:_log(dbg, lvl, msg)
   assert(type(lvl) == "number" and LogLevelNames[lvl] ~= nil)
 
   local uv = require("gitlinker.commons.uv")
@@ -328,8 +327,6 @@ function Logger:_log(dbg, lvl, fmt, ...)
   if lvl < self.level then
     return
   end
-
-  local msg = string.format(fmt, ...)
 
   for _, handler in ipairs(self.handlers) do
     local secs, millis = uv.gettimeofday()
@@ -351,9 +348,8 @@ function Logger:_log(dbg, lvl, fmt, ...)
 end
 
 --- @param level integer|string
---- @param fmt string
---- @param ... any
-function Logger:log(level, fmt, ...)
+--- @param msg string
+function Logger:log(level, msg)
   if type(level) == "string" then
     assert(LogLevels[string.upper(level)] ~= nil)
     level = LogLevels[string.upper(level)]
@@ -368,12 +364,11 @@ function Logger:log(level, fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, level, fmt, ...)
+  self:_log(dbg, level, msg)
 end
 
---- @param fmt string
---- @param ... any
-function Logger:debug(fmt, ...)
+--- @param msg string
+function Logger:debug(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -383,12 +378,11 @@ function Logger:debug(fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, LogLevels.DEBUG, fmt, ...)
+  self:_log(dbg, LogLevels.DEBUG, msg)
 end
 
---- @param fmt string
---- @param ... any
-function Logger:info(fmt, ...)
+--- @param msg string
+function Logger:info(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -398,12 +392,11 @@ function Logger:info(fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, LogLevels.INFO, fmt, ...)
+  self:_log(dbg, LogLevels.INFO, msg)
 end
 
---- @param fmt string
---- @param ... any
-function Logger:warn(fmt, ...)
+--- @param msg string
+function Logger:warn(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -413,12 +406,11 @@ function Logger:warn(fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, LogLevels.WARN, fmt, ...)
+  self:_log(dbg, LogLevels.WARN, msg)
 end
 
---- @param fmt string
---- @param ... any
-function Logger:err(fmt, ...)
+--- @param msg string
+function Logger:err(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -428,12 +420,11 @@ function Logger:err(fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, LogLevels.ERROR, fmt, ...)
+  self:_log(dbg, LogLevels.ERROR, msg)
 end
 
---- @param fmt string
---- @param ... any
-function Logger:throw(fmt, ...)
+--- @param msg string
+function Logger:throw(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -443,14 +434,13 @@ function Logger:throw(fmt, ...)
     end
     dbglvl = dbglvl + 1
   end
-  self:_log(dbg, LogLevels.ERROR, fmt, ...)
-  error(string.format(fmt, ...))
+  self:_log(dbg, LogLevels.ERROR, msg)
+  error(msg)
 end
 
 --- @param cond any
---- @param fmt string
---- @param ... any
-function Logger:ensure(cond, fmt, ...)
+--- @param msg string
+function Logger:ensure(cond, msg)
   if not cond then
     local dbglvl = 2
     local dbg = nil
@@ -461,9 +451,9 @@ function Logger:ensure(cond, fmt, ...)
       end
       dbglvl = dbglvl + 1
     end
-    self:_log(dbg, LogLevels.ERROR, fmt, ...)
+    self:_log(dbg, LogLevels.ERROR, msg)
   end
-  assert(cond, string.format(fmt, ...))
+  assert(cond, msg)
 end
 
 M.Logger = Logger
@@ -539,9 +529,8 @@ end
 local ROOT = "root"
 
 --- @param level integer|string
---- @param fmt string
---- @param ... any
-M.log = function(level, fmt, ...)
+--- @param msg string
+M.log = function(level, msg)
   if type(level) == "string" then
     assert(LogLevels[string.upper(level)] ~= nil)
     level = LogLevels[string.upper(level)]
@@ -558,12 +547,11 @@ M.log = function(level, fmt, ...)
   end
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, level, fmt, ...)
+  logger:_log(dbg, level, msg)
 end
 
---- @param fmt string
---- @param ... any
-M.debug = function(fmt, ...)
+--- @param msg string
+M.debug = function(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -575,12 +563,11 @@ M.debug = function(fmt, ...)
   end
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, LogLevels.DEBUG, fmt, ...)
+  logger:_log(dbg, LogLevels.DEBUG, msg)
 end
 
---- @param fmt string
---- @param ... any
-M.info = function(fmt, ...)
+--- @param msg string
+M.info = function(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -592,21 +579,19 @@ M.info = function(fmt, ...)
   end
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, LogLevels.INFO, fmt, ...)
+  logger:_log(dbg, LogLevels.INFO, msg)
 end
 
---- @param fmt string
---- @param ... any
-M.warn = function(fmt, ...)
+--- @param msg string
+M.warn = function(msg)
   local dbg = debug.getinfo(2, "nfSl")
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, LogLevels.WARN, fmt, ...)
+  logger:_log(dbg, LogLevels.WARN, msg)
 end
 
---- @param fmt string
---- @param ... any
-M.err = function(fmt, ...)
+--- @param msg string
+M.err = function(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -618,12 +603,11 @@ M.err = function(fmt, ...)
   end
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, LogLevels.ERROR, fmt, ...)
+  logger:_log(dbg, LogLevels.ERROR, msg)
 end
 
---- @param fmt string
---- @param ... any
-M.throw = function(fmt, ...)
+--- @param msg string
+M.throw = function(msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -635,14 +619,13 @@ M.throw = function(fmt, ...)
   end
   local logger = M.get(ROOT)
   assert(logger ~= nil)
-  logger:_log(dbg, LogLevels.ERROR, fmt, ...)
-  error(string.format(fmt, ...))
+  logger:_log(dbg, LogLevels.ERROR, msg)
+  error(msg)
 end
 
 --- @param cond any
---- @param fmt string
---- @param ... any
-M.ensure = function(cond, fmt, ...)
+--- @param msg string
+M.ensure = function(cond, msg)
   local dbglvl = 2
   local dbg = nil
   while true do
@@ -655,9 +638,9 @@ M.ensure = function(cond, fmt, ...)
   local logger = M.get(ROOT)
   assert(logger ~= nil)
   if not cond then
-    logger:_log(dbg, LogLevels.ERROR, fmt, ...)
+    logger:_log(dbg, LogLevels.ERROR, msg)
   end
-  assert(cond, string.format(fmt, ...))
+  assert(cond, msg)
 end
 
 return M
