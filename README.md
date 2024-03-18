@@ -127,7 +127,7 @@ There're several **router types**:
 > - `browse` generate the `/src` url (default): https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
 > - `blame` generate the `/annotate` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
 > - `default_branch` generate the `/main` or `/master` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
-> - `current_branch` generate the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
+> - `current_branch` generate the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14.
 
 To specify the remote when there're multiple git remotes, add `remote=xxx` parameter, for example:
 
@@ -408,9 +408,7 @@ For complete default options, please see `Defaults` in [configs.lua](https://git
 >
 > Please refer to `Defaults.router` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples about string template.
 
-To create customized urls for other git hosts, please bind the target git host name with a new router.
-
-A router simply constructs the url string from below components (upper case with prefix `_A.`):
+To create customized urls for other git hosts, please bind the target git host name with a new router. A router simply constructs the url string from below components (upper case with prefix `_A.`):
 
 - `_A.PROTOCOL`: Network protocol before `://` delimiter, for example:
   - `https` in `https://github.com`.
@@ -476,15 +474,15 @@ require("gitlinker").setup({
 })
 ```
 
-The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (while the error message can be confusing if there's any syntax issue).
+The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), while the error message can be confusing if there's any syntax issue.
 
 #### Lua Function
 
 > [!NOTE]
 >
-> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for builtin routers implementation.
+> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples about function-based routers.
 
-You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
+You can also bind a lua function to the git host, the function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
 
 - `protocol`
 - `username`
@@ -506,7 +504,7 @@ The 2 branch components are:
 - `default_branch`
 - `current_branch`
 
-Thus you can use below lua function to implement your router:
+Thus you can implement your router with below lua function:
 
 ```lua
 --- @param s string

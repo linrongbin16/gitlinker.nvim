@@ -116,7 +116,7 @@ end
 local function samba_browse(lk)
   local logger = logging.get("gitlinker")
 
-  logger:debug("|samba_browse| lk:%s", vim.inspect(lk))
+  logger:debug(string.format("|samba_browse| lk:%s", vim.inspect(lk)))
   local builder = "https://git.samba.org/?p="
   -- org
   builder = builder .. (string.len(lk.org) > 0 and string.format("%s/", lk.org) or "")

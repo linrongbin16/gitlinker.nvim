@@ -34,10 +34,10 @@ function CmdResult:print_err(default)
   local logger = logging.get("gitlinker")
   if self:has_err() then
     for _, e in ipairs(self.stderr) do
-      logger:err("%s", e)
+      logger:err(e)
     end
   else
-    logger:err("fatal: %s", default)
+    logger:err("fatal: " .. default)
   end
 end
 
@@ -317,7 +317,7 @@ local function get_closest_remote_compatible_rev(remote)
     return remote_rev
   end
 
-  logger:err("fatal: failed to get closest revision in that exists in remote '%s'", remote)
+  logger:err("fatal: failed to get closest revision in that exists in remote: " .. remote)
   return nil
 end
 
@@ -372,7 +372,7 @@ local function get_branch_remote()
     upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
 
   if not remote_from_upstream_branch then
-    logger:err("fatal: cannot parse remote name from remote branch '%s'", upstream_branch)
+    logger:err("fatal: cannot parse remote name from remote branch: " .. upstream_branch)
     return nil
   end
 
@@ -383,9 +383,11 @@ local function get_branch_remote()
   end
 
   logger:err(
-    "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
-    remote_from_upstream_branch,
-    upstream_branch
+    string.format(
+      "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
+      remote_from_upstream_branch,
+      upstream_branch
+    )
   )
   return nil
 end
@@ -399,7 +401,13 @@ local function get_default_branch(remote)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug("|get_default_branch| running %s: %s", vim.inspect(args), vim.inspect(result.stdout))
+  logger:debug(
+    string.format(
+      "|get_default_branch| running %s: %s",
+      vim.inspect(args),
+      vim.inspect(result.stdout)
+    )
+  )
   local splits = vim.split(result.stdout[1], "/", { plain = true, trimempty = true })
   return splits[#splits]
 end
@@ -412,7 +420,13 @@ local function get_current_branch()
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug("|get_current_branch| running %s: %s", vim.inspect(args), vim.inspect(result.stdout))
+  logger:debug(
+    string.format(
+      "|get_current_branch| running %s: %s",
+      vim.inspect(args),
+      vim.inspect(result.stdout)
+    )
+  )
   return result.stdout[1]
 end
 

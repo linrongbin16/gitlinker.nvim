@@ -38,9 +38,11 @@ local function _url_template_engine(lk, template)
     local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     logger:ensure(
       type(close_pos) == "number" and close_pos > open_pos,
-      "failed to evaluate url template(%s) at pos %d",
-      vim.inspect(template),
-      open_pos + string.len(OPEN_BRACE)
+      string.format(
+        "failed to evaluate url template(%s) at pos %d",
+        vim.inspect(template),
+        open_pos + string.len(OPEN_BRACE)
+      )
     )
     table.insert(exprs, {
       plain = false,
@@ -81,10 +83,12 @@ local function _url_template_engine(lk, template)
         CURRENT_BRANCH = str.not_empty(lk.current_branch) and lk.current_branch or "",
       })
       logger:debug(
-        "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
-        vim.inspect(exp.body),
-        vim.inspect(lk),
-        vim.inspect(evaluated)
+        string.format(
+          "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
+          vim.inspect(exp.body),
+          vim.inspect(lk),
+          vim.inspect(evaluated)
+        )
       )
       table.insert(results, evaluated)
     end
@@ -121,18 +125,15 @@ local function _router(router_type, lk)
   local confs = configs.get()
   logger:ensure(
     type(confs._routers[router_type]) == "table",
-    "unknown router type %s!",
-    vim.inspect(router_type)
+    string.format("unknown router type %s!", vim.inspect(router_type))
   )
   logger:ensure(
     type(confs._routers[router_type].list_routers) == "table",
-    "invalid router type %s! 'list_routers' missing.",
-    vim.inspect(router_type)
+    string.format("invalid router type %s! 'list_routers' missing.", vim.inspect(router_type))
   )
   logger:ensure(
     type(confs._routers[router_type].map_routers) == "table",
-    "invalid router type %s! 'map_routers' missing.",
-    vim.inspect(router_type)
+    string.format("invalid router type %s! 'map_routers' missing.", vim.inspect(router_type))
   )
 
   for i, tuple in ipairs(confs._routers[router_type].list_routers) do
@@ -180,7 +181,10 @@ local function _router(router_type, lk)
       end
     end
   end
-  logger:ensure(false, "%s not support, please bind it in 'router'!", vim.inspect(lk.host))
+  logger:ensure(
+    false,
+    string.format("%s not support, please bind it in 'router'!", vim.inspect(lk.host))
+  )
   return nil
 end
 
@@ -219,9 +223,11 @@ local _link = function(opts)
   -- )
   logger:ensure(
     ok and str.not_empty(url),
-    "fatal: failed to generate permanent url from remote (%s): %s",
-    vim.inspect(lk.remote_url),
-    vim.inspect(url)
+    string.format(
+      "fatal: failed to generate permanent url from remote (%s): %s",
+      vim.inspect(lk.remote_url),
+      vim.inspect(url)
+    )
   )
 
   if opts.action then
@@ -242,10 +248,12 @@ local _link = function(opts)
     message = opts.message
   end
   logger:debug(
-    "|_link| message:%s, opts:%s, confs:%s",
-    vim.inspect(message),
-    vim.inspect(opts),
-    vim.inspect(confs)
+    string.format(
+      "|_link| message:%s, opts:%s, confs:%s",
+      vim.inspect(message),
+      vim.inspect(opts),
+      vim.inspect(confs)
+    )
   )
   if message then
     local msg = lk.file_changed and url .. " (lines can be wrong due to file change)" or url --[[@as string]]
@@ -294,10 +302,6 @@ local function setup(opts)
     file_log = confs.file_log,
     file_log_name = "gitlinker.log",
   })
-
-  local logger = logging.get("gitlinker")
-
-  -- logger:debug("|setup| confs:%s", vim.inspect(confs))
 
   -- command
   vim.api.nvim_create_user_command(confs.command.name, function(command_opts)
