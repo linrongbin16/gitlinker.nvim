@@ -482,7 +482,7 @@ The template string use curly braces `{}` to contain lua scripts, and evaluate v
 >
 > Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples about function-based routers.
 
-You can also bind a lua function to it, which accepts a lua table parameter that contains the same fields, but in lower case, without the prefix `_A.`:
+You can also bind a lua function to the git host, the function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
 
 - `protocol`
 - `username`
@@ -504,7 +504,7 @@ The 2 branch components are:
 - `default_branch`
 - `current_branch`
 
-Thus you can use below lua function to implement your router:
+Thus you can implement your router with below lua function:
 
 ```lua
 --- @param s string
