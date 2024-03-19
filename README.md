@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD013 MD034 MD033 -->
+<!-- markdownlint-disable MD001 MD013 MD034 MD033 -->
 
 # gitlinker.nvim
 
@@ -80,9 +80,10 @@ require("lazy").setup({
     cmd = "GitLink",
     opts = {},
     keys = {
-      { "<leader>gy", "<cmd>GitLink<cr>", desc = "Yank git link" },
+      { "<leader>gy", "<cmd>GitLink<cr>", mode = { "n", "v" }, desc = "Yank git link" },
+      { "<leader>gY", "<cmd>GitLink!<cr>", mode = { "n", "v" }, desc = "Open git link" },
     },
-  }
+  },
 })
 ```
 
@@ -251,52 +252,52 @@ vim.keymap.set(
   {"n", 'v'},
   "<leader>gl",
   "<cmd>GitLink<cr>",
-  { silent = true, noremap = true, desc = "Copy git permlink to clipboard" }
+  { silent = true, noremap = true, desc = "Yank git permlink" }
 )
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gL",
   "<cmd>GitLink!<cr>",
-  { silent = true, noremap = true, desc = "Open git permlink in browser" }
+  { silent = true, noremap = true, desc = "Open git permlink" }
 )
 -- blame
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gb",
   "<cmd>GitLink blame<cr>",
-  { silent = true, noremap = true, desc = "Copy git blame link to clipboard" }
+  { silent = true, noremap = true, desc = "Yank git blame link" }
 )
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gB",
   "<cmd>GitLink! blame<cr>",
-  { silent = true, noremap = true, desc = "Open git blame link in browser" }
+  { silent = true, noremap = true, desc = "Open git blame link" }
 )
 -- default branch
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gd",
   "<cmd>GitLink default_branch<cr>",
-  { silent = true, noremap = true, desc = "Copy default branch link to clipboard" }
+  { silent = true, noremap = true, desc = "Copy default branch link" }
 )
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gD",
   "<cmd>GitLink! default_branch<cr>",
-  { silent = true, noremap = true, desc = "Open default branch link in browser" }
+  { silent = true, noremap = true, desc = "Open default branch link" }
 )
 -- default branch
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gc",
   "<cmd>GitLink current_branch<cr>",
-  { silent = true, noremap = true, desc = "Copy current branch link to clipboard" }
+  { silent = true, noremap = true, desc = "Copy current branch link" }
 )
 vim.keymap.set(
   {"n", 'v'},
   "<leader>gD",
   "<cmd>GitLink! current_branch<cr>",
-  { silent = true, noremap = true, desc = "Open current branch link in browser" }
+  { silent = true, noremap = true, desc = "Open current branch link" }
 )
 ```
 
