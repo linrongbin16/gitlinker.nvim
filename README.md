@@ -507,7 +507,7 @@ The 2 branch components are:
 - `default_branch`
 - `current_branch`
 
-Thus you can implement your router with below lua function:
+Recall to previous use case, e.g. customize the line numbers in form `?&line=1&lines-count=2`, you can implement the router with below function:
 
 ```lua
 --- @param s string
