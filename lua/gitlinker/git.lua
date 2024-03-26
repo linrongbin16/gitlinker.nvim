@@ -44,6 +44,8 @@ end
 --- NOTE: async functions can't have optional parameters so wrap it into another function without '_'
 local _run_cmd = async.wrap(function(args, cwd, callback)
   local result = CmdResult:new()
+  local logger = logging.get("gitlinker")
+  logger:debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
   spawn.run(args, {
     cwd = cwd,
