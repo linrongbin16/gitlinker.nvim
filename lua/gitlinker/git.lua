@@ -72,10 +72,11 @@ local function run_cmd(args, cwd)
 end
 
 --- @package
+--- @param cwd string?
 --- @return string[]|nil
-local function _get_remote()
+local function _get_remote(cwd)
   local args = { "git", "remote" }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     result:print_err("fatal: git repo has no remote")
     return nil
@@ -89,11 +90,12 @@ local function _get_remote()
 end
 
 --- @param remote string
+--- @param cwd string?
 --- @return string?
-local function get_remote_url(remote)
+local function get_remote_url(remote, cwd)
   assert(remote, "remote cannot be nil")
   local args = { "git", "remote", "get-url", remote }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if not result:has_out() then
     result:print_err("fatal: failed to get remote url by remote '" .. remote .. "'")
     return nil
@@ -108,10 +110,11 @@ end
 
 --- @package
 --- @param revspec string?
+--- @param cwd string?
 --- @return string?
-local function _get_rev(revspec)
+local function _get_rev(revspec, cwd)
   local args = { "git", "rev-parse", revspec }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   -- logger.debug(
   --   "|git._get_rev| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -123,10 +126,11 @@ end
 
 --- @package
 --- @param revspec string
+--- @param cwd string?
 --- @return string?
-local function _get_rev_name(revspec)
+local function _get_rev_name(revspec, cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", revspec }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if not result:has_out() then
     result:print_err("fatal: git branch has no remote")
     return nil
@@ -141,10 +145,11 @@ end
 
 --- @param file string
 --- @param revspec string
+--- @param cwd string?
 --- @return boolean
-local function is_file_in_rev(file, revspec)
+local function is_file_in_rev(file, revspec, cwd)
   local args = { "git", "cat-file", "-e", revspec .. ":" .. file }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if result:has_err() then
     result:print_err("fatal: '" .. file .. "' does not exist in remote '" .. revspec .. "'")
     return false
@@ -159,10 +164,11 @@ end
 
 --- @param file string
 --- @param rev string
+--- @param cwd string?
 --- @return boolean
-local function file_has_changed(file, rev)
+local function file_has_changed(file, rev, cwd)
   local args = { "git", "diff", rev, "--", file }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   -- logger.debug(
   --   "|git.has_file_changed| running %s: %s",
   --   vim.inspect(args),
@@ -174,10 +180,11 @@ end
 --- @package
 --- @param revspec string
 --- @param remote string
+--- @param cwd string?
 --- @return boolean
-local function _is_rev_in_remote(revspec, remote)
+local function _is_rev_in_remote(revspec, remote, cwd)
   local args = { "git", "branch", "--remotes", "--contains", revspec }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   -- logger.debug(
   --   "|git._is_rev_in_remote| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -195,10 +202,11 @@ end
 
 --- @package
 --- @param remote string
+--- @param cwd string?
 --- @return boolean
-local function _has_remote_fetch_config(remote)
+local function _has_remote_fetch_config(remote, cwd)
   local args = { "git", "config", string.format("remote.%s.fetch", remote) }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   -- logger.debug(
   --   "|git._has_remote_fetch_config| running %s: %s (error:%s)",
   --   vim.inspect(args),
@@ -260,13 +268,14 @@ local function resolve_host(host)
 end
 
 --- @param remote string
+--- @param cwd string?
 --- @return string?
-local function get_closest_remote_compatible_rev(remote)
+local function get_closest_remote_compatible_rev(remote, cwd)
   local logger = logging.get("gitlinker")
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
-  local upstream_rev = _get_rev("@{u}")
+  local upstream_rev = _get_rev("@{u}", cwd)
   -- logger.debug(
   --   "|git.get_closest_remote_compatible_rev| running _get_rev:%s",
   --   vim.inspect(upstream_rev)
@@ -279,14 +288,14 @@ local function get_closest_remote_compatible_rev(remote)
 
   -- try HEAD
   if remote_fetch_configured then
-    if _is_rev_in_remote("HEAD", remote) then
-      local head_rev = _get_rev("HEAD")
+    if _is_rev_in_remote("HEAD", remote, cwd) then
+      local head_rev = _get_rev("HEAD", cwd)
       if head_rev then
         return head_rev
       end
     end
   else
-    local head_rev = _get_rev("HEAD")
+    local head_rev = _get_rev("HEAD", cwd)
     if head_rev then
       return head_rev
     end
@@ -296,8 +305,8 @@ local function get_closest_remote_compatible_rev(remote)
   if remote_fetch_configured then
     for i = 1, 50 do
       local revspec = "HEAD~" .. i
-      if _is_rev_in_remote(revspec, remote) then
-        local rev = _get_rev(revspec)
+      if _is_rev_in_remote(revspec, remote, cwd) then
+        local rev = _get_rev(revspec, cwd)
         if rev then
           return rev
         end
@@ -306,7 +315,7 @@ local function get_closest_remote_compatible_rev(remote)
   else
     for i = 1, 50 do
       local revspec = "HEAD~" .. i
-      local rev = _get_rev(revspec)
+      local rev = _get_rev(revspec, cwd)
       if rev then
         return rev
       end
@@ -314,7 +323,7 @@ local function get_closest_remote_compatible_rev(remote)
   end
 
   -- try remote HEAD
-  local remote_rev = _get_rev(remote)
+  local remote_rev = _get_rev(remote, cwd)
   if remote_rev then
     return remote_rev
   end
@@ -323,12 +332,11 @@ local function get_closest_remote_compatible_rev(remote)
   return nil
 end
 
+--- @param cwd string?
 --- @return string?
-local function get_root()
-  local buf_path = vim.api.nvim_buf_get_name(0)
-  local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
+local function get_root(cwd)
   local args = { "git", "rev-parse", "--show-toplevel" }
-  local result = run_cmd(args, buf_dir)
+  local result = run_cmd(args, cwd)
   -- logger.debug(
   --     "|git.get_root| buf_path:%s, buf_dir:%s, result:%s",
   --     vim.inspect(buf_path),
@@ -348,11 +356,12 @@ local function get_root()
   return result.stdout[1]
 end
 
+--- @param cwd string?
 --- @return string?
-local function get_branch_remote()
+local function get_branch_remote(cwd)
   local logger = logging.get("gitlinker")
   -- origin/upstream
-  local remotes = _get_remote()
+  local remotes = _get_remote(cwd)
   if not remotes then
     return nil
   end
@@ -362,7 +371,7 @@ local function get_branch_remote()
   end
 
   -- origin/linrongbin16/add-rule2
-  local upstream_branch = _get_rev_name("@{u}")
+  local upstream_branch = _get_rev_name("@{u}", cwd)
   if not upstream_branch then
     return nil
   end
@@ -395,11 +404,12 @@ local function get_branch_remote()
 end
 
 --- @param remote string
+--- @param cwd string?
 --- @return string?
-local function get_default_branch(remote)
+local function get_default_branch(remote, cwd)
   local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
@@ -414,11 +424,12 @@ local function get_default_branch(remote)
   return splits[#splits]
 end
 
+--- @param cwd string?
 --- @return string?
-local function get_current_branch()
+local function get_current_branch(cwd)
   local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
