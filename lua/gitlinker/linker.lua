@@ -1,29 +1,50 @@
 local logging = require("gitlinker.commons.logging")
+local str = require("gitlinker.commons.str")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
 local uri = require("gitlinker.commons.uri")
 
+--- @return string?
+local function _get_buf_dir()
+  local logger = logging.get("gitlinker")
+  local buf_path = vim.api.nvim_buf_get_name(0)
+  local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
+  logger:debug(
+    string.format(
+      "|_get_buf_dir| buf_path:%s, buf_dir:%s",
+      vim.inspect(buf_path),
+      vim.inspect(buf_dir)
+    )
+  )
+  if str.empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
+    return nil
+  end
+  return buf_dir
+end
+
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @return gitlinker.Linker?
 local function make_linker(remote)
   local logger = logging.get("gitlinker")
+  local cwd = _get_buf_dir()
 
-  local root = git.get_root()
+  local root = git.get_root(cwd)
   if not root then
     return nil
   end
 
-  remote = (type(remote) == "string" and string.len(remote) > 0) and remote
-    or git.get_branch_remote()
+  if str.empty(remote) then
+    remote = git.get_branch_remote(cwd)
+  end
   if not remote then
     return nil
   end
   -- logger.debug("|linker - Linker:make| remote:%s", vim.inspect(remote))
 
-  local remote_url = git.get_remote_url(remote)
+  local remote_url = git.get_remote_url(remote, cwd)
   if not remote_url then
     return nil
   end
@@ -55,7 +76,7 @@ local function make_linker(remote)
   --     vim.inspect(remote_url)
   -- )
 
-  local rev = git.get_closest_remote_compatible_rev(remote)
+  local rev = git.get_closest_remote_compatible_rev(remote, cwd)
   if not rev then
     return nil
   end
@@ -70,7 +91,7 @@ local function make_linker(remote)
   --     vim.inspect(buf_path_on_root)
   -- )
 
-  local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev)
+  local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev, cwd)
   if not file_in_rev_result then
     return nil
   end
@@ -81,14 +102,14 @@ local function make_linker(remote)
 
   async.scheduler()
   local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-  local file_changed = git.file_has_changed(buf_path_on_cwd, rev)
+  local file_changed = git.file_has_changed(buf_path_on_cwd, rev, cwd)
   -- logger.debug(
   --     "|linker - Linker:make| buf_path_on_cwd:%s",
   --     vim.inspect(buf_path_on_cwd)
   -- )
 
-  local default_branch = git.get_default_branch(remote)
-  local current_branch = git.get_current_branch()
+  local default_branch = git.get_default_branch(remote, cwd)
+  local current_branch = git.get_current_branch(cwd)
 
   local o = {
     remote_url = remote_url,
