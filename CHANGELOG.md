@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.1...v4.12.2) (2024-03-26)
+
+
+### Bug Fixes
+
+* fix repository root detection ([#232](https://github.com/linrongbin16/gitlinker.nvim/issues/232)) ([47d163f](https://github.com/linrongbin16/gitlinker.nvim/commit/47d163f0ea6feeb7207ac39f24e97f41634338a2))
+
 ## [4.12.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.0...v4.12.1) (2024-03-18)
 
 
