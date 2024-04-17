@@ -7,7 +7,11 @@ M.encode = function(value, rfc)
   if type(value) ~= "string" then
     return nil
   end
-  return require("gitlinker.commons._uri").uri_encode(value, rfc)
+  if vim.is_callable(vim.uri_encode) then
+    return vim.uri_encode(value, rfc)
+  else
+    return require("gitlinker.commons._uri").uri_encode(value, rfc)
+  end
 end
 
 ---@param value string?
@@ -16,7 +20,11 @@ M.decode = function(value)
   if type(value) ~= "string" then
     return nil
   end
-  return require("gitlinker.commons._uri").uri_decode(value)
+  if vim.is_callable(vim.uri_decode) then
+    return vim.uri_decode(value)
+  else
+    return require("gitlinker.commons._uri").uri_decode(value)
+  end
 end
 
 return M

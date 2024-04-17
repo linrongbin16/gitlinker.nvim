@@ -60,6 +60,7 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
       end
     end,
   }, function()
+    logger:debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
     callback(result)
   end)
 end, 3)
@@ -366,7 +367,7 @@ local function get_branch_remote(cwd)
     return nil
   end
 
-  if #remotes == 1 then
+  if #remotes >= 1 then
     return remotes[1]
   end
 
