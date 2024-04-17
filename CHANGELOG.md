@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.3](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.2...v4.12.3) (2024-04-17)
+
+
+### Bug Fixes
+
+* **git:** fix older commits and multiple remotes ([#235](https://github.com/linrongbin16/gitlinker.nvim/issues/235)) ([80bc2ed](https://github.com/linrongbin16/gitlinker.nvim/commit/80bc2eded9a36881b4e031bd8a9a54964ebd8793))
+
 ## [4.12.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.1...v4.12.2) (2024-03-26)
 
 
