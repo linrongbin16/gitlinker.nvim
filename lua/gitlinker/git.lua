@@ -367,7 +367,7 @@ local function get_branch_remote(cwd)
     return nil
   end
 
-  if #remotes == 1 then
+  if #remotes >= 1 then
     return remotes[1]
   end
 
