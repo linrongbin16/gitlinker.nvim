@@ -23,4 +23,4 @@
 - [ ] Copy git link in a symlink directory of git repo.
 - [ ] Copy git link in an un-pushed git branch, and receive an expected error.
 - [ ] Copy git link in a pushed git branch but edited file, and receive a warning says the git link could be wrong.
-- [ ] Copy git link with customized 'file' and 'rev' parameters.
+- [ ] Copy git link with 'file' and 'rev' parameters.
