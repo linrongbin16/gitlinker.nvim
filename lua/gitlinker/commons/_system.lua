@@ -19,6 +19,7 @@ local uv = vim.uv or vim.loop
 --- @field stderr? string
 
 --- @class vim.SystemState
+--- @field cmd string[]
 --- @field handle? uv.uv_process_t
 --- @field timer?  uv.uv_timer_t
 --- @field pid? integer
@@ -57,6 +58,7 @@ local function close_handles(state)
 end
 
 --- @class vim.SystemObj
+--- @field cmd string[]
 --- @field pid integer
 --- @field private _state vim.SystemState
 --- @field wait fun(self: vim.SystemObj, timeout?: integer): vim.SystemCompleted
@@ -69,6 +71,7 @@ local SystemObj = {}
 --- @return vim.SystemObj
 local function new_systemobj(state)
   return setmetatable({
+    cmd = state.cmd,
     pid = state.pid,
     _state = state,
   }, { __index = SystemObj })
