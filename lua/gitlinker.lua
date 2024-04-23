@@ -200,7 +200,7 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 local _link = function(opts)
   local confs = configs.get()
   local logger = logging.get("gitlinker")
@@ -212,6 +212,14 @@ local _link = function(opts)
   end
   lk.lstart = opts.lstart
   lk.lend = opts.lend
+
+  if str.not_empty(opts.file) then
+    lk.file = opts.file
+    lk.file_changed = false
+  end
+  if str.not_empty(opts.rev) then
+    lk.rev = opts.rev
+  end
 
   async.scheduler()
   local ok, url = pcall(opts.router, lk, true)
@@ -264,30 +272,36 @@ local _link = function(opts)
   return url
 end
 
---- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?}):string?
+--- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}):string?
 local _void_link = async.void(_link)
 
 --- @param args string?
---- @return {router_type:string,remote:string?}
+--- @return {router_type:string,remote:string?,file:string?,rev:string?}
 local function _parse_args(args)
   args = args or ""
 
   local router_type = "browse"
   local remote = nil
+  local file = nil
+  local rev = nil
   if string.len(args) == 0 then
-    return { router_type = router_type, remote = remote }
+    return { router_type = router_type, remote = remote, file = file, rev = rev }
   end
   local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
   for _, a in ipairs(args_splits) do
     if string.len(a) > 0 then
       if str.startswith(a, "remote=") then
         remote = a:sub(8)
+      elseif str.startswith(a, "file=") then
+        file = a:sub(6)
+      elseif str.startswith(a, "rev=") then
+        rev = a:sub(5)
       else
         router_type = a
       end
     end
   end
-  return { router_type = router_type, remote = remote }
+  return { router_type = router_type, remote = remote, file = file, rev = rev }
 end
 
 --- @param opts gitlinker.Options?
