@@ -134,10 +134,24 @@ There're several **router types**:
 
 To specify the remote when there're multiple git remotes, add `remote=xxx` parameter, for example:
 
-- `GitLink remote=upstream`: copy `blob` url to clipboard for the `upstream` remote.
-- `GitLink! blame remote=upstream`: open `blame` url in browser for the `upstream` remote.
+- `GitLink remote=upstream`: copy url for the `upstream` remote.
+- `GitLink! blame remote=upstream`: open blame url for the `upstream` remote.
 
 > By default `GitLink` will use the first detected remote (usually it's `origin`).
+
+To specify the relative file path when current buffer's file path is not a normal file name, add `file=xxx` parameter, for example:
+
+- `GitLink file=lua/gitlinker.lua`: copy url for the `lua/gitlinker.lua` file.
+- `GitLink! blame file=README.md`: open blame url for the `README.md` file.
+
+> By default `GitLink` will use the current buffer's file name.
+
+To specify the git commit ID when current repository's commit ID is not on your needs, add `rev=xxx` parameter, for example:
+
+- `GitLink rev=00b3f9a1`: copy url for the `00b3f9a1` commit ID.
+- `GitLink! blame rev=00b3f9a1`: open blame url for the `00b3f9a1` commit ID.
+
+> By default `GitLink` will use the current repository's commit ID.
 
 ### API
 
@@ -155,7 +169,7 @@ You can also use the `link` API to generate git permlink:
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
---- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?}?
+--- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
 require("gitlinker").link(opts)
 ```
 
@@ -187,6 +201,8 @@ require("gitlinker").link(opts)
   - `message`: Whether print message in nvim command line. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
   - `highlight_duration`: How long (milliseconds) to highlight the line range. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can also overwrite this field to change the configured behavior.
   - `remote`: Specify the git remote. By default is `nil`, it uses the first detected git remote (usually it's `origin`).
+  - `file`: Specify the relative file path. By default is `nil`, it uses the current buffer's file name.
+  - `rev`: Specify the git commit ID. By default is `nil`, it uses the current repository's git commit ID.
 
 ##### `gitlinker.Router`
 
