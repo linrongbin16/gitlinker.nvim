@@ -1,1 +1,5 @@
 .luacheckcache
+service.log
+stderr.txt
+stdout.txt
+*nvim_gitlinker.nvim_lua.log
