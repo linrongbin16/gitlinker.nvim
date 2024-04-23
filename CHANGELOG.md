@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.13.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.3...v4.13.0) (2024-04-23)
+
+
+### Features
+
+* **command:** add 'file' and 'rev' parameters ([#238](https://github.com/linrongbin16/gitlinker.nvim/issues/238)) ([3f33c47](https://github.com/linrongbin16/gitlinker.nvim/commit/3f33c47e0f9cc976ce14e52865b7ee3a8462a941))
+
 ## [4.12.3](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.2...v4.12.3) (2024-04-17)
 
 
