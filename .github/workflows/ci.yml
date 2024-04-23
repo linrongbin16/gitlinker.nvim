@@ -29,12 +29,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --config-path .stylua.toml ./lua ./spec
-      - uses: stevearc/nvim-typecheck-action@v1
+      - uses: mrcjkb/lua-typecheck-action@v0
         with:
-          path: lua
-          level: Warning
+          directories: lua
           configpath: ".luarc.json"
-          neodev-version: stable
       - uses: cargo-bins/cargo-binstall@main
       - name: Selene
         run: |
