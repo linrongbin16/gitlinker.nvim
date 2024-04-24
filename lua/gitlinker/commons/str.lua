@@ -1,27 +1,30 @@
 local M = {}
 
+local string_len, string_byte, string_sub, string_gsub =
+  string.len, string.byte, string.sub, string.gsub
+
 --- @param s any
 --- @return boolean
 M.empty = function(s)
-  return type(s) ~= "string" or string.len(s) == 0
+  return type(s) ~= "string" or string_len(s) == 0
 end
 
 --- @param s any
 --- @return boolean
 M.not_empty = function(s)
-  return type(s) == "string" and string.len(s) > 0
+  return type(s) == "string" and string_len(s) > 0
 end
 
 --- @param s any
 --- @return boolean
 M.blank = function(s)
-  return type(s) ~= "string" or string.len(vim.trim(s)) == 0
+  return type(s) ~= "string" or string_len(vim.trim(s)) == 0
 end
 
 --- @param s any
 --- @return boolean
 M.not_blank = function(s)
-  return type(s) == "string" and string.len(vim.trim(s)) > 0
+  return type(s) == "string" and string_len(vim.trim(s)) > 0
 end
 
 --- @param s string
@@ -40,8 +43,8 @@ M.find = function(s, t, start)
         match = false
         break
       end
-      local a = string.byte(s, i + j - 1)
-      local b = string.byte(t, j)
+      local a = string_byte(s, i + j - 1)
+      local b = string_byte(t, j)
       if a ~= b then
         match = false
         break
@@ -70,8 +73,8 @@ M.rfind = function(s, t, rstart)
         match = false
         break
       end
-      local a = string.byte(s, i + j - 1)
-      local b = string.byte(t, j)
+      local a = string_byte(s, i + j - 1)
+      local b = string_byte(t, j)
       if a ~= b then
         match = false
         break
@@ -93,7 +96,7 @@ M.ltrim = function(s, t)
 
   t = t or "%s+"
   ---@diagnostic disable-next-line: redundant-return-value
-  return string.gsub(s, "^" .. t, "")
+  return string_gsub(s, "^" .. t, "")
 end
 
 --- @param s string
@@ -105,7 +108,7 @@ M.rtrim = function(s, t)
 
   t = t or "%s+"
   ---@diagnostic disable-next-line: redundant-return-value
-  return string.gsub(s, t .. "$", "")
+  return string_gsub(s, t .. "$", "")
 end
 
 --- @param s string
@@ -145,9 +148,9 @@ M.startswith = function(s, t, opts)
   opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase or false
 
   if opts.ignorecase then
-    return string.len(s) >= string.len(t) and s:sub(1, #t):lower() == t:lower()
+    return string_len(s) >= string_len(t) and s:sub(1, #t):lower() == t:lower()
   else
-    return string.len(s) >= string.len(t) and s:sub(1, #t) == t
+    return string_len(s) >= string_len(t) and s:sub(1, #t) == t
   end
 end
 
@@ -163,9 +166,9 @@ M.endswith = function(s, t, opts)
   opts.ignorecase = type(opts.ignorecase) == "boolean" and opts.ignorecase or false
 
   if opts.ignorecase then
-    return string.len(s) >= string.len(t) and s:sub(#s - #t + 1):lower() == t:lower()
+    return string_len(s) >= string_len(t) and s:sub(#s - #t + 1):lower() == t:lower()
   else
-    return string.len(s) >= string.len(t) and s:sub(#s - #t + 1) == t
+    return string_len(s) >= string_len(t) and s:sub(#s - #t + 1) == t
   end
 end
 
@@ -178,8 +181,8 @@ M.replace = function(s, p, r)
   assert(type(p) == "string")
   assert(type(r) == "string")
 
-  local sn = string.len(s)
-  local pn = string.len(p)
+  local sn = string_len(s)
+  local pn = string_len(p)
   local pos = 1
   local matched = 0
   local result = s
@@ -189,7 +192,7 @@ M.replace = function(s, p, r)
     if type(pos) ~= "number" then
       break
     end
-    result = string.sub(result, 1, pos - 1) .. r .. string.sub(result, pos + pn)
+    result = string_sub(result, 1, pos - 1) .. r .. string_sub(result, pos + pn)
     pos = pos + pn
     matched = matched + 1
   end
@@ -201,7 +204,7 @@ end
 --- @return boolean
 M.isspace = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%s") ~= nil
 end
 
@@ -209,7 +212,7 @@ end
 --- @return boolean
 M.isalnum = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%w") ~= nil
 end
 
@@ -217,7 +220,7 @@ end
 --- @return boolean
 M.isdigit = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%d") ~= nil
 end
 
@@ -225,7 +228,7 @@ end
 --- @return boolean
 M.isxdigit = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%x") ~= nil
 end
 
@@ -233,7 +236,7 @@ end
 --- @return boolean
 M.isalpha = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%a") ~= nil
 end
 
@@ -241,7 +244,7 @@ end
 --- @return boolean
 M.islower = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%l") ~= nil
 end
 
@@ -249,7 +252,7 @@ end
 --- @return boolean
 M.isupper = function(c)
   assert(type(c) == "string")
-  assert(string.len(c) == 1)
+  assert(string_len(c) == 1)
   return c:match("%u") ~= nil
 end
 
@@ -261,18 +264,18 @@ M.setchar = function(s, pos, ch)
   assert(type(s) == "string")
   assert(type(pos) == "number")
   assert(type(ch) == "string")
-  assert(string.len(ch) == 1)
+  assert(string_len(ch) == 1)
 
-  local n = string.len(s)
+  local n = string_len(s)
   pos = require("gitlinker.commons.tbl").list_index(pos, n)
 
   local buffer = ""
   if pos > 1 then
-    buffer = string.sub(s, 1, pos - 1)
+    buffer = string_sub(s, 1, pos - 1)
   end
   buffer = buffer .. ch
   if pos < n then
-    buffer = buffer .. string.sub(s, pos + 1)
+    buffer = buffer .. string_sub(s, pos + 1)
   end
 
   return buffer
@@ -283,9 +286,9 @@ end
 M.tochars = function(s)
   assert(type(s) == "string")
   local l = {}
-  local n = string.len(s)
+  local n = string_len(s)
   for i = 1, n do
-    table.insert(l, string.sub(s, i, i))
+    table.insert(l, string_sub(s, i, i))
   end
   return l
 end
