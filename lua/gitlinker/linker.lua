@@ -119,7 +119,7 @@ local function make_linker(remote, file, rev)
   local file_changed = false
   if not file_provided then
     local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-    file_changed = git.file_has_changed(buf_path_on_cwd, rev, cwd)
+    file_changed = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
     -- logger.debug(
     --     "|linker - Linker:make| buf_path_on_cwd:%s",
     --     vim.inspect(buf_path_on_cwd)
