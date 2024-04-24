@@ -26,10 +26,15 @@ end
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
+--- @param file string?
+--- @param rev string?
 --- @return gitlinker.Linker?
-local function make_linker(remote)
+local function make_linker(remote, file, rev)
   local logger = logging.get("gitlinker")
   local cwd = _get_buf_dir()
+
+  local file_provided = str.not_empty(file)
+  local rev_provided = str.not_empty(rev)
 
   local root = git.get_root(cwd)
   if not root then
@@ -76,37 +81,50 @@ local function make_linker(remote)
   --     vim.inspect(remote_url)
   -- )
 
-  local rev = git.get_closest_remote_compatible_rev(remote, cwd)
-  if not rev then
+  if not rev_provided then
+    rev = git.get_closest_remote_compatible_rev(remote, cwd)
+  end
+  if str.empty(rev) then
     return nil
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
   async.scheduler()
-  local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
-  local buf_path_encoded = uri.encode(buf_path_on_root) --[[@as string]]
-  -- logger.debug(
-  --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
-  --     vim.inspect(root),
-  --     vim.inspect(buf_path_on_root)
-  -- )
 
-  local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev, cwd)
-  if not file_in_rev_result then
-    return nil
+  if not file_provided then
+    local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
+    local buf_path_encoded = uri.encode(buf_path_on_root) --[[@as string]]
+    -- logger.debug(
+    --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
+    --     vim.inspect(root),
+    --     vim.inspect(buf_path_on_root)
+    -- )
+
+    local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
+    if not file_in_rev_result then
+      return nil
+    end
+    file = buf_path_encoded
+  else
+    file = uri.encode(file)
   end
+
   -- logger.debug(
   --     "|linker - Linker:make| file_in_rev_result:%s",
   --     vim.inspect(file_in_rev_result)
   -- )
 
   async.scheduler()
-  local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-  local file_changed = git.file_has_changed(buf_path_on_cwd, rev, cwd)
-  -- logger.debug(
-  --     "|linker - Linker:make| buf_path_on_cwd:%s",
-  --     vim.inspect(buf_path_on_cwd)
-  -- )
+
+  local file_changed = false
+  if not file_provided then
+    local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
+    file_changed = git.file_has_changed(buf_path_on_cwd, rev, cwd)
+    -- logger.debug(
+    --     "|linker - Linker:make| buf_path_on_cwd:%s",
+    --     vim.inspect(buf_path_on_cwd)
+    -- )
+  end
 
   local default_branch = git.get_default_branch(remote, cwd)
   local current_branch = git.get_current_branch(cwd)
@@ -123,7 +141,7 @@ local function make_linker(remote)
     org = parsed_url.org,
     repo = parsed_url.repo,
     rev = rev,
-    file = buf_path_encoded,
+    file = file,
     ---@diagnostic disable-next-line: need-check-nil
     lstart = nil,
     ---@diagnostic disable-next-line: need-check-nil
