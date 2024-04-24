@@ -206,7 +206,7 @@ local _link = function(opts)
   local logger = logging.get("gitlinker")
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker(opts.remote)
+  local lk = linker.make_linker(opts.remote, opts.file, opts.rev)
   if not lk then
     return nil
   end
