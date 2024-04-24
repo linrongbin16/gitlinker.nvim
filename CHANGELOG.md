@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.13.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.0...v4.13.1) (2024-04-24)
+
+
+### Bug Fixes
+
+* **linker:** skip file and rev check when provided ([#240](https://github.com/linrongbin16/gitlinker.nvim/issues/240)) ([080ffaf](https://github.com/linrongbin16/gitlinker.nvim/commit/080ffafe6483fb59ee3340f079468623c9f16e27))
+
 ## [4.13.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.12.3...v4.13.0) (2024-04-23)
 
 
