@@ -444,55 +444,55 @@ For complete default options, please see `Defaults` in [configs.lua](https://git
 >
 > Please see `Defaults.router` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples.
 
-To create customized urls for other git hosts, please bind the target git host name with a new router. A router simply constructs the url string from below components (upper case with prefix `_A.`):
+To create customized urls for other git hosts, please bind the target git host name with a new implementation, which simply constructs the url string from below components (upper case with prefix `_A.`):
 
-- `_A.PROTOCOL`: Network protocol before `://` delimiter, for example:
+- `_A.PROTOCOL`: Network protocol before `://` delimiter. For example:
   - `https` in `https://github.com`.
   - `ssh` in `ssh://github.com`.
-- `_A.USERNAME`: Optional user name component before `@` delimiter, for example:
+- `_A.USERNAME`: Optional user name component before `@` delimiter. For example:
   - `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
-  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the ssh protocol `ssh://` can be omitted).
-- `_A.PASSWORD`: Optional password component after `_A.USERNAME`, for example:
+  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the ssh protocol `ssh://` is omitted in this case).
+- `_A.PASSWORD`: Optional password component after `_A.USERNAME`. For example:
   - `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
   - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
-- `_A.HOST`: The host component, for example:
-  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https protocol, host ends with `/`).
-  - `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for omitted ssh protocol, host ends with `:`, and cannot have `_A.PORT` component).
-- `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `_A.PORT` component), for example:
+- `_A.HOST`: The host component. For example:
+  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https protocol, the host ends with `/`).
+  - `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for _omitted_ ssh protocol, the host ends with `:`, and it cannot have `_A.PORT` component).
+- `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `_A.PORT` component). For example:
   - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
   - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `_A.PATH`: All the other parts in the output of the `git remote get-url origin`, for example:
+- `_A.PATH`: Path component, i.e. all the other parts in the output of the `git remote get-url origin`. For example:
   - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git`.
-- `_A.REV`: Git commit, for example:
+  - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** for ssh protocol, the `:` before the path component doesn't belong to it).
+- `_A.REV`: Git commit ID. For example:
   - `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
-- `_A.FILE`: Relative file path, for example:
-  - The `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
-- `_A.LSTART`/`_A.LEND`: Start/end line number, for example:
+- `_A.FILE`: Relative file path. For example:
+  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
+- `_A.LSTART`/`_A.LEND`: Start/end line number. For example:
   - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
 
 There're 2 more sugar components derived from `_A.PATH`:
 
-- `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH`, with around slashes been removed (and the `.git` suffix is been removed for easier writing), for example:
+- `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH` (around slashes are removed, and the `.git` suffix is been removed for easier writing). For example:
   - `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `neovim` in `git@192.168.0.1:path/to/the/neovim.git`.
-- `_A.ORG`: All the other parts before `_A.REPO`, with around slashes been removed, for example:
+- `_A.ORG`: All the previous parts before `_A.REPO` (around slashes are removed). For example:
   - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
   - `path/to/the` in `https://github.com/path/to/the/repo.git`.
 
 > [!IMPORTANT]
 >
-> The `_A.ORG` component can be empty when the `_A.PATH` contains only 1 slash (`/`), for example: the `_A.ORG` in `ssh://git@host.xyz/repo.git` is empty.
+> The `_A.ORG` component can be empty if `_A.PATH` only contains 1 slash (`/`). For example `_A.ORG` in `ssh://git@host.xyz/repo.git` is empty, while `_A.REPO` is `repo`.
 
 There're 2 more sugar components for git branches:
 
-- `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`, for example:
+- `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
   - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
   - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
-- `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`, for example:
-  - `feat-router-types`.
+- `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
+  - `feat-router-types` in `https://github.com/ruifm/gitlinker.nvim/blob/feat-router-types/lua/gitlinker/routers.lua#L37-L156`.
 
-For example you can customize the line numbers in form `?&line=1&lines-count=2` like this:
+With above components, you can customize the line numbers (for example) in form `?&line=1&lines-count=2` like this:
 
 ```lua
 require("gitlinker").setup({
@@ -510,15 +510,15 @@ require("gitlinker").setup({
 })
 ```
 
-The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), while the error message can be confusing if there's any syntax issue.
+The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (the error message can be confusing if there's any syntax issue).
 
 #### Lua Function
 
 > [!NOTE]
 >
-> Please refer to [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples about function-based routers.
+> Please see [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples.
 
-You can also bind a lua function to the git host, the function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
+You can also implement the router with a lua function. The function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
 
 - `protocol`
 - `username`
@@ -530,17 +530,17 @@ You can also bind a lua function to the git host, the function accepts only 1 lu
 - `file`
 - `lstart`/`lend`
 
-The 2 derived components are:
+The 2 sugar components derived from `path` are:
 
 - `org`
-- `repo`: **Note:** the `.git` suffix is not omitted.
+- `repo` (**Note:** the `.git` suffix is not omitted)
 
-The 2 branch components are:
+The 2 git branch components are:
 
 - `default_branch`
 - `current_branch`
 
-Recall to previous use case, e.g. customize the line numbers in form `?&line=1&lines-count=2`, you can implement the router with below function:
+Recall to previous use case (customize the line numbers in form `?&line=1&lines-count=2`), you can implement the router with below function:
 
 ```lua
 --- @param s string
@@ -584,15 +584,15 @@ require("gitlinker").setup({
 })
 ```
 
-There are some pre-defined lua apis in `gitlinker.routers` that you can use:
+There are some pre-defined APIs in `gitlinker.routers` that you can use:
 
-- `github_browse`/`github_blame`: for github.com.
-- `gitlab_browse`/`gitlab_blame`: for gitlab.com.
-- `bitbucket_browse`/`bitbucket_blame`: for bitbucket.org.
-- `codeberg_browse`/`codeberg_blame`: for codeberg.org.
-- `samba_browse`: for git.samba.org (blame not support).
+- `github_browse`/`github_blame`: for https://github.com/.
+- `gitlab_browse`/`gitlab_blame`: for https://gitlab.com/.
+- `bitbucket_browse`/`bitbucket_blame`: for https://bitbucket.org/.
+- `codeberg_browse`/`codeberg_blame`: for https://codeberg.org/.
+- `samba_browse`: for https://git.samba.org/ (blame not support).
 
-For example if you need to bind a github enterprise domain, you can use:
+If you need to bind a github enterprise host, please use:
 
 ```lua
 require('gitlinker').setup({
@@ -609,7 +609,7 @@ require('gitlinker').setup({
 
 ### Create Your Own Router
 
-You can even create your own router (e.g. use the same engine with `browse`/`blame`), for example create the `file_only` router type (generate link without line numbers):
+You can even create your own router (with the same engine). For example let's create the `file_only` router type, it generates url without line numbers:
 
 ```lua
 require("gitlinker").setup({
@@ -625,7 +625,7 @@ require("gitlinker").setup({
 })
 ```
 
-Then use it just like `browse`:
+Use it just like `browse`:
 
 ```vim
 GitLink file_only
