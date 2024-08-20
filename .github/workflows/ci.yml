@@ -80,7 +80,8 @@ jobs:
           version: ${{ matrix.nvim_version }}
       - uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "luajit-2.1.0-beta3"
+          # luaVersion: "luajit-2.1.0-beta3"
+          luaVersion: "luajit-openresty"
       - uses: leafo/gh-actions-luarocks@v4
       - name: Run Test Cases
         shell: bash
@@ -104,7 +105,8 @@ jobs:
           version: ${{ matrix.nvim_version }}
       - uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "luajit-2.1.0-beta3"
+          # luaVersion: "luajit-2.1.0-beta3"
+          luaVersion: "luajit-openresty"
       - uses: leafo/gh-actions-luarocks@v4
       - name: Generate Coverage Reports
         shell: bash
