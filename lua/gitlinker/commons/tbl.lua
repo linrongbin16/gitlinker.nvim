@@ -16,8 +16,12 @@ end
 --- @param ... any
 --- @return any
 M.tbl_get = function(t, ...)
+  local args = { ... }
+  if #args == 0 then
+    return t
+  end
   local e = t --[[@as table]]
-  for _, k in ipairs({ ... }) do
+  for _, k in ipairs(args) do
     if type(e) == "table" and e[k] ~= nil then
       e = e[k]
     else

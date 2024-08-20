@@ -1,4 +1,5 @@
 local IS_WINDOWS = vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0
+local uv = vim.uv or vim.loop
 
 local M = {}
 
@@ -321,8 +322,6 @@ end
 --- @param msg string
 function Logger:_log(dbg, lvl, msg)
   assert(type(lvl) == "number" and LogLevelNames[lvl] ~= nil)
-
-  local uv = require("gitlinker.commons.uv")
 
   if lvl < self.level then
     return
