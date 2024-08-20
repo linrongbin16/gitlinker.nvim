@@ -1,0 +1,14 @@
+{
+  // Heading levels should only increment by one level at a time
+  "MD001": false,
+  // Line length
+  "MD013": false,
+  // Fenced code blocks should have a language specified
+  "MD040": false,
+  // Inline HTML
+  "MD033": false,
+  // First line in a file should be a top-level heading
+  "MD041": false,
+  // Bare URL used
+  "MD034": false,
+}
