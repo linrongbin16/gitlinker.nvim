@@ -227,7 +227,7 @@ require("gitlinker").link(opts)
 
 #### `gitlinker.Router`
 
-`gitlinker.Router` is a lua function that implements a router for a git host. It use below function signature:
+A lua function that implements a router for a git host website. It uses below function signature:
 
 ```lua
 function(lk:gitlinker.Linker):string?
@@ -235,18 +235,16 @@ function(lk:gitlinker.Linker):string?
 
 **Parameters:**
 
-- `lk`: Lua table that presents the `gitlinker.Linker` data type. It contains all the information (fields) you need to generate a git link, e.g. the `protocol`, `host`, `username`, `path`, `rev`, etc.
-
-  > Please refer to [Customize Urls - Lua Function](#lua-function) for more details.
+- `lk`: A lua table that presents the `gitlinker.Linker` data type. It contains all the information (fields) you need to generate a git link, e.g. the `protocol`, `host`, `username`, `path`, `rev`, etc. Please see [Customize Urls - Lua Function](#lua-function) for more details.
 
 **Returns:**
 
-- It returns the generated link as a `string` type, if success.
-- It returns `nil`, if failed.
+- Returns the generated link as a `string` type, if success.
+- Returns `nil`, if failed.
 
-##### `gitlinker.Action`
+#### `gitlinker.Action`
 
-`gitlinker.Action` is a lua function that do some operations with a generated git link. It use below function signature:
+A lua function that does some operations with the generated url. It uses below function signature:
 
 ```lua
 function(url:string):any
@@ -254,14 +252,14 @@ function(url:string):any
 
 **Parameters:**
 
-- `url`: The generated git link. For example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7.
+- `url`: The generated url. For example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7.
 
 For now we have below builtin actions:
 
 - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
 - `require("gitlinker.actions").system`: Open url in browser.
 
-If you only need to get the generated url, instead of do some actions, you can pass a callback function to accept the url:
+If you only need to print the generated url, you can pass a callback function to consume:
 
 ```lua
 require("gitlinker").link({
@@ -271,14 +269,12 @@ require("gitlinker").link({
 })
 ```
 
-> The `link` API is running in async mode and cannot directly returns the generated link, because it uses lua coroutine to avoid blocking IO.
-
 </details>
 
 ### Recommended Key Mappings
 
 <details>
-<summary><i>Click here to see key mappings with vim command</i></summary>
+<summary><i>Click here to see mappings with user commands.</i></summary>
 <br/>
 
 ```lua
@@ -341,7 +337,7 @@ vim.keymap.set(
 </details>
 
 <details>
-<summary><i>Click here to see key mappings with lua api</i></summary>
+<summary><i>Click here to see mappings with lua apis.</i></summary>
 <br/>
 
 ```lua
