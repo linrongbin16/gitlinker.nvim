@@ -8,7 +8,7 @@ on:
       - master
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
-  cancel-in-progress: ${{ !contains(github.ref, 'master') }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   commits:
     name: Commits
@@ -69,7 +69,7 @@ jobs:
       - lint
     strategy:
       matrix:
-        nvim_version: [stable, nightly, v0.7.0]
+        nvim_version: [stable, nightly, v0.9.0]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
