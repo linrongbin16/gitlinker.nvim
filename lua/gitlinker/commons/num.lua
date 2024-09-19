@@ -155,7 +155,8 @@ end
 --- @param n integer?
 --- @return number
 M.random = function(m, n)
-  local rand_result, rand_err = require("gitlinker.commons.uv").random(4)
+  local uv = vim.uv or vim.loop
+  local rand_result, rand_err = uv.random(4)
   assert(rand_result ~= nil, rand_err)
 
   local bytes = {

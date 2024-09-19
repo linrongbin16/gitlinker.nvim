@@ -8,7 +8,7 @@ on:
       - master
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
-  cancel-in-progress: ${{ !contains(github.ref, 'master') }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   commits:
     name: Commits
@@ -69,7 +69,7 @@ jobs:
       - lint
     strategy:
       matrix:
-        nvim_version: [stable, nightly, v0.7.0]
+        nvim_version: [stable, nightly, v0.9.0]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,60 +80,59 @@ jobs:
           version: ${{ matrix.nvim_version }}
       - uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "luajit-2.1.0-beta3"
+          # luaVersion: "luajit-2.1.0-beta3"
+          luaVersion: "luajit-openresty"
       - uses: leafo/gh-actions-luarocks@v4
       - name: Run Test Cases
         shell: bash
         run: |
           luarocks install vusted
           vusted ./spec
-  code_coverage:
-    name: Code Coverage
-    needs:
-      - lint
-    strategy:
-      matrix:
-        nvim_version: [stable]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: rhysd/action-setup-vim@v1
-        id: vim
-        with:
-          neovim: true
-          version: ${{ matrix.nvim_version }}
-      - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "luajit-2.1.0-beta3"
-      - uses: leafo/gh-actions-luarocks@v4
-      - name: Generate Coverage Reports
-        shell: bash
-        run: |
-          luarocks install luacov
-          luarocks install vusted
-          vusted --coverage ./spec
-      - name: Upload Coverage Reports
-        shell: bash
-        run: |
-          echo "ls ."
-          ls -l .
-          echo "run luacov"
-          luacov
-          echo "ls ."
-          ls -l .
-          echo "cat ./luacov.report.out"
-          cat ./luacov.report.out
-      - uses: codecov/codecov-action@v3
-        with:
-          files: luacov.report.out
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  # code_coverage:
+  #   name: Code Coverage
+  #   needs:
+  #     - lint
+  #   strategy:
+  #     matrix:
+  #       nvim_version: [stable]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: rhysd/action-setup-vim@v1
+  #       id: vim
+  #       with:
+  #         neovim: true
+  #         version: ${{ matrix.nvim_version }}
+  #     - uses: leafo/gh-actions-lua@v10
+  #       with:
+  #         # luaVersion: "luajit-2.1.0-beta3"
+  #         luaVersion: "luajit-openresty"
+  #     - uses: leafo/gh-actions-luarocks@v4
+  #     - name: Generate Coverage Reports
+  #       run: |
+  #         luarocks --lua-version=5.1 install luacov
+  #         luarocks --lua-version=5.1 install luacov-reporter-lcov
+  #         luarocks --lua-version=5.1 install vusted
+  #         vusted --coverage ./spec
+  #         echo "ls ."
+  #         ls -l .
+  #         echo "run luacov"
+  #         luacov
+  #         echo "ls ."
+  #         ls -l .
+  #         echo "tail ./luacov.report.out"
+  #         tail -n 10 ./luacov.report.out
+  #     - uses: codecov/codecov-action@v4
+  #       with:
+  #         files: luacov.report.out
+  #       env:
+  #         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   release:
     name: Release
     if: ${{ github.ref == 'refs/heads/master' }}
     needs:
       - unit_test
-      - code_coverage
+      # - code_coverage
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v3
