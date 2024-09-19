@@ -114,13 +114,10 @@ jobs:
           luarocks install luacov-reporter-lcov
           luarocks --lua-version=5.1 install vusted
           vusted --coverage ./spec
-      - name: Upload Coverage Reports
-        shell: bash
-        run: |
           echo "ls ."
           ls -l .
           echo "run luacov"
-          luacov -r lcov
+          luacov
           echo "ls ."
           ls -l .
           echo "tail ./luacov.report.out"
