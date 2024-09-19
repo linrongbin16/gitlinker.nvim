@@ -109,10 +109,10 @@ jobs:
           luaVersion: "luajit-openresty"
       - uses: leafo/gh-actions-luarocks@v4
       - name: Generate Coverage Reports
-        shell: bash
         run: |
           luarocks install luacov
-          luarocks install vusted
+          luarocks install luacov-reporter-lcov
+          luarocks --lua-version=5.1 install vusted
           vusted --coverage ./spec
       - name: Upload Coverage Reports
         shell: bash
@@ -120,12 +120,12 @@ jobs:
           echo "ls ."
           ls -l .
           echo "run luacov"
-          luacov
+          luacov -r lcov
           echo "ls ."
           ls -l .
-          echo "cat ./luacov.report.out"
-          cat ./luacov.report.out
-      - uses: codecov/codecov-action@v3
+          echo "tail ./luacov.report.out"
+          tail -n 10 ./luacov.report.out
+      - uses: codecov/codecov-action@v4
         with:
           files: luacov.report.out
         env:
