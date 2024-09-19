@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.13.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.1...v4.13.2) (2024-09-19)
+
+
+### Bug Fixes
+
+* Use remote of branch rather than first remote in list ([#246](https://github.com/linrongbin16/gitlinker.nvim/issues/246)) ([b10e793](https://github.com/linrongbin16/gitlinker.nvim/commit/b10e79346eadc5b670337ce152616172294dc9f4))
+
 ## [4.13.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.0...v4.13.1) (2024-04-24)
 
 
