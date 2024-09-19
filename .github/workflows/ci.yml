@@ -110,8 +110,8 @@ jobs:
       - uses: leafo/gh-actions-luarocks@v4
       - name: Generate Coverage Reports
         run: |
-          luarocks install luacov
-          luarocks install luacov-reporter-lcov
+          luarocks --lua-version=5.1 install luacov
+          luarocks --lua-version=5.1 install luacov-reporter-lcov
           luarocks --lua-version=5.1 install vusted
           vusted --coverage ./spec
           echo "ls ."
