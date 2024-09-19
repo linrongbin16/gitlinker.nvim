@@ -1,7 +1,9 @@
 local M = {}
 
-local string_len, string_byte, string_sub, string_gsub =
-  string.len, string.byte, string.sub, string.gsub
+local string_len = string.len
+local string_byte = string.byte
+local string_sub = string.sub
+local string_gsub = string.gsub
 
 --- @param s any
 --- @return boolean

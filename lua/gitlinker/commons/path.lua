@@ -1,4 +1,5 @@
 local IS_WINDOWS = vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0
+local uv = vim.uv or vim.loop
 
 local M = {}
 
@@ -8,7 +9,7 @@ M.SEPARATOR = IS_WINDOWS and "\\" or "/"
 --- @return boolean
 M.exists = function(p)
   assert(type(p) == "string")
-  local result, _ = require("gitlinker.commons.uv").fs_lstat(p)
+  local result, _ = uv.fs_lstat(p)
   return result ~= nil
 end
 
@@ -16,7 +17,7 @@ end
 --- @return boolean
 M.isfile = function(p)
   assert(type(p) == "string")
-  local result, _ = require("gitlinker.commons.uv").fs_lstat(p)
+  local result, _ = uv.fs_lstat(p)
   -- print(
   --   string.format(
   --     "|paths.isfile| p:%s, result:%s\n",
@@ -31,7 +32,7 @@ end
 --- @return boolean
 M.isdir = function(p)
   assert(type(p) == "string")
-  local result, _ = require("gitlinker.commons.uv").fs_lstat(p)
+  local result, _ = uv.fs_lstat(p)
   -- print(
   --   string.format(
   --     "|paths.isdir| p:%s, result:%s\n",
@@ -46,7 +47,7 @@ end
 --- @return boolean
 M.islink = function(p)
   assert(type(p) == "string")
-  local result, _ = require("gitlinker.commons.uv").fs_lstat(p)
+  local result, _ = uv.fs_lstat(p)
   -- print(
   --   string.format(
   --     "|paths.issymlink| p:%s, result:%s\n",
@@ -95,7 +96,7 @@ end
 M.expand = function(p)
   assert(type(p) == "string")
   if string.len(p) >= 1 and string.sub(p, 1, 1) == "~" then
-    return require("gitlinker.commons.uv").os_homedir() .. string.sub(p, 2)
+    return uv.os_homedir() .. string.sub(p, 2)
   else
     return p
   end
@@ -108,7 +109,7 @@ M.resolve = function(p)
   if not M.islink(p) then
     return p
   end
-  local result, _ = require("gitlinker.commons.uv").fs_realpath(p)
+  local result, _ = uv.fs_realpath(p)
   -- print(
   --   string.format(
   --     "|paths.resolve|-4 p:%s, result:%s\n",
