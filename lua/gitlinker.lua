@@ -1,10 +1,10 @@
 local tbl = require("gitlinker.commons.tbl")
 local str = require("gitlinker.commons.str")
 local num = require("gitlinker.commons.num")
-local async = require("gitlinker.commons.async")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
 
+local async = require("gitlinker.async")
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")
 local linker = require("gitlinker.linker")

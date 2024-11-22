@@ -24,14 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: JohnnyMorganz/stylua-action@v3
+      - uses: JohnnyMorganz/stylua-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --config-path .stylua.toml ./lua ./spec
-      - uses: mrcjkb/lua-typecheck-action@v0
+      - uses: stevearc/nvim-typecheck-action@v2
         with:
-          directories: lua
+          path: lua
           configpath: ".luarc.json"
       - uses: cargo-bins/cargo-binstall@main
       - name: Selene
@@ -59,7 +59,7 @@ jobs:
           echo $PWD
           git clone --depth=1 https://github.com/linrongbin16/giturlparser.lua.git ~/.giturlparser.lua
           cp ~/.giturlparser.lua/src/giturlparser.lua ./lua/gitlinker/giturlparser.lua
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         if: ${{ github.ref != 'refs/heads/master' }}
         with:
           commit_message: "chore(pr): auto-commit"

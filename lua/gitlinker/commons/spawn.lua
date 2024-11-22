@@ -1,13 +1,5 @@
-local NVIM_VERSION_0_10 = false
-
-do
-  NVIM_VERSION_0_10 = require("gitlinker.commons.version").ge({ 0, 10 })
-end
-
+---@diagnostic disable
 local M = {}
-
-M.system = (NVIM_VERSION_0_10 and vim.is_callable(vim.system)) and vim.system
-  or require("gitlinker.commons._system").run
 
 --- @alias commons.SpawnLineProcessor fun(line:string):any
 --- @alias commons.SpawnOpts {on_stdout:commons.SpawnLineProcessor, on_stderr:commons.SpawnLineProcessor, [string]:any}
@@ -106,7 +98,7 @@ M.run = function(cmd, opts, on_exit)
     end
   end
 
-  return M.system(cmd, {
+  return vim.system(cmd, {
     cwd = opts.cwd,
     env = opts.env,
     clear_env = opts.clear_env,

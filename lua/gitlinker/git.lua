@@ -1,7 +1,7 @@
 local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
-local async = require("gitlinker.commons.async")
 local uv = require("gitlinker.commons.uv")
+local async = require("gitlinker.async")
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]

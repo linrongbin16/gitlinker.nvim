@@ -1,11 +1,11 @@
 # gitlinker.nvim
 
 <p>
-<a href="https://github.com/neovim/neovim/releases/v0.9.0"><img alt="Neovim" src="https://img.shields.io/badge/require-0.9%2B-blue" /></a>
+<a href="https://github.com/neovim/neovim/releases/"><img alt="Neovim" src="https://img.shields.io/badge/require-stable-blue" /></a>
 <a href="https://github.com/linrongbin16/commons.nvim"><img alt="commons.nvim" src="https://img.shields.io/badge/power_by-commons.nvim-pink" /></a>
 <a href="https://luarocks.org/modules/linrongbin16/gitlinker.nvim"><img alt="luarocks" src="https://img.shields.io/luarocks/v/linrongbin16/gitlinker.nvim" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?label=ci" /></a>
-<a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim/main?label=codecov" /></a>
+<!-- <a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim/main?label=codecov" /></a> -->
 </p>
 
 > Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias, blame support and other improvements.
@@ -66,9 +66,9 @@ PRs are welcomed for other git host websites!
 
 > [!NOTE]
 >
-> This plugin keeps update with the latest stable Neovim version, supports until the last legacy version, while earlier versions are dropped for maintenance reason. For example at the time of writing (2024-08-20), stable is 0.10, last legacy is 0.9. Thus this plugin supports 0.9+.
+> This plugin always supports the latest stable and (possible) nightly version.
 
-- Neovim &ge; 0.9.
+- Neovim &ge; 0.10.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
 - [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
