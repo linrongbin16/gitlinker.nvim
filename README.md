@@ -66,7 +66,7 @@ PRs are welcomed for other git host websites!
 
 > [!NOTE]
 >
-> This plugin always supports the latest stable and (possible) nightly version.
+> This plugin always supports the latest stable and (possibly) nightly Neovim version.
 
 - Neovim &ge; 0.10.
 - [git](https://git-scm.com/).
