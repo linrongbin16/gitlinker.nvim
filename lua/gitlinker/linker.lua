@@ -3,7 +3,7 @@ local str = require("gitlinker.commons.str")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
-local async = require("gitlinker.commons.async")
+local async = require("gitlinker.async")
 
 --- @return string?
 local function _get_buf_dir()
