@@ -4,7 +4,6 @@ local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 local async = require("gitlinker.commons.async")
-local uri = require("gitlinker.commons.uri")
 
 --- @return string?
 local function _get_buf_dir()
@@ -93,7 +92,7 @@ local function make_linker(remote, file, rev)
 
   if not file_provided then
     local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
-    local buf_path_encoded = uri.encode(buf_path_on_root) --[[@as string]]
+    local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
     -- logger.debug(
     --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
     --     vim.inspect(root),
@@ -106,7 +105,7 @@ local function make_linker(remote, file, rev)
     end
     file = buf_path_encoded
   else
-    file = uri.encode(file)
+    file = vim.uri_encode(file)
   end
 
   -- logger.debug(
