@@ -66,9 +66,9 @@ PRs are welcomed for other git host websites!
 
 > [!NOTE]
 >
-> This plugin keeps update with the latest stable Neovim version, supports until the last legacy version, while earlier versions are dropped for maintenance reason. For example at the time of writing (2024-08-20), stable is 0.10, last legacy is 0.9. Thus this plugin supports 0.9+.
+> This plugin always supports the latest stable and (possible) nightly version.
 
-- Neovim &ge; 0.9.
+- Neovim &ge; 0.10.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
 - [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
