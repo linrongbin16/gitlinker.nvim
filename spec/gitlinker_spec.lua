@@ -233,6 +233,26 @@ describe("gitlinker", function()
       )
       assert_eq(actual, routers.github_browse(lk))
     end)
+    it("ssh://git@github.com:/myorg/myrepo.git", function()
+      local lk = {
+        remote_url = "ssh://git@github.com:/myorg/myrepo.git",
+        username = "git",
+        host = "github.com",
+        org = "myorg",
+        repo = "myrepo.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 1,
+        lend = 1,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://github.com/myorg/myrepo/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1"
+      )
+      assert_eq(actual, routers.github_browse(lk))
+    end)
     it("ssh://git@git.xyz.com with same lstart/lend", function()
       local lk = {
         remote_url = "ssh://git@git.xyz.com/linrongbin16/gitlinker.nvim.git",
