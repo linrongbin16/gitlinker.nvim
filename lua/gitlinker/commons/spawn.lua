@@ -1,3 +1,4 @@
+---@diagnostic disable
 local M = {}
 
 --- @alias commons.SpawnLineProcessor fun(line:string):any

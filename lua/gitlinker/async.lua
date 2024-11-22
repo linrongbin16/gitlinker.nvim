@@ -4,7 +4,7 @@
 
 -- Store all the async threads in a weak table so we don't prevent them from
 -- being garbage collected
-local handles = setmetatable({}, { __mode = 'k' })
+local handles = setmetatable({}, { __mode = "k" })
 
 local M = {}
 
@@ -28,10 +28,12 @@ function M.running()
 end
 
 local function is_Async_T(handle)
-  if handle
-    and type(handle) == 'table'
+  if
+    handle
+    and type(handle) == "table"
     and vim.is_callable(handle.cancel)
-    and vim.is_callable(handle.is_cancelled) then
+    and vim.is_callable(handle.is_cancelled)
+  then
     return true
   end
 end
@@ -63,25 +65,26 @@ end
 --- @tparam any ... Arguments for func
 --- @treturn async_t Handle
 function M.run(func, callback, ...)
-  vim.validate {
-    func = { func, 'function' },
-    callback = { callback, 'function', true }
-  }
+  vim.validate({
+    func = { func, "function" },
+    callback = { callback, "function", true },
+  })
 
   local co = coroutine.create(func)
   local handle = Async_T.new(co)
 
   local function step(...)
-    local ret = {coroutine.resume(co, ...)}
+    local ret = { coroutine.resume(co, ...) }
     local ok = ret[1]
 
     if not ok then
       local err = ret[2]
-      error(string.format("The coroutine failed with this message:\n%s\n%s",
-                          err, debug.traceback(co)))
+      error(
+        string.format("The coroutine failed with this message:\n%s\n%s", err, debug.traceback(co))
+      )
     end
 
-    if coroutine.status(co) == 'dead' then
+    if coroutine.status(co) == "dead" then
       if callback then
         callback(unpack(ret, 4, table.maxn(ret)))
       end
@@ -89,9 +92,9 @@ function M.run(func, callback, ...)
     end
 
     local nargs, fn = ret[2], ret[3]
-    local args = {select(4, unpack(ret))}
+    local args = { select(4, unpack(ret)) }
 
-    assert(type(fn) == 'function', "type error :: expected func")
+    assert(type(fn) == "function", "type error :: expected func")
 
     args[nargs] = step
 
@@ -106,10 +109,10 @@ function M.run(func, callback, ...)
 end
 
 local function wait(argc, func, ...)
-  vim.validate {
-    argc = { argc, 'number' },
-    func = { func, 'function' },
-  }
+  vim.validate({
+    argc = { argc, "number" },
+    func = { func, "function" },
+  })
 
   -- Always run the wrapped functions in xpcall and re-raise the error in the
   -- coroutine. This makes pcall work as normal.
@@ -124,7 +127,7 @@ local function wait(argc, func, ...)
     end, unpack(args, 1, argc))
   end
 
-  local ret = {coroutine.yield(argc, pfunc, ...)}
+  local ret = { coroutine.yield(argc, pfunc, ...) }
 
   local ok = ret[1]
   if not ok then
@@ -141,12 +144,12 @@ end
 --- @tparam function func callback style function to execute
 --- @tparam any ... Arguments for func
 function M.wait(...)
-  if type(select(1, ...)) == 'number' then
+  if type(select(1, ...)) == "number" then
     return wait(...)
   end
 
   -- Assume argc is equal to the number of passed arguments.
-  return wait(select('#', ...) - 1, ...)
+  return wait(select("#", ...) - 1, ...)
 end
 
 --- Use this to create a function which executes in an async context but
@@ -157,20 +160,20 @@ end
 --- @tparam boolean strict Error when called in non-async context
 --- @treturn function(...):async_t
 function M.create(func, argc, strict)
-  vim.validate {
-    func = { func, 'function' },
-    argc = { argc, 'number', true }
-  }
+  vim.validate({
+    func = { func, "function" },
+    argc = { argc, "number", true },
+  })
   argc = argc or 0
   return function(...)
     if M.running() then
       if strict then
-        error('This function must run in a non-async context')
+        error("This function must run in a non-async context")
       end
       return func(...)
     end
     local callback = select(argc + 1, ...)
-    return M.run(func, callback, unpack({...}, 1, argc))
+    return M.run(func, callback, unpack({ ... }, 1, argc))
   end
 end
 
@@ -179,11 +182,11 @@ end
 --- @tparam function func
 --- @tparam boolean strict Error when called in non-async context
 function M.void(func, strict)
-  vim.validate { func = { func, 'function' } }
+  vim.validate({ func = { func, "function" } })
   return function(...)
     if M.running() then
       if strict then
-        error('This function must run in a non-async context')
+        error("This function must run in a non-async context")
       end
       return func(...)
     end
@@ -198,13 +201,13 @@ end
 --- @tparam boolean strict Error when called in non-async context
 --- @treturn function Returns an async function
 function M.wrap(func, argc, strict)
-  vim.validate {
-    argc = { argc, 'number' },
-  }
+  vim.validate({
+    argc = { argc, "number" },
+  })
   return function(...)
     if not M.running() then
       if strict then
-        error('This function must run in an async context')
+        error("This function must run in an async context")
       end
       return func(...)
     end
@@ -229,7 +232,7 @@ function M.join(thunks, n, interrupt_check)
     local ret = {}
 
     local function cb(...)
-      ret[#ret + 1] = {...}
+      ret[#ret + 1] = { ... }
       to_go = to_go - 1
       if to_go == 0 then
         finish(ret)
@@ -256,11 +259,11 @@ end
 --- @tparam function fn
 --- @param ... arguments to apply to `fn`
 function M.curry(fn, ...)
-  local args = {...}
-  local nargs = select('#', ...)
+  local args = { ... }
+  local nargs = select("#", ...)
   return function(...)
-    local other = {...}
-    for i = 1, select('#', ...) do
+    local other = { ... }
+    for i = 1, select("#", ...) do
       args[nargs + i] = other[i]
     end
     fn(unpack(args))
