@@ -29,9 +29,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --config-path .stylua.toml ./lua ./spec
-      - uses: mrcjkb/lua-typecheck-action@v0
+      - uses: stevearc/nvim-typecheck-action@v2
         with:
-          directories: lua
+          path: lua
           configpath: ".luarc.json"
       - uses: cargo-bins/cargo-binstall@main
       - name: Selene
