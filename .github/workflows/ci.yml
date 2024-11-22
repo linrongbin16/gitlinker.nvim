@@ -51,14 +51,6 @@ jobs:
           cp ~/.commons.nvim/version.txt ./lua/gitlinker/commons/version.txt
           cd ./lua/gitlinker/commons
           find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
-      - name: Install giturlparser.lua
-        if: ${{ github.ref != 'refs/heads/master' }}
-        shell: bash
-        run: |
-          echo "pwd"
-          echo $PWD
-          git clone --depth=1 https://github.com/linrongbin16/giturlparser.lua.git ~/.giturlparser.lua
-          cp ~/.giturlparser.lua/src/giturlparser.lua ./lua/gitlinker/giturlparser.lua
       - uses: stefanzweifel/git-auto-commit-action@v5
         if: ${{ github.ref != 'refs/heads/master' }}
         with:
