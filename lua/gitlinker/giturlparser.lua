@@ -1,4 +1,3 @@
--- local inspect = require("inspect")
 local M = {}
 
 -- utils {
@@ -148,6 +147,8 @@ end
 M._parse_path = function(p, start)
   assert(type(start) == "number")
 
+  -- local inspect = require("inspect")
+
   local endswith_slash = M._endswith(p, "/")
 
   local org = nil
@@ -226,24 +227,13 @@ M._parse_host = function(p, start)
 
     -- find first slash '/' (after second ':'), the end position of port, start position of path
     local first_slash_pos = M._find(p, "/", first_colon_pos + 1)
-    -- print(
-    --   string.format(
-    --     "_parse_host, start:%s, first_colon_pos:%s, first_slash_pos:%s\n",
-    --     inspect(start),
-    --     inspect(first_colon_pos),
-    --     inspect(first_slash_pos)
-    --   )
-    -- )
-    if type(first_slash_pos) == "number" then
-      if first_slash_pos > first_colon_pos + 1 then
-        -- port end with '/'
-        port, port_pos = M._make(p, first_colon_pos + 1, first_slash_pos - 1)
-        path_obj = M._parse_path(p, first_slash_pos)
-      else
-        assert(first_slash_pos == first_colon_pos + 1)
-        -- port is empty, host still end with '/'
-        path_obj = M._parse_path(p, first_slash_pos)
-      end
+    if
+      type(first_slash_pos) == "number"
+      and first_slash_pos > first_colon_pos + 1
+    then
+      -- port end with '/'
+      port, port_pos = M._make(p, first_colon_pos + 1, first_slash_pos - 1)
+      path_obj = M._parse_path(p, first_slash_pos)
     else
       -- path not found, port end until url end
       port, port_pos = M._make(p, first_colon_pos + 1, plen)
