@@ -1,9 +1,10 @@
 local logging = require("gitlinker.commons.logging")
 local str = require("gitlinker.commons.str")
+local async = require("gitlinker.commons.async")
+
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
-local async = require("gitlinker.async")
 
 --- @return string?
 local function _get_buf_dir()
@@ -88,7 +89,7 @@ local function make_linker(remote, file, rev)
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
-  async.scheduler()
+  async.schedule()
 
   if not file_provided then
     local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
@@ -113,7 +114,7 @@ local function make_linker(remote, file, rev)
   --     vim.inspect(file_in_rev_result)
   -- )
 
-  async.scheduler()
+  async.schedule()
 
   local file_changed = false
   if not file_provided then

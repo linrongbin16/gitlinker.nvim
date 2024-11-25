@@ -3,8 +3,8 @@ local str = require("gitlinker.commons.str")
 local num = require("gitlinker.commons.num")
 local LogLevels = require("gitlinker.commons.logging").LogLevels
 local logging = require("gitlinker.commons.logging")
+local async = require("gitlinker.commons.async")
 
-local async = require("gitlinker.async")
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")
 local linker = require("gitlinker.linker")
@@ -221,7 +221,7 @@ local _link = function(opts)
     lk.rev = opts.rev
   end
 
-  async.scheduler()
+  async.schedule()
   local ok, url = pcall(opts.router, lk, true)
   -- logger:debug(
   --   "|link| ok:%s, url:%s, router:%s",
@@ -273,7 +273,7 @@ local _link = function(opts)
 end
 
 --- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}):string?
-local _void_link = async.void(_link)
+local _sync_link = async.sync(1, _link)
 
 --- @param args string?
 --- @return {router_type:string,remote:string?,file:string?,rev:string?}
@@ -332,7 +332,7 @@ local function setup(opts)
     local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
-    _void_link({
+    _sync_link({
       action = command_opts.bang and require("gitlinker.actions").system
         or require("gitlinker.actions").clipboard,
       router = function(lk)
@@ -392,7 +392,7 @@ local function link_api(opts)
     opts.lend = math.max(r.lstart, r.lend)
   end
 
-  _void_link({
+  _sync_link({
     action = opts.action,
     router = opts.router,
     lstart = opts.lstart,
@@ -408,7 +408,7 @@ end
 local M = {
   _url_template_engine = _url_template_engine,
   _worker = _worker,
-  _void_link = _void_link,
+  _sync_link = _sync_link,
   _router = _router,
   _browse = _browse,
   _blame = _blame,
