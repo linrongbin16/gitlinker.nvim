@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.2...v5.0.0) (2024-11-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade commons.nvim library ([#251](https://github.com/linrongbin16/gitlinker.nvim/issues/251))
+
+### Bug Fixes
+
+* **url:** fix host ends with a colon but port is empty ([#253](https://github.com/linrongbin16/gitlinker.nvim/issues/253)) ([3ed7409](https://github.com/linrongbin16/gitlinker.nvim/commit/3ed740961a4c962665e47df89da6dccecb55d426))
+
+
+### Miscellaneous Chores
+
+* upgrade commons.nvim library ([#251](https://github.com/linrongbin16/gitlinker.nvim/issues/251)) ([606060e](https://github.com/linrongbin16/gitlinker.nvim/commit/606060e5d53ed0922f00451871f3519071120e49))
+
 ## [4.13.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.1...v4.13.2) (2024-09-19)
 
 
