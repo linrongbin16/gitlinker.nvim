@@ -1,13 +1,13 @@
----@diagnostic disable: luadoc-miss-module-name, undefined-doc-name
+---@diagnostic disable
 --- Small async library for Neovim plugins
 
 local function validate_callback(func, callback)
-  if callback and type(callback) ~= "function" then
-    local info = debug.getinfo(func, "nS")
+  if callback and type(callback) ~= 'function' then
+    local info = debug.getinfo(func, 'nS')
     error(
       string.format(
-        "Callback is not a function for %s, got: %s",
-        info.short_src .. ":" .. info.linedefined,
+        'Callback is not a function for %s, got: %s',
+        info.short_src .. ':' .. info.linedefined,
         vim.inspect(callback)
       )
     )
@@ -40,11 +40,11 @@ local function run(func, callback, ...)
     if not stat then
       local err = ret[2] --[[@as string]]
       error(
-        string.format("The coroutine failed with this message: %s\n%s", err, debug.traceback(co))
+        string.format('The coroutine failed with this message: %s\n%s', err, debug.traceback(co))
       )
     end
 
-    if coroutine.status(co) == "dead" then
+    if coroutine.status(co) == 'dead' then
       if callback then
         callback(unpack(ret, 2, table.maxn(ret)))
       end
@@ -53,7 +53,7 @@ local function run(func, callback, ...)
 
     --- @type integer, fun(...: any): any
     local nargs, fn = ret[2], ret[3]
-    assert(type(fn) == "function", "type error :: expected func")
+    assert(type(fn) == 'function', 'type error :: expected func')
 
     --- @type any[]
     local args = { unpack(ret, 4, table.maxn(ret)) }
@@ -105,7 +105,7 @@ function M.wait(argc, func, ...)
   if not ok then
     --- @type string, string
     local err, traceback = ret[2], ret[3]
-    error(string.format("Wrapped function failed: %s\n%s", err, traceback))
+    error(string.format('Wrapped function failed: %s\n%s', err, traceback))
   end
 
   return unpack(ret, 2, table.maxn(ret))
@@ -120,8 +120,8 @@ end
 --- @param func function
 --- @return function
 function M.wrap(argc, func)
-  assert(type(argc) == "number")
-  assert(type(func) == "function")
+  assert(type(argc) == 'number')
+  assert(type(func) == 'function')
   return function(...)
     return M.wait(argc, func, ...)
   end
@@ -169,11 +169,11 @@ end)
 --- @return function
 function M.curry(fn, ...)
   --- @type integer, any[]
-  local nargs, args = select("#", ...), { ... }
+  local nargs, args = select('#', ...), { ... }
 
   return function(...)
     local other = { ... }
-    for i = 1, select("#", ...) do
+    for i = 1, select('#', ...) do
       args[nargs + i] = other[i]
     end
     return fn(unpack(args))
