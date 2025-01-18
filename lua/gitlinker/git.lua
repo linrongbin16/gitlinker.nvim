@@ -1,7 +1,8 @@
 local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
 local uv = require("gitlinker.commons.uv")
-local async = require("gitlinker.commons.async")
+
+local async = require("gitlinker.async")
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -42,12 +43,12 @@ function CmdResult:print_err(default)
 end
 
 --- NOTE: async functions can't have optional parameters so wrap it into another function without '_'
-local _run_cmd = async.wrap(3, function(args, cwd, callback)
+local _run_cmd = async.wrap(function(args, cwd, callback)
   local result = CmdResult:new()
   local logger = logging.get("gitlinker")
   logger:debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
-  spawn.run(args, {
+  spawn.detached(args, {
     cwd = cwd,
     on_stdout = function(line)
       if type(line) == "string" then
@@ -63,7 +64,7 @@ local _run_cmd = async.wrap(3, function(args, cwd, callback)
     logger:debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
     callback(result)
   end)
-end)
+end, 3)
 
 -- wrap the git command to do the right thing always
 --- @package
