@@ -696,9 +696,9 @@ describe("gitlinker", function()
     end)
   end)
 
-  describe("[_sync_link]", function()
+  describe("[_void_link]", function()
     it("link browse", function()
-      gitlinker._sync_link({
+      gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
           return require("gitlinker")._router("browse", lk)
@@ -708,7 +708,7 @@ describe("gitlinker", function()
       })
     end)
     it("link blame", function()
-      gitlinker._sync_link({
+      gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
           return require("gitlinker")._router("blame", lk)
