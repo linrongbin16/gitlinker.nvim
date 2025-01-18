@@ -48,7 +48,7 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
   local logger = logging.get("gitlinker")
   logger:debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
-  spawn.run(args, {
+  spawn.detached(args, {
     cwd = cwd,
     on_stdout = function(line)
       if type(line) == "string" then
