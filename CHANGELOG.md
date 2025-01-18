@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.0.0...v5.0.1) (2025-01-18)
+
+
+### Bug Fixes
+
+* **async:** revert back to previous version 'async' module ([#258](https://github.com/linrongbin16/gitlinker.nvim/issues/258)) ([bc27701](https://github.com/linrongbin16/gitlinker.nvim/commit/bc2770109977c0d95117e13113acf17a8aeb8aac))
+
 ## [5.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v4.13.2...v5.0.0) (2024-11-25)
 
 
