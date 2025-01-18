@@ -1,12 +1,10 @@
-# Regression Test
-
-## Platforms
+## Test Platforms
 
 - [ ] windows
 - [ ] macOS
 - [ ] linux
 
-## Hosts
+## Test Hosts
 
 - [ ] Test on [github.com](https://github.com).
 - [ ] Test on [gitlab.com](https://gitlab.com).
@@ -14,7 +12,7 @@
 - [ ] Test on [codeberg.org](https://codeberg.org).
 - [ ] Test on [git.samba.org](https://git.samba.org).
 
-## Functions
+## Test Functions
 
 - [ ] Use `GitLink(!)` to copy git link (or open in browser).
 - [ ] Use `GitLink(!) blame` to copy the `/blame` link (or open in browser).
