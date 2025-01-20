@@ -52,25 +52,21 @@ local function system(url)
       on_stdout = _dummy,
       on_stderr = _error,
     }, _exit)
-    -- vim.fn.jobstart({ "open", url }, { on_stderr = function() end })
   elseif vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0 then
     spawn.detached({ "cmd", "/C", "start", url }, {
       on_stdout = _dummy,
       on_stderr = _error,
     }, _exit)
-    -- vim.fn.jobstart({ "cmd", "/C", "start", url })
   elseif vim.fn.executable("wslview") > 0 then
     spawn.detached({ "wslview", url }, {
       on_stdout = _dummy,
       on_stderr = _error,
     }, _exit)
-    -- vim.fn.jobstart({ "wslview", url })
   else
     spawn.detached({ "xdg-open", url }, {
       on_stdout = _dummy,
       on_stderr = _error,
     }, _exit)
-    -- vim.fn.jobstart({ "xdg-open", url })
   end
 end
 
