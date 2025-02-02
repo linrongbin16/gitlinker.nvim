@@ -221,7 +221,7 @@ local _link = function(opts)
     lk.rev = opts.rev
   end
 
-  async.scheduler()
+  async.schedule()
   local ok, url = pcall(opts.router, lk, true)
   -- logger:debug(
   --   "|link| ok:%s, url:%s, router:%s",
