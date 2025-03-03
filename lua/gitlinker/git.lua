@@ -1,6 +1,7 @@
 local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
 local uv = require("gitlinker.commons.uv")
+local str = require("gitlinker.commons.str")
 
 local async = require("gitlinker.async")
 
@@ -358,6 +359,40 @@ local function get_root(cwd)
   return result.stdout[1]
 end
 
+--- NOTE: async functions for `vim.ui.select`.
+local _run_select = async.wrap(function(remotes, callback)
+  vim.ui.select(remotes, {
+    prompt = "Detect multiple git remotes:",
+  }, function(choice)
+    callback(choice)
+  end)
+end, 2)
+
+-- wrap the select function.
+--- @package
+--- @type fun(remotes:string[]):string?
+local function run_select(remotes)
+  return _run_cmd(remotes)
+end
+
+--- @package
+--- @param remotes string[]
+--- @return string?
+local function _select_multiple_remotes(remotes)
+  local logger = logging.get("gitlinker")
+  local result = run_select(remotes)
+  if str.empty(result) then
+    logger:err("fatal: user doesn't confirm multiple git remotes")
+    return nil
+  end
+  -- logger.debug(
+  --   "|git._get_remote| running %s: %s",
+  --   vim.inspect(args),
+  --   vim.inspect(result.stdout)
+  -- )
+  return result
+end
+
 --- @param cwd string?
 --- @return string?
 local function get_branch_remote(cwd)
@@ -370,6 +405,10 @@ local function get_branch_remote(cwd)
 
   if #remotes == 1 then
     return remotes[1]
+  end
+
+  if #remotes > 1 then
+    return _select_multiple_remotes(remotes)
   end
 
   -- origin/linrongbin16/add-rule2
