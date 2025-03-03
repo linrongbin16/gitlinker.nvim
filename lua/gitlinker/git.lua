@@ -398,21 +398,8 @@ local function _select_multiple_remotes(remotes)
     logger:err("fatal: user cancelled multiple git remotes")
     return nil
   end
-  -- logger.debug(
-  --   "|git._get_remote| running %s: %s",
-  --   vim.inspect(args),
-  --   vim.inspect(result.stdout)
-  -- )
 
   for i, rem in ipairs(remotes) do
-    -- logger:debug(
-    --   string.format(
-    --     "result:%s == i:%s - %s",
-    --     vim.inspect(result),
-    --     vim.inspect(tostring(i)),
-    --     vim.inspect(result == tostring(i))
-    --   )
-    -- )
     if result == i then
       return rem
     end
