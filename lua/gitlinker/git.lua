@@ -380,14 +380,16 @@ end
 
 --- @package
 --- @param remotes string[]
+--- @param cwd string?
 --- @return string?
-local function _select_remotes(remotes)
+local function _select_remotes(remotes, cwd)
   local logger = logging.get("gitlinker")
   -- local result = run_select(remotes)
 
-  local formatted_remotes = {}
-  for i, rem in ipairs(remotes) do
-    table.insert(formatted_remotes, string.format("%d. %s", i, rem))
+  local formatted_remotes = { "Please select remote index:" }
+  for i, remote in ipairs(remotes) do
+    local remote_url = get_remote_url(remote, cwd)
+    table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
   end
 
   async.scheduler()
@@ -399,9 +401,9 @@ local function _select_remotes(remotes)
     return nil
   end
 
-  for i, rem in ipairs(remotes) do
+  for i, remote in ipairs(remotes) do
     if result == i then
-      return rem
+      return remote
     end
   end
 
@@ -425,7 +427,7 @@ local function get_branch_remote(cwd)
   end
 
   if #remotes > 1 then
-    return _select_remotes(remotes)
+    return _select_remotes(remotes, cwd)
   end
 
   -- origin/linrongbin16/add-rule2
