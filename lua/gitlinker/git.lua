@@ -372,7 +372,7 @@ end, 2)
 --- @package
 --- @type fun(remotes:string[]):string?
 local function run_select(remotes)
-  return _run_cmd(remotes)
+  return _run_select(remotes)
 end
 
 --- @package
