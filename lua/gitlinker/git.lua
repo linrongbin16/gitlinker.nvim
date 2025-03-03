@@ -363,6 +363,9 @@ end
 local _run_select = async.wrap(function(remotes, callback)
   vim.ui.select(remotes, {
     prompt = "Detect multiple git remotes:",
+    format_item = function(item)
+      return item
+    end,
   }, function(choice)
     callback(choice)
   end)
