@@ -359,33 +359,43 @@ local function get_root(cwd)
   return result.stdout[1]
 end
 
---- NOTE: async functions for `vim.ui.select`.
-local _run_select = async.wrap(function(remotes, callback)
-  vim.ui.select(remotes, {
-    prompt = "Detect multiple git remotes:",
-    format_item = function(item)
-      return item
-    end,
-  }, function(choice)
-    callback(choice)
-  end)
-end, 2)
-
--- wrap the select function.
---- @package
---- @type fun(remotes:string[]):string?
-local function run_select(remotes)
-  return _run_select(remotes)
-end
+-- --- NOTE: async functions for `vim.ui.select`.
+-- local _run_select = async.wrap(function(remotes, callback)
+--   vim.ui.select(remotes, {
+--     prompt = "Detect multiple git remotes:",
+--     format_item = function(item)
+--       return item
+--     end,
+--   }, function(choice)
+--     callback(choice)
+--   end)
+-- end, 2)
+--
+-- -- wrap the select function.
+-- --- @package
+-- --- @type fun(remotes:string[]):string?
+-- local function run_select(remotes)
+--   return _run_select(remotes)
+-- end
 
 --- @package
 --- @param remotes string[]
 --- @return string?
 local function _select_multiple_remotes(remotes)
   local logger = logging.get("gitlinker")
-  local result = run_select(remotes)
+  -- local result = run_select(remotes)
+
+  local formatted_remotes = {}
+  for i, rem in ipairs(remotes) do
+    table.insert(formatted_remotes, string.format("%d. %s", i, rem))
+  end
+
+  async.scheduler()
+  local result = vim.fn.inputlist(formatted_remotes)
+  logger:debug(string.format("inputlist:%s", vim.inspect(result)))
+
   if str.empty(result) then
-    logger:err("fatal: user doesn't confirm multiple git remotes")
+    logger:err("fatal: user cancelled multiple git remotes")
     return nil
   end
   -- logger.debug(
@@ -393,7 +403,15 @@ local function _select_multiple_remotes(remotes)
   --   vim.inspect(args),
   --   vim.inspect(result.stdout)
   -- )
-  return result
+
+  for i, rem in ipairs(remotes) do
+    if result == tostring(i) then
+      return rem
+    end
+  end
+
+  logger:err("fatal: user cancelled multiple git remotes, please select the index")
+  return nil
 end
 
 --- @param cwd string?
@@ -402,6 +420,7 @@ local function get_branch_remote(cwd)
   local logger = logging.get("gitlinker")
   -- origin/upstream
   local remotes = _get_remote(cwd)
+  logger:debug(string.format("git remotes:%s", vim.inspect(remotes)))
   if not remotes then
     return nil
   end
