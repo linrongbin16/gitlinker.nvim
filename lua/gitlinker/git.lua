@@ -381,7 +381,7 @@ end
 --- @package
 --- @param remotes string[]
 --- @return string?
-local function _select_multiple_remotes(remotes)
+local function _select_remotes(remotes)
   local logger = logging.get("gitlinker")
   -- local result = run_select(remotes)
 
@@ -425,7 +425,7 @@ local function get_branch_remote(cwd)
   end
 
   if #remotes > 1 then
-    return _select_multiple_remotes(remotes)
+    return _select_remotes(remotes)
   end
 
   -- origin/linrongbin16/add-rule2
