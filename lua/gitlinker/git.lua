@@ -392,9 +392,9 @@ local function _select_multiple_remotes(remotes)
 
   async.scheduler()
   local result = vim.fn.inputlist(formatted_remotes)
-  logger:debug(string.format("inputlist:%s", vim.inspect(result)))
+  logger:debug(string.format("inputlist:%s(%s)", vim.inspect(result), vim.inspect(type(result))))
 
-  if str.empty(result) then
+  if type(result) ~= "number" or result < 1 or result > #remotes then
     logger:err("fatal: user cancelled multiple git remotes")
     return nil
   end
@@ -405,7 +405,15 @@ local function _select_multiple_remotes(remotes)
   -- )
 
   for i, rem in ipairs(remotes) do
-    if result == tostring(i) then
+    -- logger:debug(
+    --   string.format(
+    --     "result:%s == i:%s - %s",
+    --     vim.inspect(result),
+    --     vim.inspect(tostring(i)),
+    --     vim.inspect(result == tostring(i))
+    --   )
+    -- )
+    if result == i then
       return rem
     end
   end
