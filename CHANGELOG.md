@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.0.1...v5.1.0) (2025-03-04)
+
+
+### Features
+
+* **remotes:** use `inputlist` on multiple git remotes ([#267](https://github.com/linrongbin16/gitlinker.nvim/issues/267)) ([400ddb3](https://github.com/linrongbin16/gitlinker.nvim/commit/400ddb383ae59ab1b6738468a1343567f2fd13c4))
+
 ## [5.0.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.0.0...v5.0.1) (2025-01-18)
 
 
