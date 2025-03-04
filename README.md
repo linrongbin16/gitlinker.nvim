@@ -54,9 +54,9 @@ PRs are welcomed for other git host websites!
 2. New Features:
    - Windows (+wsl2) support.
    - Blame support.
-   - Full [git protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) support.
    - Respect ssh host alias.
    - Add `?plain=1` for markdown files.
+   - Fully customizable [git url](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) generation.
 3. Improvements:
    - Use git `stderr` output as error message.
    - Async child process IO via coroutine and `uv.spawn`.

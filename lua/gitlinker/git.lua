@@ -1,6 +1,7 @@
 local logging = require("gitlinker.commons.logging")
 local spawn = require("gitlinker.commons.spawn")
 local uv = require("gitlinker.commons.uv")
+local str = require("gitlinker.commons.str")
 
 local async = require("gitlinker.async")
 
@@ -358,18 +359,75 @@ local function get_root(cwd)
   return result.stdout[1]
 end
 
+-- --- NOTE: async functions for `vim.ui.select`.
+-- local _run_select = async.wrap(function(remotes, callback)
+--   vim.ui.select(remotes, {
+--     prompt = "Detect multiple git remotes:",
+--     format_item = function(item)
+--       return item
+--     end,
+--   }, function(choice)
+--     callback(choice)
+--   end)
+-- end, 2)
+--
+-- -- wrap the select function.
+-- --- @package
+-- --- @type fun(remotes:string[]):string?
+-- local function run_select(remotes)
+--   return _run_select(remotes)
+-- end
+
+--- @package
+--- @param remotes string[]
+--- @param cwd string?
+--- @return string?
+local function _select_remotes(remotes, cwd)
+  local logger = logging.get("gitlinker")
+  -- local result = run_select(remotes)
+
+  local formatted_remotes = { "Please select remote index:" }
+  for i, remote in ipairs(remotes) do
+    local remote_url = get_remote_url(remote, cwd)
+    table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
+  end
+
+  async.scheduler()
+  local result = vim.fn.inputlist(formatted_remotes)
+  -- logger:debug(string.format("inputlist:%s(%s)", vim.inspect(result), vim.inspect(type(result))))
+
+  if type(result) ~= "number" or result < 1 or result > #remotes then
+    logger:err("fatal: user cancelled multiple git remotes")
+    return nil
+  end
+
+  for i, remote in ipairs(remotes) do
+    if result == i then
+      return remote
+    end
+  end
+
+  logger:err("fatal: user cancelled multiple git remotes, please select an index")
+  return nil
+end
+
 --- @param cwd string?
 --- @return string?
 local function get_branch_remote(cwd)
   local logger = logging.get("gitlinker")
   -- origin/upstream
   local remotes = _get_remote(cwd)
+  logger:debug(string.format("git remotes:%s", vim.inspect(remotes)))
   if not remotes then
     return nil
   end
 
   if #remotes == 1 then
     return remotes[1]
+  end
+
+  if #remotes > 1 then
+    return _select_remotes(remotes, cwd)
   end
 
   -- origin/linrongbin16/add-rule2

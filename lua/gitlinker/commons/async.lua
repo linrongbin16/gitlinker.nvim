@@ -1,189 +1,95 @@
----@diagnostic disable
---- Small async library for Neovim plugins
+-- Copied from: <https://github.com/neovim/neovim/issues/19624#issuecomment-1202405058>
 
-local function validate_callback(func, callback)
-  if callback and type(callback) ~= 'function' then
-    local info = debug.getinfo(func, 'nS')
-    error(
-      string.format(
-        'Callback is not a function for %s, got: %s',
-        info.short_src .. ':' .. info.linedefined,
-        vim.inspect(callback)
-      )
-    )
-  end
+local co = coroutine
+
+local async_thread = {
+   threads = {},
+}
+
+local function threadtostring(x)
+   if jit then
+      return string.format('%p', x)
+   else
+      return tostring(x):match('thread: (.*)')
+   end
 end
 
--- Coroutine.running() was changed between Lua 5.1 and 5.2:
--- - 5.1: Returns the running coroutine, or nil when called by the main thread.
--- - 5.2: Returns the running coroutine plus a boolean, true when the running
---   coroutine is the main one.
---
--- For LuaJIT, 5.2 behaviour is enabled with LUAJIT_ENABLE_LUA52COMPAT
---
--- We need to handle both.
-local _main_co_or_nil = coroutine.running()
+function async_thread.running()
+   local thread = co.running()
+   local id = threadtostring(thread)
+   return async_thread.threads[id]
+end
 
---- Executes a future with a callback when it is done
---- @param func function
---- @param callback function?
+function async_thread.create(fn)
+   local thread = co.create(fn)
+   local id = threadtostring(thread)
+   async_thread.threads[id] = true
+   return thread
+end
+
+function async_thread.finished(x)
+   if co.status(x) == 'dead' then
+      local id = threadtostring(x)
+      async_thread.threads[id] = nil
+      return true
+   end
+   return false
+end
+
+--- @param async_fn function
 --- @param ... any
-local function run(func, callback, ...)
-  validate_callback(func, callback)
+local function execute(async_fn, ...)
+   local thread = async_thread.create(async_fn)
 
-  local co = coroutine.create(func)
+   local function step(...)
+      local ret = { co.resume(thread, ...) }
+      local stat, err_or_fn, nargs = unpack(ret)
 
-  local function step(...)
-    local ret = { coroutine.resume(co, ...) }
-    local stat = ret[1]
-
-    if not stat then
-      local err = ret[2] --[[@as string]]
-      error(
-        string.format('The coroutine failed with this message: %s\n%s', err, debug.traceback(co))
-      )
-    end
-
-    if coroutine.status(co) == 'dead' then
-      if callback then
-        callback(unpack(ret, 2, table.maxn(ret)))
+      if not stat then
+         error(string.format("The coroutine failed with this message: %s\n%s",
+         err_or_fn, debug.traceback(thread)))
       end
-      return
-    end
 
-    --- @type integer, fun(...: any): any
-    local nargs, fn = ret[2], ret[3]
-    assert(type(fn) == 'function', 'type error :: expected func')
+      if async_thread.finished(thread) then
+         return
+      end
 
-    --- @type any[]
-    local args = { unpack(ret, 4, table.maxn(ret)) }
-    args[nargs] = step
-    fn(unpack(args, 1, nargs))
-  end
+      assert(type(err_or_fn) == "function", "The 1st parameter must be a lua function")
 
-  step(...)
+      local ret_fn = err_or_fn
+      local args = { select(4, unpack(ret)) }
+      args[nargs] = step
+      ret_fn(unpack(args, 1, nargs --[[@as integer]]))
+   end
+
+   step(...)
 end
 
 local M = {}
 
----Use this to create a function which executes in an async context but
----called from a non-async context. Inherently this cannot return anything
----since it is non-blocking
---- @generic F: function
---- @param argc integer
---- @param func async F
---- @return F
-function M.sync(argc, func)
-  return function(...)
-    assert(not coroutine.running())
-    local callback = select(argc + 1, ...)
-    run(func, callback, unpack({ ... }, 1, argc))
-  end
-end
-
---- @param argc integer
 --- @param func function
---- @param ... any
---- @return any ...
-function M.wait(argc, func, ...)
-  -- Always run the wrapped functions in xpcall and re-raise the error in the
-  -- coroutine. This makes pcall work as normal.
-  local function pfunc(...)
-    local args = { ... } --- @type any[]
-    local cb = args[argc]
-    args[argc] = function(...)
-      cb(true, ...)
-    end
-    xpcall(func, function(err)
-      cb(false, err, debug.traceback())
-    end, unpack(args, 1, argc))
-  end
-
-  local ret = { coroutine.yield(argc, pfunc, ...) }
-
-  local ok = ret[1]
-  if not ok then
-    --- @type string, string
-    local err, traceback = ret[2], ret[3]
-    error(string.format('Wrapped function failed: %s\n%s', err, traceback))
-  end
-
-  return unpack(ret, 2, table.maxn(ret))
-end
-
-function M.run(func, ...)
-  return run(func, nil, ...)
-end
-
---- Creates an async function with a callback style function.
 --- @param argc integer
---- @param func function
 --- @return function
-function M.wrap(argc, func)
-  assert(type(argc) == 'number')
-  assert(type(func) == 'function')
-  return function(...)
-    return M.wait(argc, func, ...)
-  end
-end
-
---- @generic R
---- @param n integer Mx number of jobs to run concurrently
---- @param thunks (fun(cb: function): R)[]
---- @param interrupt_check fun()?
---- @param callback fun(ret: R[][])
-M.join = M.wrap(4, function(n, thunks, interrupt_check, callback)
-  n = math.min(n, #thunks)
-
-  local ret = {} --- @type any[][]
-
-  if #thunks == 0 then
-    callback(ret)
-    return
-  end
-
-  local remaining = { unpack(thunks, n + 1) }
-  local to_go = #thunks
-
-  local function cb(...)
-    ret[#ret + 1] = { ... }
-    to_go = to_go - 1
-    if to_go == 0 then
-      callback(ret)
-    elseif not interrupt_check or not interrupt_check() then
-      if #remaining > 0 then
-        local next_thunk = table.remove(remaining, 1)
-        next_thunk(cb)
+M.wrap = function(func, argc)
+   return function(...)
+      if not async_thread.running() then
+         return func(...)
       end
-    end
-  end
+      return co.yield(func, argc, ...)
+   end
+end
 
-  for i = 1, n do
-    thunks[i](cb)
-  end
-end)
-
----Useful for partially applying arguments to an async function
---- @param fn function
---- @param ... any
+--- @param func function
 --- @return function
-function M.curry(fn, ...)
-  --- @type integer, any[]
-  local nargs, args = select('#', ...), { ... }
-
-  return function(...)
-    local other = { ... }
-    for i = 1, select('#', ...) do
-      args[nargs + i] = other[i]
-    end
-    return fn(unpack(args))
-  end
+M.void = function(func)
+   return function(...)
+      if async_thread.running() then
+         return func(...)
+      end
+      execute(func, ...)
+   end
 end
 
-if vim.schedule then
-  --- An async function that when called will yield to the Neovim scheduler to be
-  --- able to call the API.
-  M.schedule = M.wrap(1, vim.schedule)
-end
+M.schedule = M.wrap(vim.schedule, 1)
 
 return M
