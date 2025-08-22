@@ -77,7 +77,7 @@ jobs:
       - name: Run Test Cases
         shell: bash
         run: |
-          luarocks install vusted
+          luarocks --lua-version=5.1 install vusted
           vusted ./spec
   code_coverage:
     name: Code Coverage
@@ -130,7 +130,7 @@ jobs:
           release-type: simple
           package-name: gitlinker.nvim
       - uses: actions/checkout@v4
-      - uses: nvim-neorocks/luarocks-tag-release@v5
+      - uses: nvim-neorocks/luarocks-tag-release@v7
         if: ${{ steps.release.outputs.release_created }}
         env:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
