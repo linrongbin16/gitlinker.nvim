@@ -69,11 +69,11 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.nvim_version }}
-      - uses: leafo/gh-actions-lua@v10
+      - uses: leafo/gh-actions-lua@v11
         with:
-          # luaVersion: "luajit-2.1.0-beta3"
-          luaVersion: "luajit-openresty"
-      - uses: leafo/gh-actions-luarocks@v4
+          luaVersion: "luajit-2.1"
+          # luaVersion: "luajit-openresty"
+      - uses: leafo/gh-actions-luarocks@v5
       - name: Run Test Cases
         shell: bash
         run: |
@@ -95,8 +95,8 @@ jobs:
           version: ${{ matrix.nvim_version }}
       - uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "luajit-openresty"
-      - uses: leafo/gh-actions-luarocks@v4
+          luaVersion: "luajit-2.1"
+      - uses: leafo/gh-actions-luarocks@v5
       - name: Generate Coverage Reports
         run: |
           luarocks install luacov
