@@ -642,11 +642,7 @@ To develop the project and make PR, please setup with:
 - [stylua](https://github.com/JohnnyMorganz/StyLua).
 - [selene](https://github.com/Kampfkarren/selene).
 
-To run unit tests, please install below dependencies:
-
-- [vusted](https://github.com/notomo/vusted).
-
-Then test with `vusted ./spec`.
+To run unit tests, please use `make test`.
 
 ## Contribute
 
