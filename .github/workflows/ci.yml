@@ -70,7 +70,6 @@ jobs:
           neovim: true
           version: ${{ matrix.nvim_version }}
       - name: Run Test Cases
-        shell: bash
         run: make test
   release:
     name: Release
