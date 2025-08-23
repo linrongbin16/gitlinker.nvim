@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.1.0...v5.2.0) (2025-08-23)
+
+
+### Features
+
+* **msg:** use 'vim.notify' instead of legacy 'echo' for message ([#270](https://github.com/linrongbin16/gitlinker.nvim/issues/270)) ([ff63746](https://github.com/linrongbin16/gitlinker.nvim/commit/ff63746fafbffc7da48ce96768b7e82925096e92))
+
 ## [5.1.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.0.1...v5.1.0) (2025-03-04)
 
 
