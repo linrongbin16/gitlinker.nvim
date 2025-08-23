@@ -71,57 +71,18 @@ jobs:
           version: ${{ matrix.nvim_version }}
       - uses: leafo/gh-actions-lua@v11
         with:
-          luaVersion: "luajit-2.1"
-          # luaVersion: "luajit-openresty"
+          luaVersion: "luajit-openresty"
       - uses: leafo/gh-actions-luarocks@v5
       - name: Run Test Cases
         shell: bash
         run: |
-          luarocks --lua-version=5.1 install vusted
-          vusted ./spec
-  code_coverage:
-    name: Code Coverage
-    needs:
-      - lint
-    strategy:
-      matrix:
-        nvim_version: [stable]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: ${{ matrix.nvim_version }}
-      - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "luajit-2.1"
-      - uses: leafo/gh-actions-luarocks@v5
-      - name: Generate Coverage Reports
-        run: |
-          luarocks install luacov
-          luarocks install luacov-reporter-lcov
-          luarocks --lua-version=5.1 install vusted
-          vusted --coverage ./spec
-          echo "ls -l ."
-          ls -l .
-          echo "luacov -r lcov"
-          luacov -r lcov
-          echo "ls -l ."
-          ls -l .
-          echo "tail ./luacov.report.out"
-          tail -n 10 ./luacov.report.out
-      - uses: codecov/codecov-action@v4
-        with:
-          files: luacov.report.out
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          luarocks install busted
+          make test
   release:
     name: Release
     if: ${{ github.ref == 'refs/heads/master' }}
     needs:
       - unit_test
-      - code_coverage
     runs-on: ubuntu-latest
     steps:
       - uses: google-github-actions/release-please-action@v3
