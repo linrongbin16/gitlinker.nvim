@@ -5,7 +5,6 @@
 <a href="https://github.com/linrongbin16/commons.nvim"><img alt="commons.nvim" src="https://img.shields.io/badge/power_by-commons.nvim-pink" /></a>
 <a href="https://luarocks.org/modules/linrongbin16/gitlinker.nvim"><img alt="luarocks" src="https://img.shields.io/luarocks/v/linrongbin16/gitlinker.nvim" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?label=ci" /></a>
-<a href="https://app.codecov.io/github/linrongbin16/gitlinker.nvim"><img alt="codecov" src="https://img.shields.io/codecov/c/github/linrongbin16/gitlinker.nvim/main?label=codecov" /></a>
 </p>
 
 > Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias, blame support and other improvements.
@@ -199,9 +198,7 @@ require("gitlinker").link(opts)
 **Parameters:**
 
 - `opts`: (Optional) lua table that contains below fields:
-
   - `router_type`: Which router type should use. By default is `browse` when not specified. It has below options:
-
     - `browse`
     - `blame`
     - `default_branch`
@@ -214,7 +211,6 @@ require("gitlinker").link(opts)
     > Once set this field, you will get full control of generating the url, and `router_type` field will no longer take effect.
 
   - `action`: What action should do. By default it will copy the generated link to clipboard. It has below options, please see [`gitlinker.Action`](#gitlinkeraction) for more details.
-
     - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
     - `require("gitlinker.actions").system`: Open url in browser.
 
