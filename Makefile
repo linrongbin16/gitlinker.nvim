@@ -1,5 +1,5 @@
-TESTS_INIT=tests/minimal_init.lua
-TESTS_DIR=tests/
+TESTS_INIT=spec_init.lua
+TESTS_DIR=spec/
 
 .PHONY: test
 
