@@ -8,7 +8,7 @@ test_dependencies = {
 }
 
 source = {
-  url = "git+https://github.com/nvimdev/" .. package,
+  url = "git+https://github.com/linrongbin16/" .. package,
 }
 
 build = {
