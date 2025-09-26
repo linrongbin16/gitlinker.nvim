@@ -55,10 +55,6 @@ end
 --- @tparam any ... Arguments for func
 --- @treturn async_t Handle
 function M.run(func, callback, ...)
-  vim.validate({
-    func = { func, "function" },
-    callback = { callback, "function", true },
-  })
   local co = coroutine.create(func)
   local handle = Async_T.new(co)
   local function step(...)
@@ -89,10 +85,6 @@ function M.run(func, callback, ...)
   return handle
 end
 local function wait(argc, func, ...)
-  vim.validate({
-    argc = { argc, "number" },
-    func = { func, "function" },
-  })
   -- Always run the wrapped functions in xpcall and re-raise the error in the
   -- coroutine. This makes pcall work as normal.
   local function pfunc(...)
@@ -133,10 +125,6 @@ end
 --- @tparam boolean strict Error when called in non-async context
 --- @treturn function(...):async_t
 function M.create(func, argc, strict)
-  vim.validate({
-    func = { func, "function" },
-    argc = { argc, "number", true },
-  })
   argc = argc or 0
   return function(...)
     if M.running() then
@@ -154,7 +142,6 @@ end
 --- @tparam function func
 --- @tparam boolean strict Error when called in non-async context
 function M.void(func, strict)
-  vim.validate({ func = { func, "function" } })
   return function(...)
     if M.running() then
       if strict then
@@ -172,9 +159,6 @@ end
 --- @tparam boolean strict Error when called in non-async context
 --- @treturn function Returns an async function
 function M.wrap(func, argc, strict)
-  vim.validate({
-    argc = { argc, "number" },
-  })
   return function(...)
     if not M.running() then
       if strict then
