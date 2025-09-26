@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.2.0...v5.2.1) (2025-09-26)
+
+
+### Bug Fixes
+
+* **async:** remove deprecated "vim.validate" ([#276](https://github.com/linrongbin16/gitlinker.nvim/issues/276)) ([21f67b9](https://github.com/linrongbin16/gitlinker.nvim/commit/21f67b928a26694819584e789b86da7a038c76f2))
+
 ## [5.2.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.1.0...v5.2.0) (2025-08-23)
 
 
