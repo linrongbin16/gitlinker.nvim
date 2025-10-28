@@ -38,23 +38,6 @@ jobs:
         run: |
           cargo binstall --no-confirm selene
           selene --config selene.toml ./lua
-      - name: Install commons.nvim
-        if: ${{ github.ref != 'refs/heads/master' }}
-        shell: bash
-        run: |
-          echo "pwd"
-          echo $PWD
-          git clone --depth=1 https://github.com/linrongbin16/commons.nvim.git ~/.commons.nvim
-          rm -rf ./lua/gitlinker/commons
-          mkdir -p ./lua/gitlinker/commons
-          cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
-          cp ~/.commons.nvim/version.txt ./lua/gitlinker/commons/version.txt
-          cd ./lua/gitlinker/commons
-          find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        if: ${{ github.ref != 'refs/heads/master' }}
-        with:
-          commit_message: "chore(pr): auto-commit"
   unit_test:
     name: Unit Test
     needs:
