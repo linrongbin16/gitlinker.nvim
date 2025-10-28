@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.3.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.2.1...v5.3.0) (2025-10-28)
+
+
+### Features
+
+* **clipboard:** allow overriding clipboard and document OSC52 example ([#280](https://github.com/linrongbin16/gitlinker.nvim/issues/280)) ([7df8cb9](https://github.com/linrongbin16/gitlinker.nvim/commit/7df8cb93fd20cf7772f835dcd0126a0ef995cbf9))
+
 ## [5.2.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.2.0...v5.2.1) (2025-09-26)
 
 
