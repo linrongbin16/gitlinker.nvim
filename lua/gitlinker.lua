@@ -332,9 +332,18 @@ local function setup(opts)
     local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
+    local action = nil
+    if command_opts.bang then
+      action = require("gitlinker.actions").system
+    else
+      if vim.is_callable(confs.clipboard_override) then
+        action = confs.clipboard_override
+      else
+        action = require("gitlinker.actions").clipboard
+      end
+    end
     _void_link({
-      action = command_opts.bang and require("gitlinker.actions").system
-        or require("gitlinker.actions").clipboard,
+      action = action,
       router = function(lk)
         return _router(parsed.router_type, lk)
       end,
