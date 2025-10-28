@@ -1,0 +1,29 @@
+name: Bump commons.nvim
+on:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+jobs:
+  bump:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install commons.nvim
+        if: ${{ github.ref != 'refs/heads/master' }}
+        shell: bash
+        run: |
+          echo "pwd"
+          echo $PWD
+          git clone --depth=1 https://github.com/linrongbin16/commons.nvim.git ~/.commons.nvim
+          rm -rf ./lua/gitlinker/commons
+          mkdir -p ./lua/gitlinker/commons
+          cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
+          cp ~/.commons.nvim/version.txt ./lua/gitlinker/commons/version.txt
+          cd ./lua/gitlinker/commons
+          find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        if: ${{ github.ref != 'refs/heads/master' }}
+        with:
+          commit_message: "chore(pr): auto-commit"
