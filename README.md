@@ -42,8 +42,8 @@ PRs are welcomed for other git host websites!
     - [String Template](#string-template)
     - [Lua Function](#lua-function)
   - [Create Your Own Router](#create-your-own-router)
-  - [Highlight Group](#highlight-group)
   - [Alternative Clipboard](#alternative-clipboard)
+  - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
 
@@ -629,12 +629,6 @@ GitLink file_only
 GitLink! file_only
 ```
 
-### Highlight Group
-
-| Highlight Group                  | Default Group | Description                          |
-| -------------------------------- | ------------- | ------------------------------------ |
-| NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
-
 ### Alternative Clipboard
 
 You can define your own clipboard function during setup.
@@ -653,6 +647,12 @@ require('gitlinker').setup({
   end
 })
 ```
+
+### Highlight Group
+
+| Highlight Group                  | Default Group | Description                          |
+| -------------------------------- | ------------- | ------------------------------------ |
+| NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
 
 ## Development
 
