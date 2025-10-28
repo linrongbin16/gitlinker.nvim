@@ -634,6 +634,25 @@ GitLink! file_only
 | -------------------------------- | ------------- | ------------------------------------ |
 | NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
 
+### Use an alternative clipboard
+
+You can define your own clipboard function during setup.
+
+For example, to copy the url over a remote SSH session with an OSC52-compatible terminal,
+you can use [nvim-osc52](https://github.com/ojroques/nvim-osc52) or Neovim's native
+OSC52 since 10.0
+
+```lua
+require('gitlinker').setup({
+  -- with nvim-osc52
+  clipboard_override = require('osc52').copy,
+  -- or Neovim 10.0+ native
+  clipboard_override = function(url)
+    require('vim.ui.clipboard.osc52').copy('+')({url})
+  end
+})
+```
+
 ## Development
 
 To develop the project and make PR, please setup with:

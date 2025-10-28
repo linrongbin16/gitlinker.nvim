@@ -186,6 +186,9 @@ local Defaults = {
 
   -- write logs to file
   file_log = false,
+
+  -- clipboard command
+  clipboard_override = false,
 }
 
 --- @type gitlinker.Options
