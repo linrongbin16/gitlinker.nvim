@@ -332,6 +332,7 @@ local function setup(opts)
     local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
     local parsed = _parse_args(args)
+
     local action = nil
     if command_opts.bang then
       action = require("gitlinker.actions").system
@@ -342,6 +343,7 @@ local function setup(opts)
         action = require("gitlinker.actions").clipboard
       end
     end
+
     _void_link({
       action = action,
       router = function(lk)
