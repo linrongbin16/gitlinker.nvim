@@ -26,9 +26,4 @@ local M = {
   system = system,
 }
 
-local clipboard_override = require('gitlinker.configs').get()['clipboard_override']
-if clipboard_override then
-  M.clipboard = clipboard_override
-end
-
 return M
