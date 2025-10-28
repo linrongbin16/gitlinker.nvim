@@ -337,6 +337,7 @@ local function setup(opts)
     if command_opts.bang then
       action = require("gitlinker.actions").system
     else
+      -- Prefer using user provided clipboard action, if exists.
       if vim.is_callable(confs.clipboard_override) then
         action = confs.clipboard_override
       else
