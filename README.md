@@ -43,6 +43,7 @@ PRs are welcomed for other git host websites!
     - [Lua Function](#lua-function)
   - [Create Your Own Router](#create-your-own-router)
   - [Highlight Group](#highlight-group)
+  - [Alternative Clipboard](#alternative-clipboard)
 - [Development](#development)
 - [Contribute](#contribute)
 
@@ -634,7 +635,7 @@ GitLink! file_only
 | -------------------------------- | ------------- | ------------------------------------ |
 | NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
 
-### Use an alternative clipboard
+### Alternative Clipboard
 
 You can define your own clipboard function during setup.
 
