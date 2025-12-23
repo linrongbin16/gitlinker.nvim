@@ -1,5 +1,5 @@
 local str = require("gitlinker.commons.str")
-local logging = require("gitlinker.commons.logging")
+local log = require("gitlinker.commons.log")
 
 local range = require("gitlinker.range")
 
@@ -114,9 +114,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function samba_browse(lk)
-  local logger = logging.get("gitlinker")
-
-  logger:debug(string.format("|samba_browse| lk:%s", vim.inspect(lk)))
+  log.debug(string.format("|samba_browse| lk:%s", vim.inspect(lk)))
   local builder = "https://git.samba.org/?p="
   -- org
   builder = builder .. (string.len(lk.org) > 0 and string.format("%s/", lk.org) or "")
