@@ -85,11 +85,11 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
 
   local function on_exit()
     if str.not_empty(stdout_buffer) then
-      stdout_buffer = str.trim(stdout_buffer)
+      stdout_buffer = str.trim(stdout_buffer --[[@as string]])
       stdout_buffer = str.split(stdout_buffer, "\n")
     end
     if str.not_empty(stderr_buffer) then
-      stderr_buffer = str.trim(stderr_buffer)
+      stderr_buffer = str.trim(stderr_buffer --[[@as string]])
       stderr_buffer = str.split(stderr_buffer, "\n")
     end
     result.stdout = stdout_buffer --[[@as string[] ]]
