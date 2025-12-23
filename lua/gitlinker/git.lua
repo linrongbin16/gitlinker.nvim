@@ -1,4 +1,5 @@
 local log = require("gitlinker.commons.log")
+local str = require("gitlinker.commons.str")
 local spawn = require("gitlinker.commons.spawn")
 local uv = vim.uv or vim.loop
 
@@ -46,22 +47,64 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
   local result = CmdResult:new()
   log.debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
-  spawn.detached(args, {
-    cwd = cwd,
-    on_stdout = function(line)
-      if type(line) == "string" then
-        table.insert(result.stdout, line)
-      end
-    end,
-    on_stderr = function(line)
-      if type(line) == "string" then
-        table.insert(result.stderr, line)
-      end
-    end,
-  }, function()
+  local stdout_buffer = nil
+  local stderr_buffer = nil
+
+  local function on_stdout(err, data)
+    if err then
+      error(
+        string.format(
+          "failed to read stdout on args:%s, error:%s",
+          vim.inspect(args),
+          vim.inspect(err)
+        )
+      )
+      return
+    end
+
+    if data then
+      stdout_buffer = stdout_buffer and (stdout_buffer .. data) or data
+    end
+  end
+
+  local function on_stderr(err, data)
+    if err then
+      error(
+        string.format(
+          "failed to read stdout on args:%s, error:%s",
+          vim.inspect(args),
+          vim.inspect(err)
+        )
+      )
+      return
+    end
+
+    if data then
+      stderr_buffer = stderr_buffer and (stderr_buffer .. data) or data
+    end
+  end
+
+  local function on_exit()
+    if str.not_empty(stdout_buffer) then
+      stdout_buffer = str.trim(stdout_buffer)
+      stdout_buffer = str.split(stdout_buffer, "\n")
+    end
+    if str.not_empty(stderr_buffer) then
+      stderr_buffer = str.trim(stderr_buffer)
+      stderr_buffer = str.split(stderr_buffer, "\n")
+    end
+    result.stdout = stdout_buffer --[[@as string[] ]]
+    result.stderr = stderr_buffer --[[@as string[] ]]
     log.debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
     callback(result)
-  end)
+  end
+
+  vim.system(args, {
+    cwd = cwd,
+    stdout = on_stdout,
+    stderr = on_stderr,
+    text = true,
+  }, on_exit)
 end, 3)
 
 -- wrap the git command to do the right thing always
