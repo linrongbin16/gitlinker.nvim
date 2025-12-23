@@ -1,8 +1,7 @@
 local tbl = require("gitlinker.commons.tbl")
 local str = require("gitlinker.commons.str")
 local num = require("gitlinker.commons.num")
-local LogLevels = require("gitlinker.commons.logging").LogLevels
-local logging = require("gitlinker.commons.logging")
+local log = require("gitlinker.commons.log")
 
 local async = require("gitlinker.async")
 local configs = require("gitlinker.configs")
@@ -20,8 +19,6 @@ local function _url_template_engine(lk, template)
     return nil
   end
 
-  local logger = logging.get("gitlinker")
-
   --- @alias gitlinker.UrlTemplateExpr {plain:boolean,body:string}
   --- @type gitlinker.UrlTemplateExpr[]
   local exprs = {}
@@ -36,7 +33,7 @@ local function _url_template_engine(lk, template)
     end
     table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
     local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
-    logger:ensure(
+    log.ensure(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
         "failed to evaluate url template(%s) at pos %d",
@@ -82,7 +79,7 @@ local function _url_template_engine(lk, template)
         DEFAULT_BRANCH = str.not_empty(lk.default_branch) and lk.default_branch or "",
         CURRENT_BRANCH = str.not_empty(lk.current_branch) and lk.current_branch or "",
       })
-      logger:debug(
+      log.debug(
         string.format(
           "|_url_template_engine| exp:%s, lk:%s, evaluated:%s",
           vim.inspect(exp.body),
@@ -107,8 +104,7 @@ local function _worker(lk, p, r)
   elseif type(r) == "string" then
     return _url_template_engine(lk, r)
   else
-    local logger = logging.get("gitlinker")
-    logger:ensure(
+    log.ensure(
       false,
       string.format("unsupported router %s on pattern %s", vim.inspect(r), vim.inspect(p))
     )
@@ -121,17 +117,16 @@ end
 --- @param lk gitlinker.Linker
 --- @return string?
 local function _router(router_type, lk)
-  local logger = logging.get("gitlinker")
   local confs = configs.get()
-  logger:ensure(
+  log.ensure(
     type(confs._routers[router_type]) == "table",
     string.format("unknown router type %s!", vim.inspect(router_type))
   )
-  logger:ensure(
+  log.ensure(
     type(confs._routers[router_type].list_routers) == "table",
     string.format("invalid router type %s! 'list_routers' missing.", vim.inspect(router_type))
   )
-  logger:ensure(
+  log.ensure(
     type(confs._routers[router_type].map_routers) == "table",
     string.format("invalid router type %s! 'map_routers' missing.", vim.inspect(router_type))
   )
@@ -181,7 +176,7 @@ local function _router(router_type, lk)
       end
     end
   end
-  logger:ensure(
+  log.ensure(
     false,
     string.format("%s not support, please bind it in 'router'!", vim.inspect(lk.host))
   )
@@ -203,7 +198,6 @@ end
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 local _link = function(opts)
   local confs = configs.get()
-  local logger = logging.get("gitlinker")
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
   local lk = linker.make_linker(opts.remote, opts.file, opts.rev)
@@ -229,7 +223,7 @@ local _link = function(opts)
   --   vim.inspect(url),
   --   vim.inspect(opts.router)
   -- )
-  logger:ensure(
+  log.ensure(
     ok and str.not_empty(url),
     string.format(
       "fatal: failed to generate permanent url from remote (%s): %s",
@@ -255,7 +249,7 @@ local _link = function(opts)
   if type(opts.message) == "boolean" then
     message = opts.message
   end
-  logger:debug(
+  log.debug(
     string.format(
       "|_link| message:%s, opts:%s, confs:%s",
       vim.inspect(message),
@@ -309,12 +303,12 @@ local function setup(opts)
   local confs = configs.setup(opts)
 
   -- logger
-  logging.setup({
+  log.setup({
     name = "gitlinker",
-    level = confs.debug and LogLevels.DEBUG or LogLevels.INFO,
-    console_log = confs.console_log,
-    file_log = confs.file_log,
-    file_log_name = "gitlinker.log",
+    level = confs.debug and vim.log.levels.DEBUG or vim.log.levels.INFO,
+    use_console = confs.console_log,
+    use_file = confs.file_log,
+    file_name = "gitlinker.log",
   })
 
   -- command
