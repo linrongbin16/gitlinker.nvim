@@ -71,7 +71,9 @@ local function log(level, msg)
         LogHighlights[level],
       })
     end
-    vim.api.nvim_echo(msg_chunks, false, {})
+    vim.schedule(function()
+      vim.api.nvim_echo(msg_chunks, false, {})
+    end)
   end
   if LogConfigs.use_file then
     local fp = io.open(LogConfigs.file_name, "a")
