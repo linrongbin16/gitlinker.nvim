@@ -46,7 +46,9 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
   local result = CmdResult:new()
   log.debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
+  --- @type string
   local stdout_buffer = nil
+  --- @type string
   local stderr_buffer = nil
 
   local function on_stdout(err, data)
@@ -85,15 +87,13 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
 
   local function on_exit()
     if str.not_empty(stdout_buffer) then
-      stdout_buffer = str.trim(stdout_buffer --[[@as string]])
-      stdout_buffer = str.split(stdout_buffer, "\n")
+      stdout_buffer = str.trim(stdout_buffer)
+      result.stdout = str.split(stdout_buffer, "\n", { trimempty = true })
     end
     if str.not_empty(stderr_buffer) then
-      stderr_buffer = str.trim(stderr_buffer --[[@as string]])
-      stderr_buffer = str.split(stderr_buffer, "\n")
+      stderr_buffer = str.trim(stderr_buffer)
+      result.stderr = str.split(stderr_buffer, "\n", { trimempty = true })
     end
-    result.stdout = stdout_buffer --[[@as string[] ]]
-    result.stderr = stderr_buffer --[[@as string[] ]]
     log.debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
     callback(result)
   end
