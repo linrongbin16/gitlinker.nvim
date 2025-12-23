@@ -1,6 +1,5 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
-local spawn = require("gitlinker.commons.spawn")
 local uv = vim.uv or vim.loop
 
 local async = require("gitlinker.async")
