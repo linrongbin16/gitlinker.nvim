@@ -268,7 +268,7 @@ local _link = function(opts)
   return url
 end
 
---- @param opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _void_link = function(opts)
   return async.run(_link, opts)
