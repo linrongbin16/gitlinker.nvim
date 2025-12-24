@@ -8,6 +8,7 @@
     "utf8"
   ],
   "diagnostics.disable": [
+    "luadoc-miss-symbol",
     "missing-return"
   ],
   "runtime.version": "LuaJIT",
