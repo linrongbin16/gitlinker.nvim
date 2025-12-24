@@ -22,6 +22,7 @@ jobs:
           cp -rf ~/.commons.nvim/lua/commons/*.lua ./lua/gitlinker/commons
           cd ./lua/gitlinker/commons
           find . -type f -name '*.lua' -exec sed -i 's/require("commons/require("gitlinker.commons/g' {} \;
+          find . -type f -name '*.lua' -exec sed -i "s/require('commons/require('gitlinker.commons/g" {} \;
       - uses: stefanzweifel/git-auto-commit-action@v5
         if: ${{ github.ref != 'refs/heads/master' }}
         with:
