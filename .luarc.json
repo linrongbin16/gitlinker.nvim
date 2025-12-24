@@ -8,7 +8,7 @@
     "utf8"
   ],
   "diagnostics.disable": [
-    "missing-return",
+    "missing-return"
   ],
   "runtime.version": "LuaJIT",
   "workspace.checkThirdParty": "Disable"
