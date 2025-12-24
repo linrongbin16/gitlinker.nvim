@@ -62,7 +62,7 @@ local function log(level, msg)
     return
   end
 
-  local msg_lines = vim.split(msg, "\n", { plain = true })
+  local msg_lines = vim.split(msg, "\n", { plain = true, trimempty = true })
   if LogConfigs.use_console and level >= LogLevels.INFO then
     local msg_chunks = {}
     for _, line in ipairs(msg_lines) do

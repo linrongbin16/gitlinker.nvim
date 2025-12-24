@@ -79,6 +79,13 @@ M.le = function(a, b, rel_tol, abs_tol)
   return M.lt(a, b, rel_tol, abs_tol) or M.eq(a, b, rel_tol, abs_tol)
 end
 
+--- @param a integer
+--- @param b integer
+--- @return integer
+M.mod = function(a, b)
+  return math.floor(math.fmod(a, b))
+end
+
 --- @param value number
 --- @param left number?   lower bound, by default INT32_MIN
 --- @param right number?  upper bound, by default INT32_MAX
@@ -130,6 +137,36 @@ M.max = function(f, a, ...)
     end
   end
   return maximal_item, maximal_index
+end
+
+-- Drop-in 32-bit random replacement of `math.random`.
+--- @param m integer?
+--- @param n integer?
+--- @return number
+M.random = function(m, n)
+  local uv = vim.uv or vim.loop
+  local rand_result, rand_err = uv.random(4)
+  assert(rand_result ~= nil, rand_err)
+
+  local bytes = {
+    string.byte(rand_result --[[@as string]], 1, -1),
+  }
+  local total = 0
+  for _, b in ipairs(bytes) do
+    total = M.mod(total * 256 + b, M.INT32_MAX)
+  end
+  if m == nil and n == nil then
+    return total / M.INT32_MAX
+  elseif m ~= nil and n == nil then
+    assert(type(m) == "number")
+    assert(m >= 1)
+    return M.mod(total, m) + 1
+  else
+    assert(type(m) == "number")
+    assert(type(n) == "number")
+    assert(n >= m)
+    return M.mod(total, n - m + 1) + m
+  end
 end
 
 return M
