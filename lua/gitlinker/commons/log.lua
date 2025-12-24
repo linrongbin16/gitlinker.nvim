@@ -67,7 +67,7 @@ local function log(level, msg)
     local msg_chunks = {}
     for _, line in ipairs(msg_lines) do
       table.insert(msg_chunks, {
-        string.format("[%s] %s\n", LogConfigs.name, line),
+        string.format("[%s] %s", LogConfigs.name, line),
         LogHighlights[level],
       })
     end
