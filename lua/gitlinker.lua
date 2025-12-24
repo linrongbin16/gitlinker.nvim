@@ -2,8 +2,8 @@ local tbl = require("gitlinker.commons.tbl")
 local str = require("gitlinker.commons.str")
 local num = require("gitlinker.commons.num")
 local log = require("gitlinker.commons.log")
+local async = require("gitlinker.commons.async")
 
-local async = require("gitlinker.async")
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")
 local linker = require("gitlinker.linker")
@@ -196,6 +196,7 @@ local function _blame(lk)
 end
 
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
+--- @return string?
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
@@ -215,7 +216,8 @@ local _link = function(opts)
     lk.rev = opts.rev
   end
 
-  async.scheduler()
+  async.await(1, vim.schedule)
+
   local ok, url = pcall(opts.router, lk, true)
   -- logger:debug(
   --   "|link| ok:%s, url:%s, router:%s",
@@ -266,8 +268,11 @@ local _link = function(opts)
   return url
 end
 
---- @type fun(opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}):string?
-local _void_link = async.void(_link)
+--- @param opts:{action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}
+--- @return string?
+local _void_link = function(opts)
+  return async.run(_link, opts)
+end
 
 --- @param args string?
 --- @return {router_type:string,remote:string?,file:string?,rev:string?}

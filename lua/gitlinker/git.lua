@@ -1,8 +1,7 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
+local async = require("gitlinker.commons.async")
 local uv = vim.uv or vim.loop
-
-local async = require("gitlinker.async")
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -41,10 +40,12 @@ function CmdResult:print_err(default)
   end
 end
 
---- NOTE: async functions can't have optional parameters so wrap it into another function without '_'
-local _run_cmd = async.wrap(function(args, cwd, callback)
+--- @param args string[]
+--- @param cwd string?
+--- @param callback fun(gitlinker.CmdResult):any
+local function _run_cmd_async(args, cwd, callback)
   local result = CmdResult:new()
-  log.debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
+  log.debug(string.format("|_run_cmd_async| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
   --- @type string
   local stdout_buffer = nil
@@ -94,7 +95,7 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
       stderr_buffer = str.trim(stderr_buffer)
       result.stderr = str.split(stderr_buffer, "\n", { trimempty = true })
     end
-    log.debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
+    log.debug(string.format("|_run_cmd_async| result:%s", vim.inspect(result)))
     callback(result)
   end
 
@@ -104,12 +105,14 @@ local _run_cmd = async.wrap(function(args, cwd, callback)
     stderr = on_stderr,
     text = true,
   }, on_exit)
-end, 3)
+end
 
 -- wrap the git command to do the right thing always
 --- @package
 --- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
 local function run_cmd(args, cwd)
+  --- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
+  local _run_cmd = async.wrap(3, _run_cmd_async)
   return _run_cmd(args, cwd or uv.cwd())
 end
 
@@ -429,7 +432,8 @@ local function _select_remotes(remotes, cwd)
     table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
   end
 
-  async.scheduler()
+  async.await(1, vim.schedule)
+
   local result = vim.fn.inputlist(formatted_remotes)
   -- logger:debug(string.format("inputlist:%s(%s)", vim.inspect(result), vim.inspect(type(result))))
 
