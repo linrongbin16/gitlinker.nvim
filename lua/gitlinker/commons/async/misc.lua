@@ -1,3 +1,4 @@
+---@diagnostic disable
 local async = require('gitlinker.commons.async')
 
 -- Examples of functions built on top of async.lua

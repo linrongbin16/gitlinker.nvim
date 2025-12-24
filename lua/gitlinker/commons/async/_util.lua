@@ -1,3 +1,4 @@
+---@diagnostic disable
 local M = {}
 
 --- @param ... any
