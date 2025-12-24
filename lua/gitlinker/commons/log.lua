@@ -66,10 +66,12 @@ local function log(level, msg)
   if LogConfigs.use_console and level >= LogLevels.INFO then
     local msg_chunks = {}
     for _, line in ipairs(msg_lines) do
-      table.insert(msg_chunks, {
-        string.format("[%s] %s", LogConfigs.name, line),
-        LogHighlights[level],
-      })
+      if type(line) == "string" and string.len(line) > 0 then
+        table.insert(msg_chunks, {
+          string.format("[%s] %s", LogConfigs.name, line),
+          LogHighlights[level],
+        })
+      end
     end
     vim.schedule(function()
       vim.api.nvim_echo(msg_chunks, false, {})
