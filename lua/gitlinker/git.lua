@@ -44,56 +44,16 @@ end
 --- @param cwd string?
 --- @param callback fun(gitlinker.CmdResult):any
 local function _run_cmd_async(args, cwd, callback)
-  local result = CmdResult:new()
   log.debug(string.format("|_run_cmd_async| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
-  --- @type string
-  local stdout_buffer = nil
-  --- @type string
-  local stderr_buffer = nil
-
-  local function on_stdout(err, data)
-    if err then
-      error(
-        string.format(
-          "failed to read stdout on args:%s, error:%s",
-          vim.inspect(args),
-          vim.inspect(err)
-        )
-      )
-      return
+  --- @param completed vim.SystemCompleted
+  local function on_exit(completed)
+    local result = CmdResult:new()
+    if str.not_blank(completed.stdout) then
+      result.stdout = str.split(str.trim(completed.stdout), "\n", { trimempty = true })
     end
-
-    if data then
-      stdout_buffer = stdout_buffer and (stdout_buffer .. data) or data
-    end
-  end
-
-  local function on_stderr(err, data)
-    if err then
-      error(
-        string.format(
-          "failed to read stdout on args:%s, error:%s",
-          vim.inspect(args),
-          vim.inspect(err)
-        )
-      )
-      return
-    end
-
-    if data then
-      stderr_buffer = stderr_buffer and (stderr_buffer .. data) or data
-    end
-  end
-
-  local function on_exit()
-    if str.not_empty(stdout_buffer) then
-      stdout_buffer = str.trim(stdout_buffer)
-      result.stdout = str.split(stdout_buffer, "\n", { trimempty = true })
-    end
-    if str.not_empty(stderr_buffer) then
-      stderr_buffer = str.trim(stderr_buffer)
-      result.stderr = str.split(stderr_buffer, "\n", { trimempty = true })
+    if str.not_blank(completed.stderr) then
+      result.stderr = str.split(str.trim(completed.stderr), "\n", { trimempty = true })
     end
     log.debug(string.format("|_run_cmd_async| result:%s", vim.inspect(result)))
     callback(result)
@@ -101,8 +61,6 @@ local function _run_cmd_async(args, cwd, callback)
 
   vim.system(args, {
     cwd = cwd,
-    stdout = on_stdout,
-    stderr = on_stderr,
     text = true,
   }, on_exit)
 end
