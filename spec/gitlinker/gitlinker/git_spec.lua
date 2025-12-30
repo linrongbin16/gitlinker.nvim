@@ -11,7 +11,7 @@ describe("gitlinker.git", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local async = require("gitlinker.async")
+  local async = require("gitlinker.commons.async")
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
   local gitlinker = require("gitlinker")

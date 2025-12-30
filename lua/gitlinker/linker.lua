@@ -1,17 +1,16 @@
-local logging = require("gitlinker.commons.logging")
+local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
+local async = require("gitlinker.commons.async")
 
-local async = require("gitlinker.async")
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 
 --- @return string?
 local function _get_buf_dir()
-  local logger = logging.get("gitlinker")
   local buf_path = vim.api.nvim_buf_get_name(0)
   local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
-  logger:debug(
+  log.debug(
     string.format(
       "|_get_buf_dir| buf_path:%s, buf_dir:%s",
       vim.inspect(buf_path),
@@ -30,7 +29,6 @@ end
 --- @param rev string?
 --- @return gitlinker.Linker?
 local function make_linker(remote, file, rev)
-  local logger = logging.get("gitlinker")
   local cwd = _get_buf_dir()
 
   local file_provided = str.not_empty(file)
@@ -55,7 +53,7 @@ local function make_linker(remote, file, rev)
   end
 
   local parsed_url, parsed_err = giturlparser.parse(remote_url) --[[@as table, string?]]
-  logger:debug(
+  log.debug(
     string.format(
       "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
       vim.inspect(remote),
@@ -63,7 +61,7 @@ local function make_linker(remote, file, rev)
       vim.inspect(parsed_err)
     )
   )
-  logger:ensure(
+  log.ensure(
     parsed_url ~= nil,
     string.format(
       "failed to parse git remote url:%s, error:%s",
@@ -89,7 +87,7 @@ local function make_linker(remote, file, rev)
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
-  async.scheduler()
+  async.await(1, vim.schedule)
 
   if not file_provided then
     local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
@@ -114,7 +112,7 @@ local function make_linker(remote, file, rev)
   --     vim.inspect(file_in_rev_result)
   -- )
 
-  async.scheduler()
+  async.await(1, vim.schedule)
 
   local file_changed = false
   if not file_provided then
@@ -151,7 +149,7 @@ local function make_linker(remote, file, rev)
     current_branch = current_branch,
   }
 
-  logger:debug(string.format("|make_linker| o:%s", vim.inspect(o)))
+  log.debug(string.format("|make_linker| o:%s", vim.inspect(o)))
   return o
 end
 

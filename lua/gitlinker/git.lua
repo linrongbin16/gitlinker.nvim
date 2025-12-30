@@ -1,9 +1,7 @@
-local logging = require("gitlinker.commons.logging")
-local spawn = require("gitlinker.commons.spawn")
-local uv = require("gitlinker.commons.uv")
+local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
-
-local async = require("gitlinker.async")
+local async = require("gitlinker.commons.async")
+local uv = vim.uv or vim.loop
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -33,44 +31,46 @@ end
 
 --- @param default string
 function CmdResult:print_err(default)
-  local logger = logging.get("gitlinker")
   if self:has_err() then
     for _, e in ipairs(self.stderr) do
-      logger:err(e)
+      log.err(e)
     end
   else
-    logger:err("fatal: " .. default)
+    log.err("fatal: " .. default)
   end
 end
 
---- NOTE: async functions can't have optional parameters so wrap it into another function without '_'
-local _run_cmd = async.wrap(function(args, cwd, callback)
-  local result = CmdResult:new()
-  local logger = logging.get("gitlinker")
-  logger:debug(string.format("|_run_cmd| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
+--- @param args string[]
+--- @param cwd string?
+--- @param callback fun(gitlinker.CmdResult):any
+local function _run_cmd_async(args, cwd, callback)
+  log.debug(string.format("|_run_cmd_async| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
-  spawn.detached(args, {
-    cwd = cwd,
-    on_stdout = function(line)
-      if type(line) == "string" then
-        table.insert(result.stdout, line)
-      end
-    end,
-    on_stderr = function(line)
-      if type(line) == "string" then
-        table.insert(result.stderr, line)
-      end
-    end,
-  }, function()
-    logger:debug(string.format("|_run_cmd| result:%s", vim.inspect(result)))
+  --- @param completed vim.SystemCompleted
+  local function on_exit(completed)
+    local result = CmdResult:new()
+    if str.not_blank(completed.stdout) then
+      result.stdout = str.split(str.trim(completed.stdout), "\n", { trimempty = true })
+    end
+    if str.not_blank(completed.stderr) then
+      result.stderr = str.split(str.trim(completed.stderr), "\n", { trimempty = true })
+    end
+    log.debug(string.format("|_run_cmd_async| result:%s", vim.inspect(result)))
     callback(result)
-  end)
-end, 3)
+  end
+
+  vim.system(args, {
+    cwd = cwd,
+    text = true,
+  }, on_exit)
+end
 
 -- wrap the git command to do the right thing always
 --- @package
 --- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
 local function run_cmd(args, cwd)
+  --- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
+  local _run_cmd = async.wrap(3, _run_cmd_async)
   return _run_cmd(args, cwd or uv.cwd())
 end
 
@@ -274,7 +274,6 @@ end
 --- @param cwd string?
 --- @return string?
 local function get_closest_remote_compatible_rev(remote, cwd)
-  local logger = logging.get("gitlinker")
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
@@ -331,7 +330,7 @@ local function get_closest_remote_compatible_rev(remote, cwd)
     return remote_rev
   end
 
-  logger:err("fatal: failed to get closest revision in that exists in remote: " .. remote)
+  log.err("fatal: failed to get closest revision in that exists in remote: " .. remote)
   return nil
 end
 
@@ -383,7 +382,6 @@ end
 --- @param cwd string?
 --- @return string?
 local function _select_remotes(remotes, cwd)
-  local logger = logging.get("gitlinker")
   -- local result = run_select(remotes)
 
   local formatted_remotes = { "Please select remote index:" }
@@ -392,12 +390,13 @@ local function _select_remotes(remotes, cwd)
     table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
   end
 
-  async.scheduler()
+  async.await(1, vim.schedule)
+
   local result = vim.fn.inputlist(formatted_remotes)
   -- logger:debug(string.format("inputlist:%s(%s)", vim.inspect(result), vim.inspect(type(result))))
 
   if type(result) ~= "number" or result < 1 or result > #remotes then
-    logger:err("fatal: user cancelled multiple git remotes")
+    log.err("fatal: user cancelled multiple git remotes")
     return nil
   end
 
@@ -407,17 +406,16 @@ local function _select_remotes(remotes, cwd)
     end
   end
 
-  logger:err("fatal: user cancelled multiple git remotes, please select an index")
+  log.err("fatal: user cancelled multiple git remotes, please select an index")
   return nil
 end
 
 --- @param cwd string?
 --- @return string?
 local function get_branch_remote(cwd)
-  local logger = logging.get("gitlinker")
   -- origin/upstream
   local remotes = _get_remote(cwd)
-  logger:debug(string.format("git remotes:%s", vim.inspect(remotes)))
+  log.debug(string.format("git remotes:%s", vim.inspect(remotes)))
   if not remotes then
     return nil
   end
@@ -443,7 +441,7 @@ local function get_branch_remote(cwd)
     upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
 
   if not remote_from_upstream_branch then
-    logger:err("fatal: cannot parse remote name from remote branch: " .. upstream_branch)
+    log.err("fatal: cannot parse remote name from remote branch: " .. upstream_branch)
     return nil
   end
 
@@ -453,7 +451,7 @@ local function get_branch_remote(cwd)
     end
   end
 
-  logger:err(
+  log.err(
     string.format(
       "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
       remote_from_upstream_branch,
@@ -467,13 +465,12 @@ end
 --- @param cwd string?
 --- @return string?
 local function get_default_branch(remote, cwd)
-  local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = run_cmd(args, cwd)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug(
+  log.debug(
     string.format(
       "|get_default_branch| running %s: %s",
       vim.inspect(args),
@@ -487,13 +484,12 @@ end
 --- @param cwd string?
 --- @return string?
 local function get_current_branch(cwd)
-  local logger = logging.get("gitlinker")
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
   local result = run_cmd(args, cwd)
   if type(result.stdout) ~= "table" or #result.stdout == 0 then
     return nil
   end
-  logger:debug(
+  log.debug(
     string.format(
       "|get_current_branch| running %s: %s",
       vim.inspect(args),
