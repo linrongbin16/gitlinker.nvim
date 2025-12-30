@@ -7,7 +7,10 @@
     "jit",
     "utf8"
   ],
-  "diagnostics.disable": [],
+  "diagnostics.disable": [
+    "luadoc-miss-symbol",
+    "missing-return"
+  ],
   "runtime.version": "LuaJIT",
   "workspace.checkThirdParty": "Disable"
 }

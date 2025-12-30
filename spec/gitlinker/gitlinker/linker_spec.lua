@@ -13,7 +13,7 @@ describe("gitlinker.linker", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local async = require("gitlinker.async")
+  local async = require("gitlinker.commons.async")
   local github_actions = os.getenv("GITHUB_ACTIONS") == "true"
   local linker = require("gitlinker.linker")
   describe("[make_linker]", function()

@@ -40,8 +40,6 @@ jobs:
           selene --config selene.toml ./lua
   unit_test:
     name: Unit Test
-    needs:
-      - lint
     strategy:
       matrix:
         nvim_version: [stable, nightly]
