@@ -15,7 +15,7 @@ local Builder = {}
 
 --- @param r gitlinker.Range?
 --- @return string?
-local function LC_range(r)
+local function gitlab_line_range(r)
   if not range.is_range(r) then
     return nil
   end
@@ -29,7 +29,7 @@ end
 
 --- @param r gitlinker.Range?
 --- @return string?
-local function github_LC_range(r)
+local function github_line_range(r)
   if not range.is_range(r) then
     return nil
   end
@@ -43,7 +43,7 @@ end
 
 --- @param r gitlinker.Range?
 --- @return string?
-local function codeberg_LC_range(r)
+local function codeberg_line_range(r)
   if not range.is_range(r) then
     return nil
   end
@@ -57,7 +57,7 @@ end
 
 --- @param r gitlinker.Range?
 --- @return string?
-local function lines_range(r)
+local function bitbucket_line_range(r)
   if not range.is_range(r) then
     return nil
   end
@@ -83,11 +83,7 @@ function Builder:new(lk, range_maker)
     org = lk.org,
     repo = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
     rev = lk.rev,
-    location = string.format(
-      "%s%s",
-      lk.file .. (str.endswith(lk.file, ".md", { ignorecase = true }) and "?plain=1" or ""),
-      type(r) == "string" and r or ""
-    ),
+    location = string.format("%s%s", lk.file, type(r) == "string" and r or ""),
   }
   setmetatable(o, self)
   self.__index = self
@@ -132,28 +128,28 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_browse(lk)
-  local builder = Builder:new(lk, github_LC_range)
+  local builder = Builder:new(lk, github_line_range)
   return builder:build("blob")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function gitlab_browse(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, gitlab_line_range)
   return builder:build("blob")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function bitbucket_browse(lk)
-  local builder = Builder:new(lk, lines_range)
+  local builder = Builder:new(lk, bitbucket_line_range)
   return builder:build("src")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function codeberg_browse(lk)
-  local builder = Builder:new(lk, codeberg_LC_range)
+  local builder = Builder:new(lk, codeberg_line_range)
   return builder:build("src/commit")
 end
 
@@ -164,41 +160,34 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function github_blame(lk)
-  local builder = Builder:new(lk, github_LC_range)
+  local builder = Builder:new(lk, github_line_range)
   return builder:build("blame")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function gitlab_blame(lk)
-  local builder = Builder:new(lk, LC_range)
+  local builder = Builder:new(lk, gitlab_line_range)
   return builder:build("blame")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function bitbucket_blame(lk)
-  local builder = Builder:new(lk, lines_range)
+  local builder = Builder:new(lk, bitbucket_line_range)
   return builder:build("annotate")
 end
 
 --- @param lk gitlinker.Linker
 --- @return string
 local function codeberg_blame(lk)
-  local builder = Builder:new(lk, codeberg_LC_range)
+  local builder = Builder:new(lk, codeberg_line_range)
   return builder:build("blame/commit")
 end
 
 -- blame }
 
 local M = {
-  -- Builder
-  Builder = Builder,
-
-  -- line ranges
-  LC_range = LC_range,
-  lines_range = lines_range,
-
   -- browse: `/blob`, `/src`
   samba_browse = samba_browse,
   github_browse = github_browse,
