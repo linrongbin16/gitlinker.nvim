@@ -19,15 +19,49 @@ describe("gitlinker.routers", function()
   describe("[samba_browse]", function()
     it("test1", function()
       local lk = {
-        remote_url = "",
-        protocol = "",
-        username = nil,
-        password = nil,
-        host = "github.enterprise.com",
+        current_branch = "dev-plugin",
+        default_branch = "main",
+        file = "vim.toml",
+        file_changed = false,
+        host = "github.com",
+        lend = 1,
+        lstart = 1,
+        org = "linrongbin16",
+        protocol = "https",
+        remote_url = "https://github.com/linrongbin16/lin.nvim",
+        repo = "lin.nvim",
+        rev = "e3ef741ac8814fc0895e26772c5059af2f064543",
+        user = "linrongbin16",
       }
-
-      --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
-      -- routers.samba_browse()
+      local actual = routers.samba_browse(lk)
+      print(string.format("samba_browse:%s", vim.inspect(actual)))
+      assert_eq(
+        actual,
+        "https://git.samba.org/?p=linrongbin16/lin.nvim;a=blob;f=vim.toml;hb=e3ef741ac8814fc0895e26772c5059af2f064543#l1"
+      )
+    end)
+    it("test2", function()
+      local lk = {
+        current_branch = "dev-plugin",
+        default_branch = "main",
+        file = "README.md",
+        file_changed = false,
+        host = "github.com",
+        lend = 1,
+        lstart = 1,
+        org = "linrongbin16",
+        protocol = "https",
+        remote_url = "https://github.com/linrongbin16/lin.nvim",
+        repo = "lin.nvim",
+        rev = "e3ef741ac8814fc0895e26772c5059af2f064543",
+        user = "linrongbin16",
+      }
+      local actual = routers.samba_browse(lk)
+      print(string.format("samba_browse:%s", vim.inspect(actual)))
+      assert_eq(
+        actual,
+        "https://git.samba.org/?p=linrongbin16/lin.nvim;a=blob;f=README.md;hb=e3ef741ac8814fc0895e26772c5059af2f064543#l1"
+      )
     end)
   end)
 end)
