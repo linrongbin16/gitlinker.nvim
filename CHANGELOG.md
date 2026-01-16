@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.4.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.3.0...v5.4.0) (2026-01-16)
+
+
+### Features
+
+* **plugin:** add 'plugin/gitlinker.lua' to automatically initialize ([#287](https://github.com/linrongbin16/gitlinker.nvim/issues/287)) ([0a746e6](https://github.com/linrongbin16/gitlinker.nvim/commit/0a746e66eb6a047f0b88b31ed2791a22953a3967))
+
+
+### Bug Fixes
+
+* **routers:** fix legacy routers implementation about "?plain=1" ([#290](https://github.com/linrongbin16/gitlinker.nvim/issues/290)) ([dc9a4a3](https://github.com/linrongbin16/gitlinker.nvim/commit/dc9a4a390eb1fc066f1653429cf6ae2c07a65e89))
+
 ## [5.3.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.2.1...v5.3.0) (2025-10-28)
 
 
