@@ -16,6 +16,8 @@ local function system(url)
     vim.fn.jobstart({ "cmd", "/C", "start", url })
   elseif vim.fn.executable("wslview") > 0 then
     vim.fn.jobstart({ "wslview", url })
+  elseif vim.fn.executable("powershell.exe") > 0 then
+    vim.fn.jobstart({ "powershell.exe", "-Command", "Start-Process", url })
   else
     vim.fn.jobstart({ "xdg-open", url })
   end
