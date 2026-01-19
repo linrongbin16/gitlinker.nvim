@@ -12,8 +12,8 @@ end
 local function system(url)
   if vim.fn.has("mac") > 0 then
     vim.fn.jobstart({ "open", url })
-  elseif vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0 then
-    vim.fn.jobstart({ "cmd", "/C", "start", url })
+  elseif vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0 or vim.fn.has('wsl') > 0 then
+    vim.fn.jobstart({ "cmd.exe", "/C", "start", url })
   elseif vim.fn.executable("wslview") > 0 then
     vim.fn.jobstart({ "wslview", url })
   else
