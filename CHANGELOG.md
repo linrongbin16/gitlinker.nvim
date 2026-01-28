@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.5.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.4.0...v5.5.0) (2026-01-28)
+
+
+### Features
+
+* **actions:** support open link from powershell wsl ([#284](https://github.com/linrongbin16/gitlinker.nvim/issues/284)) ([#292](https://github.com/linrongbin16/gitlinker.nvim/issues/292)) ([e0b0c99](https://github.com/linrongbin16/gitlinker.nvim/commit/e0b0c99d6d70fdcf18f10ff4939ae32ee98c9c57))
+
+
+### Bug Fixes
+
+* **wsl:** fix windows wsl2 detection ([#295](https://github.com/linrongbin16/gitlinker.nvim/issues/295)) ([bbe2a12](https://github.com/linrongbin16/gitlinker.nvim/commit/bbe2a1254fc8fce21f3bbf9a020266a1c49799f7))
+
 ## [5.4.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.3.0...v5.4.0) (2026-01-16)
 
 
