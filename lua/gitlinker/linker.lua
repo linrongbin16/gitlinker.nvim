@@ -1,6 +1,7 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
+local uv = vim.uv or vim.loop
 
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
@@ -23,12 +24,23 @@ local function _get_buf_dir()
   return buf_dir
 end
 
+--- @return integer
+local function now_milliseconds()
+  local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
+  local t1 = ts.sec * 1000
+  local t2 = ts.nsec / 1000000
+  return math.ceil(t1 + t2)
+end
+
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @param file string?
 --- @param rev string?
+--- @param timeout_ms integer?
 --- @return gitlinker.Linker?
-local function make_linker(remote, file, rev)
+local function make_linker(remote, file, rev, timeout_ms)
+  local start_at = now_milliseconds()
+
   local cwd = _get_buf_dir()
 
   local file_provided = str.not_empty(file)
@@ -38,6 +50,9 @@ local function make_linker(remote, file, rev)
   if not root then
     return nil
   end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+    return nil
+  end
 
   if str.empty(remote) then
     remote = git.get_branch_remote(cwd)
@@ -45,10 +60,16 @@ local function make_linker(remote, file, rev)
   if not remote then
     return nil
   end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+    return nil
+  end
   -- logger.debug("|linker - Linker:make| remote:%s", vim.inspect(remote))
 
   local remote_url = git.get_remote_url(remote, cwd)
   if not remote_url then
+    return nil
+  end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
     return nil
   end
 
@@ -73,6 +94,9 @@ local function make_linker(remote, file, rev)
   if not resolved_host then
     return nil
   end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+    return nil
+  end
 
   -- logger.debug(
   --     "|linker - Linker:make| remote_url:%s",
@@ -83,6 +107,9 @@ local function make_linker(remote, file, rev)
     rev = git.get_closest_remote_compatible_rev(remote, cwd)
   end
   if str.empty(rev) then
+    return nil
+  end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
     return nil
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
@@ -105,6 +132,9 @@ local function make_linker(remote, file, rev)
     file = buf_path_encoded
   else
     file = vim.uri_encode(file)
+  end
+  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+    return nil
   end
 
   -- logger.debug(

@@ -7,6 +7,9 @@ local Defaults = {
   -- highlight the linked region
   highlight_duration = 500,
 
+  -- Git command running timeout in milliseconds
+  timeout_ms = 1000,
+
   -- user command
   command = {
     name = "GitLink",

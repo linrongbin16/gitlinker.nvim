@@ -195,14 +195,24 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,timeout_ms:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker(opts.remote, opts.file, opts.rev)
+  local lk = linker.make_linker(opts.remote, opts.file, opts.rev, opts.timeout_ms)
   if not lk then
+    vim.notify(
+      string.format(
+        "fatal: failed to generate git permlink for remote:%s, file:%s, rev:%s, timeout:%s",
+        vim.inspect(opts.remote),
+        vim.inspect(opts.file),
+        vim.inspect(opts.rev),
+        vim.inspect(opts.timeout_ms)
+      ),
+      vim.log.levels.ERROR
+    )
     return nil
   end
   lk.lstart = opts.lstart
