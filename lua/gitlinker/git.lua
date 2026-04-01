@@ -303,9 +303,10 @@ local function get_closest_remote_compatible_rev(remote, cwd)
     end
   end
 
-  -- try last 50 parent commits
+  -- try last 5 parent commits
+  local max_parent_commits = 5
   if remote_fetch_configured then
-    for i = 1, 50 do
+    for i = 1, max_parent_commits do
       local revspec = "HEAD~" .. i
       if _is_rev_in_remote(revspec, remote, cwd) then
         local rev = _get_rev(revspec, cwd)
@@ -315,7 +316,7 @@ local function get_closest_remote_compatible_rev(remote, cwd)
       end
     end
   else
-    for i = 1, 50 do
+    for i = 1, max_parent_commits do
       local revspec = "HEAD~" .. i
       local rev = _get_rev(revspec, cwd)
       if rev then

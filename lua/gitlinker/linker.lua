@@ -32,6 +32,13 @@ local function now_milliseconds()
   return math.ceil(t1 + t2)
 end
 
+--- @param start_at integer
+--- @param timeout_ms integer?
+--- @return boolean
+local function is_timeout(start_at, timeout_ms)
+  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+end
+
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @param file string?
@@ -50,8 +57,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   if not root then
     return nil
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
-    log.err("fatal: timeout when locate git repository root")
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when finding git repository root")
     return nil
   end
 
@@ -61,7 +68,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   if not remote then
     return nil
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when getting git repository remote branch")
     return nil
   end
   -- logger.debug("|linker - Linker:make| remote:%s", vim.inspect(remote))
@@ -70,7 +78,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   if not remote_url then
     return nil
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when getting git repository remote url")
     return nil
   end
 
@@ -95,7 +104,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   if not resolved_host then
     return nil
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when resolving git host with ssh alias")
     return nil
   end
 
@@ -110,7 +120,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   if str.empty(rev) then
     return nil
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when trying to get closest compatible remote rev")
     return nil
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
@@ -134,7 +145,8 @@ local function make_linker(remote, file, rev, timeout_ms)
   else
     file = vim.uri_encode(file)
   end
-  if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when getting filename in remote git repository")
     return nil
   end
 
@@ -154,8 +166,16 @@ local function make_linker(remote, file, rev, timeout_ms)
     --     vim.inspect(buf_path_on_cwd)
     -- )
   end
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when detecting whether local file is changed")
+    return nil
+  end
 
   local default_branch = git.get_default_branch(remote, cwd)
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when getting default branch")
+    return nil
+  end
   local current_branch = git.get_current_branch(cwd)
 
   local o = {
