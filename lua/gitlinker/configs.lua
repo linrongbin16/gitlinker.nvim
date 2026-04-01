@@ -10,6 +10,9 @@ local Defaults = {
   -- Git command running timeout in milliseconds
   timeout_ms = 1000,
 
+  -- Max commits git will use to match the commit between local and remote git repository.
+  max_parent_commits = 10,
+
   -- user command
   command = {
     name = "GitLink",

@@ -195,13 +195,14 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,timeout_ms:integer?,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,timeout_ms:integer?,max_parent_commits:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker(opts.remote, opts.file, opts.rev, opts.timeout_ms)
+  local lk =
+    linker.make_linker(opts.remote, opts.file, opts.rev, opts.timeout_ms, opts.max_parent_commits)
   if not lk then
     return nil
   end

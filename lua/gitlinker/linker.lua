@@ -39,14 +39,20 @@ local function is_timeout(start_at, timeout_ms)
   return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
 end
 
+local MAX_PARENT_COMMITS = 10
+
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @param file string?
 --- @param rev string?
 --- @param timeout_ms integer?
+--- @param max_parent_commits integer?
 --- @return gitlinker.Linker?
-local function make_linker(remote, file, rev, timeout_ms)
+local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   local start_at = now_milliseconds()
+  if type(max_parent_commits) ~= "number" then
+    max_parent_commits = MAX_PARENT_COMMITS
+  end
 
   local cwd = _get_buf_dir()
 
@@ -115,7 +121,7 @@ local function make_linker(remote, file, rev, timeout_ms)
   -- )
 
   if not rev_provided then
-    rev = git.get_closest_remote_compatible_rev(remote, cwd)
+    rev = git.get_closest_remote_compatible_rev(remote, cwd, max_parent_commits --[[@as integer]])
   end
   if str.empty(rev) then
     return nil

@@ -272,8 +272,9 @@ end
 
 --- @param remote string
 --- @param cwd string?
+--- @param max_parent_commits integer
 --- @return string?
-local function get_closest_remote_compatible_rev(remote, cwd)
+local function get_closest_remote_compatible_rev(remote, cwd, max_parent_commits)
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
@@ -304,7 +305,6 @@ local function get_closest_remote_compatible_rev(remote, cwd)
   end
 
   -- try last 5 parent commits
-  local max_parent_commits = 10
   if remote_fetch_configured then
     for i = 1, max_parent_commits do
       local revspec = "HEAD~" .. i
