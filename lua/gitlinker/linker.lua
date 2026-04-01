@@ -51,6 +51,7 @@ local function make_linker(remote, file, rev, timeout_ms)
     return nil
   end
   if type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms then
+    log.err("fatal: timeout when locate git repository root")
     return nil
   end
 
