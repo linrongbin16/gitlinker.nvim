@@ -270,6 +270,14 @@ local function resolve_host(host)
   return nil
 end
 
+--- @return integer
+local function now_milliseconds()
+  local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
+  local t1 = ts.sec * 1000
+  local t2 = ts.nsec / 1000000
+  return math.ceil(t1 + t2)
+end
+
 --- @param start_at integer
 --- @param timeout_ms integer?
 --- @return boolean
