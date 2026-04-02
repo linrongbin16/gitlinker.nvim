@@ -121,7 +121,13 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   -- )
 
   if not rev_provided then
-    rev = git.get_closest_remote_compatible_rev(remote, cwd, max_parent_commits --[[@as integer]])
+    rev = git.get_closest_remote_compatible_rev(
+      remote,
+      cwd,
+      max_parent_commits --[[@as integer]],
+      start_at,
+      timeout_ms
+    )
   end
   if str.empty(rev) then
     return nil

@@ -270,11 +270,26 @@ local function resolve_host(host)
   return nil
 end
 
+--- @param start_at integer
+--- @param timeout_ms integer?
+--- @return boolean
+local function is_timeout(start_at, timeout_ms)
+  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+end
+
 --- @param remote string
 --- @param cwd string?
 --- @param max_parent_commits integer
+--- @param start_at integer
+--- @param timeout_ms integer?
 --- @return string?
-local function get_closest_remote_compatible_rev(remote, cwd, max_parent_commits)
+local function get_closest_remote_compatible_rev(
+  remote,
+  cwd,
+  max_parent_commits,
+  start_at,
+  timeout_ms
+)
   assert(remote, "remote cannot be nil")
 
   -- try upstream branch HEAD (a.k.a @{u})
@@ -303,6 +318,10 @@ local function get_closest_remote_compatible_rev(remote, cwd, max_parent_commits
       return head_rev
     end
   end
+  if is_timeout(start_at, timeout_ms) then
+    log.err("fatal: timeout when finding closest compatible rev")
+    return nil
+  end
 
   -- try last 5 parent commits
   if remote_fetch_configured then
@@ -313,6 +332,10 @@ local function get_closest_remote_compatible_rev(remote, cwd, max_parent_commits
         if rev then
           return rev
         end
+        if is_timeout(start_at, timeout_ms) then
+          log.err("fatal: timeout when finding closest compatible rev")
+          return nil
+        end
       end
     end
   else
@@ -321,6 +344,10 @@ local function get_closest_remote_compatible_rev(remote, cwd, max_parent_commits
       local rev = _get_rev(revspec, cwd)
       if rev then
         return rev
+      end
+      if is_timeout(start_at, timeout_ms) then
+        log.err("fatal: timeout when finding closest compatible rev")
+        return nil
       end
     end
   end
