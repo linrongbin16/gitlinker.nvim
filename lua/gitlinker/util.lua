@@ -1,6 +1,6 @@
 --- @param cwd string?
 --- @return string?
-local function buffer_relpath(cwd)
+local function buffer_relative_path(cwd)
   local path = require("gitlinker.commons.path")
 
   cwd = cwd or vim.fn.getcwd()
@@ -29,7 +29,7 @@ local function buffer_relpath(cwd)
 end
 
 local M = {
-  buffer_relpath = buffer_relpath,
+  buffer_relative_path = buffer_relative_path,
 }
 
 return M

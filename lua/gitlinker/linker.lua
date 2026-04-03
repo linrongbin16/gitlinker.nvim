@@ -4,7 +4,7 @@ local async = require("gitlinker.commons.async")
 local uv = vim.uv or vim.loop
 
 local git = require("gitlinker.git")
-local path = require("gitlinker.path")
+local util = require("gitlinker.util")
 local giturlparser = require("gitlinker.giturlparser")
 
 --- @return string?
@@ -27,9 +27,12 @@ end
 --- @return integer
 local function now_milliseconds()
   local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
+  log.debug(string.format("now_ts:%s", vim.inspect(ts)))
   local t1 = ts.sec * 1000
   local t2 = ts.nsec / 1000000
-  return math.ceil(t1 + t2)
+  local ms = math.ceil(t1 + t2)
+  log.debug(string.format("now_ms:%s", vim.inspect(ms)))
+  return ms
 end
 
 --- @param start_at integer
@@ -141,7 +144,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   async.await(1, vim.schedule)
 
   if not file_provided then
-    local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
+    local buf_path_on_root = util.buffer_relative_path(root) --[[@as string]]
     local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
     -- logger.debug(
     --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
@@ -171,7 +174,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
 
   local file_changed = false
   if not file_provided then
-    local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
+    local buf_path_on_cwd = util.buffer_relative_path() --[[@as string]]
     file_changed = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
     -- logger.debug(
     --     "|linker - Linker:make| buf_path_on_cwd:%s",

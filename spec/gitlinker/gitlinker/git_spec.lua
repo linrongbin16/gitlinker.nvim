@@ -13,7 +13,7 @@ describe("gitlinker.git", function()
 
   local async = require("gitlinker.commons.async")
   local git = require("gitlinker.git")
-  local path = require("gitlinker.path")
+  local util = require("gitlinker.util")
   local gitlinker = require("gitlinker")
   pcall(gitlinker.setup, {})
   describe("[git]", function()
@@ -89,7 +89,7 @@ describe("gitlinker.git", function()
         assert_eq(type(rev), "string")
         assert_true(string.len(rev) > 0)
 
-        local bufpath = path.buffer_relpath() --[[@as string]]
+        local bufpath = util.buffer_relative_path() --[[@as string]]
         if not bufpath then
           assert_true(bufpath == nil)
           return
