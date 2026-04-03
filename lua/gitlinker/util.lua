@@ -14,6 +14,12 @@ local function buffer_relative_path(cwd)
   bufpath = vim.fn.resolve(bufpath)
   bufpath = path.normalize(bufpath, { double_backslash = true, expand = true })
 
+  -- logger.debug(
+  --     "|path.buffer_relpath| enter, cwd:%s, bufpath:%s",
+  --     vim.inspect(cwd),
+  --     vim.inspect(bufpath)
+  -- )
+
   local result = nil
   if string.len(bufpath) >= string.len(cwd) and bufpath:sub(1, #cwd) == cwd then
     result = bufpath:sub(#cwd + 1)
@@ -40,7 +46,18 @@ end
 --- @param timeout_ms integer?
 --- @return boolean
 local function is_timeout(start_at, timeout_ms)
-  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+  local now = now_milliseconds()
+  local yes = type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+  log.debug(
+    string.format(
+      "is_timeout start_at:%s,now:%s,timeout_ms:%s,yes:%s",
+      vim.inspect(start_at),
+      vim.inspect(now),
+      vim.inspect(timeout_ms),
+      vim.inspect(yes)
+    )
+  )
+  return yes
 end
 
 local M = {

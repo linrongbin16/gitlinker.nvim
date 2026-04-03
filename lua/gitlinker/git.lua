@@ -1,6 +1,9 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
+
+local util = require("gitlinker.util")
+
 local uv = vim.uv or vim.loop
 
 --- @class gitlinker.CmdResult
@@ -270,21 +273,6 @@ local function resolve_host(host)
   return nil
 end
 
---- @return integer
-local function now_milliseconds()
-  local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
-  local t1 = ts.sec * 1000
-  local t2 = ts.nsec / 1000000
-  return math.ceil(t1 + t2)
-end
-
---- @param start_at integer
---- @param timeout_ms integer?
---- @return boolean
-local function is_timeout(start_at, timeout_ms)
-  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
-end
-
 --- @param remote string
 --- @param cwd string?
 --- @param max_parent_commits integer
@@ -326,7 +314,7 @@ local function get_closest_remote_compatible_rev(
       return head_rev
     end
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when finding closest compatible rev")
     return nil
   end
@@ -340,7 +328,7 @@ local function get_closest_remote_compatible_rev(
         if rev then
           return rev
         end
-        if is_timeout(start_at, timeout_ms) then
+        if util.is_timeout(start_at, timeout_ms) then
           log.err("fatal: timeout when finding closest compatible rev")
           return nil
         end
@@ -353,7 +341,7 @@ local function get_closest_remote_compatible_rev(
       if rev then
         return rev
       end
-      if is_timeout(start_at, timeout_ms) then
+      if util.is_timeout(start_at, timeout_ms) then
         log.err("fatal: timeout when finding closest compatible rev")
         return nil
       end

@@ -1,7 +1,6 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
-local uv = vim.uv or vim.loop
 
 local git = require("gitlinker.git")
 local util = require("gitlinker.util")
@@ -24,24 +23,6 @@ local function _get_buf_dir()
   return buf_dir
 end
 
---- @return integer
-local function now_milliseconds()
-  local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
-  log.debug(string.format("now_ts:%s", vim.inspect(ts)))
-  local t1 = ts.sec * 1000
-  local t2 = ts.nsec / 1000000
-  local ms = math.ceil(t1 + t2)
-  log.debug(string.format("now_ms:%s", vim.inspect(ms)))
-  return ms
-end
-
---- @param start_at integer
---- @param timeout_ms integer?
---- @return boolean
-local function is_timeout(start_at, timeout_ms)
-  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
-end
-
 local MAX_PARENT_COMMITS = 10
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
@@ -52,7 +33,7 @@ local MAX_PARENT_COMMITS = 10
 --- @param max_parent_commits integer?
 --- @return gitlinker.Linker?
 local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
-  local start_at = now_milliseconds()
+  local start_at = util.now_milliseconds()
   if type(max_parent_commits) ~= "number" then
     max_parent_commits = MAX_PARENT_COMMITS
   end
@@ -66,7 +47,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   if not root then
     return nil
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when finding git repository root")
     return nil
   end
@@ -77,7 +58,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   if not remote then
     return nil
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when getting git repository remote branch")
     return nil
   end
@@ -87,7 +68,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   if not remote_url then
     return nil
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when getting git repository remote url")
     return nil
   end
@@ -113,7 +94,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   if not resolved_host then
     return nil
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when resolving git host with ssh alias")
     return nil
   end
@@ -135,7 +116,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   if str.empty(rev) then
     return nil
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when trying to get closest compatible remote rev")
     return nil
   end
@@ -160,7 +141,7 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
   else
     file = vim.uri_encode(file)
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when getting filename in remote git repository")
     return nil
   end
@@ -181,13 +162,13 @@ local function make_linker(remote, file, rev, timeout_ms, max_parent_commits)
     --     vim.inspect(buf_path_on_cwd)
     -- )
   end
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when detecting whether local file is changed")
     return nil
   end
 
   local default_branch = git.get_default_branch(remote, cwd)
-  if is_timeout(start_at, timeout_ms) then
+  if util.is_timeout(start_at, timeout_ms) then
     log.err("fatal: timeout when getting default branch")
     return nil
   end
