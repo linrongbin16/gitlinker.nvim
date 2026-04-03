@@ -1,3 +1,6 @@
+local log = require("gitlinker.commons.log")
+local uv = vim.uv or vim.loop
+
 --- @param cwd string?
 --- @return string?
 local function buffer_relative_path(cwd)
@@ -11,12 +14,6 @@ local function buffer_relative_path(cwd)
   bufpath = vim.fn.resolve(bufpath)
   bufpath = path.normalize(bufpath, { double_backslash = true, expand = true })
 
-  -- logger.debug(
-  --     "|path.buffer_relpath| enter, cwd:%s, bufpath:%s",
-  --     vim.inspect(cwd),
-  --     vim.inspect(bufpath)
-  -- )
-
   local result = nil
   if string.len(bufpath) >= string.len(cwd) and bufpath:sub(1, #cwd) == cwd then
     result = bufpath:sub(#cwd + 1)
@@ -28,8 +25,28 @@ local function buffer_relative_path(cwd)
   return result
 end
 
+--- @return integer
+local function now_milliseconds()
+  local ts = uv.clock_gettime("monotonic") --[[@as {sec:integer,nsec:integer} ]]
+  log.debug(string.format("now_ts:%s", vim.inspect(ts)))
+  local t1 = ts.sec * 1000
+  local t2 = ts.nsec / 1000000
+  local ms = math.ceil(t1 + t2)
+  log.debug(string.format("now_ms:%s", vim.inspect(ms)))
+  return ms
+end
+
+--- @param start_at integer
+--- @param timeout_ms integer?
+--- @return boolean
+local function is_timeout(start_at, timeout_ms)
+  return type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+end
+
 local M = {
   buffer_relative_path = buffer_relative_path,
+  now_milliseconds = now_milliseconds,
+  is_timeout = is_timeout,
 }
 
 return M
