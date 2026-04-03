@@ -51,8 +51,9 @@ local function _run_cmd_async(args, cwd, callback)
 
   --- @param completed vim.SystemCompleted
   local function on_exit(completed)
+    local n = math.floor(math.random(1000000, 1000000000))
     local j = 0
-    for i = 1, 1000000000 do
+    for i = 1, n do
       j = j + i
     end
     log.debug(string.format("j:%d", j))
