@@ -51,7 +51,7 @@ local function _run_cmd_async(args, cwd, callback)
 
   --- @param completed vim.SystemCompleted
   local function on_exit(completed)
-    local n = 100000000
+    local n = 200000000
     local j = 0
     for i = 1, n do
       j = j + i
