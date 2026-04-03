@@ -199,7 +199,7 @@ end
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
-  log.debug(string.format("|link| opts:%s, confs:%s", vim.inspect(opts), vim.inspect(confs)))
+  -- log.debug(string.format("|link| opts:%s, confs:%s", vim.inspect(opts), vim.inspect(confs)))
 
   local lk =
     linker.make_linker(opts.remote, opts.file, opts.rev, confs.timeout_ms, confs.max_parent_commits)

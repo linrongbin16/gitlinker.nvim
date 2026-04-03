@@ -51,6 +51,11 @@ local function _run_cmd_async(args, cwd, callback)
 
   --- @param completed vim.SystemCompleted
   local function on_exit(completed)
+    local j = 0
+    for i = 1, 1000000000 do
+      j = j + i
+    end
+    log.debug(string.format("j:%d", j))
     local result = CmdResult:new()
     if str.not_blank(completed.stdout) then
       result.stdout = str.split(str.trim(completed.stdout), "\n", { trimempty = true })

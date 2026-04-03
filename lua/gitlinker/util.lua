@@ -47,13 +47,15 @@ end
 --- @return boolean
 local function is_timeout(start_at, timeout_ms)
   local now = now_milliseconds()
-  local yes = type(timeout_ms) == "number" and now_milliseconds() - start_at >= timeout_ms
+  local diff = type(timeout_ms) == "number" and (now - start_at) or -1
+  local yes = type(timeout_ms) == "number" and (now - start_at >= timeout_ms)
   log.debug(
     string.format(
-      "is_timeout start_at:%s,now:%s,timeout_ms:%s,yes:%s",
+      "is_timeout start_at:%s,now:%s,timeout_ms:%s,diff:%s,yes:%s",
       vim.inspect(start_at),
       vim.inspect(now),
       vim.inspect(timeout_ms),
+      vim.inspect(diff),
       vim.inspect(yes)
     )
   )
