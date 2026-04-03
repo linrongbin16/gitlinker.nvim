@@ -199,10 +199,10 @@ end
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
-  -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
+  log.debug(string.format("|link| opts:%s, confs:%s", vim.inspect(opts), vim.inspect(confs)))
 
   local lk =
-    linker.make_linker(opts.remote, opts.file, opts.rev, opts.timeout_ms, opts.max_parent_commits)
+    linker.make_linker(opts.remote, opts.file, opts.rev, confs.timeout_ms, confs.max_parent_commits)
   if not lk then
     return nil
   end
