@@ -277,9 +277,6 @@ end
 --- @param opts gitlinker.Options?
 --- @return gitlinker.Options
 M.setup = function(opts)
-  if Configs and Configs._routers and next(Configs._routers) then
-    return Configs
-  end
   local merged_routers = M._merge_routers(opts or {})
   Configs = vim.tbl_deep_extend("force", vim.deepcopy(Defaults), opts or {})
   Configs._routers = merged_routers
