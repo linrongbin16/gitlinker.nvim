@@ -305,6 +305,7 @@ end
 
 --- @param opts gitlinker.Options?
 local function setup(opts)
+  vim.g.loaded_gitlinker = 1
   local confs = configs.setup(opts)
 
   -- logger
