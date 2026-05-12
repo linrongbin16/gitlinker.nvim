@@ -62,20 +62,20 @@ local function log(level, msg)
     return
   end
 
-  local msg_lines = vim.split(msg, "\n", { plain = true, trimempty = true })
+  local msg_lines = vim.split(msg, "\n", { plain = true })
   if LogConfigs.use_console and level >= LogLevels.INFO then
-    local msg_chunks = {}
     for _, line in ipairs(msg_lines) do
       if type(line) == "string" and string.len(line) > 0 then
+        local msg_chunks = {}
         table.insert(msg_chunks, {
           string.format("[%s] %s", LogConfigs.name, line),
           LogHighlights[level],
         })
+        vim.schedule(function()
+          vim.api.nvim_echo(msg_chunks, true, {})
+        end)
       end
     end
-    vim.schedule(function()
-      vim.api.nvim_echo(msg_chunks, false, {})
-    end)
   end
   if LogConfigs.use_file then
     local fp = io.open(LogConfigs.file_name, "a")
