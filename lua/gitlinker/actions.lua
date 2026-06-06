@@ -10,7 +10,9 @@ end
 -- see: https://github.com/axieax/urlview.nvim/blob/b183133fd25caa6dd98b415e0f62e51e061cd522/lua/urlview/actions.lua#L38
 --- @param url string
 local function system(url)
-  if vim.fn.has("mac") > 0 then
+  if vim.ui.open ~= nil then
+    vim.ui.open(url)
+  elseif vim.fn.has("mac") > 0 then
     vim.fn.jobstart({ "open", url })
   elseif vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0 or vim.fn.has("wsl") > 0 then
     if vim.fn.executable("pwsh.exe") > 0 then
