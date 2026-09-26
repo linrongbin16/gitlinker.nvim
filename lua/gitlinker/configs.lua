@@ -192,7 +192,7 @@ local Defaults = {
 }
 
 --- @type gitlinker.Options
-local Configs = {}
+local Configs = vim.deepcopy(Defaults)
 
 --- @param opts gitlinker.Options
 --- @return table<string, {list_routers:table,map_routers:table}>
@@ -288,5 +288,9 @@ end
 M.get = function()
   return Configs
 end
+
+-- Initialize with defaults, so the plugin also works without an explicit
+-- `setup` call
+Configs._routers = M._merge_routers({})
 
 return M
