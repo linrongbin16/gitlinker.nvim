@@ -79,7 +79,11 @@ local function make_linker(remote, file, rev)
   --     vim.inspect(remote_url)
   -- )
 
-  if not rev_provided then
+  if rev_provided then
+    -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
+    -- still get a permanent link. A full commit ID resolves to itself.
+    rev = git._get_rev(rev --[[@as string]], cwd) or rev
+  else
     rev = git.get_closest_remote_compatible_rev(remote, cwd)
   end
   if str.empty(rev) then
