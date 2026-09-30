@@ -212,6 +212,9 @@ local _link = function(opts)
     lk.file = opts.file
     lk.file_changed = false
   end
+  if str.not_empty(opts.rev) then
+    lk.rev = opts.rev
+  end
 
   async.await(1, vim.schedule)
 
@@ -262,7 +265,7 @@ local _link = function(opts)
   end
   if lk.file_changed and warn_on_file_change then
     local warning = string.format(
-      "gitlinker: line numbers can be wrong, %s has changed since %s",
+      "Line numbers can be wrong, %s has changed since %s",
       lk.file,
       string.sub(lk.rev, 1, 8)
     )
