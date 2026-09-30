@@ -315,10 +315,70 @@ local function _parse_args(args)
   return { router_type = router_type, remote = remote, file = file, rev = rev }
 end
 
+--- Callback for the user command created by `setup` and `plugin/gitlinker.lua`.
+--- @param command_opts table
+local function _command(command_opts)
+  local confs = configs.get()
+  local r = range.make_range()
+  local args = (type(command_opts.args) == "string" and string.len(command_opts.args) > 0)
+      and vim.trim(command_opts.args)
+    or nil
+  -- logger:debug(
+  --   "|setup| command opts:%s, parsed:%s, range:%s",
+  --   vim.inspect(command_opts),
+  --   vim.inspect(args),
+  --   vim.inspect(r)
+  -- )
+  local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+  local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+  local parsed = _parse_args(args)
+
+  local action = nil
+  if command_opts.bang then
+    action = require("gitlinker.actions").system
+  else
+    -- Prefer using user provided clipboard action, if exists.
+    if vim.is_callable(confs.clipboard_override) then
+      action = confs.clipboard_override
+    else
+      action = require("gitlinker.actions").clipboard
+    end
+  end
+
+  _void_link({
+    action = action,
+    router = function(lk)
+      return _router(parsed.router_type, lk)
+    end,
+    lstart = lstart,
+    lend = lend,
+    remote = parsed.remote,
+    file = parsed.file,
+    rev = parsed.rev,
+  })
+end
+
+--- Command completion for router types.
+--- @param arg_lead string?
+--- @return string[]
+local function _complete(arg_lead)
+  local confs = configs.get()
+  local suggestions = {}
+  for router_type, _ in pairs(confs._routers) do
+    if str.empty(arg_lead) or str.startswith(router_type, arg_lead) then
+      table.insert(suggestions, router_type)
+    end
+  end
+  table.sort(suggestions, function(a, b)
+    return a < b
+  end)
+  return suggestions
+end
+
 --- @param opts gitlinker.Options?
 local function setup(opts)
-  vim.g.loaded_gitlinker = 1
   local confs = configs.setup(opts)
+  vim.g.loaded_gitlinker = 1
 
   -- logger
   log.setup({
@@ -330,67 +390,18 @@ local function setup(opts)
   })
 
   -- command
-  vim.api.nvim_create_user_command(confs.command.name, function(command_opts)
-    local r = range.make_range()
-    local args = (type(command_opts.args) == "string" and string.len(command_opts.args) > 0)
-        and vim.trim(command_opts.args)
-      or nil
-    -- logger:debug(
-    --   "|setup| command opts:%s, parsed:%s, range:%s",
-    --   vim.inspect(command_opts),
-    --   vim.inspect(args),
-    --   vim.inspect(r)
-    -- )
-    local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local parsed = _parse_args(args)
-
-    local action = nil
-    if command_opts.bang then
-      action = require("gitlinker.actions").system
-    else
-      -- Prefer using user provided clipboard action, if exists.
-      if vim.is_callable(confs.clipboard_override) then
-        action = confs.clipboard_override
-      else
-        action = require("gitlinker.actions").clipboard
-      end
-    end
-
-    _void_link({
-      action = action,
-      router = function(lk)
-        return _router(parsed.router_type, lk)
-      end,
-      lstart = lstart,
-      lend = lend,
-      remote = parsed.remote,
-      file = parsed.file,
-      rev = parsed.rev,
-    })
-  end, {
+  vim.api.nvim_create_user_command(confs.command.name, _command, {
     nargs = "*",
     range = true,
     bang = true,
     desc = confs.command.desc,
-    complete = function()
-      local suggestions = {}
-      for router_type, _ in pairs(confs._routers) do
-        table.insert(suggestions, router_type)
-      end
-      table.sort(suggestions, function(a, b)
-        return a < b
-      end)
-      return suggestions
-    end,
+    complete = _complete,
+    force = true,
   })
-
-  -- Configure highlight group
-  if confs.highlight_duration > 0 then
-    local hl_group = "NvimGitLinkerHighlightTextObject"
-    if not highlight.hl_group_exists(hl_group) then
-      vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
-    end
+  -- The `plugin/gitlinker.lua` entrypoint creates the default `GitLink`
+  -- command (see: :help lua-plugin-lazy), remove it when using custom name.
+  if confs.command.name ~= "GitLink" then
+    pcall(vim.api.nvim_del_user_command, "GitLink")
   end
 end
 
@@ -436,6 +447,8 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
+  _command = _command,
+  _complete = _complete,
 
   setup = setup,
   link = link_api,
