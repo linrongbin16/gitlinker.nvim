@@ -273,7 +273,8 @@ local _link = function(opts)
   end
 
   if message then
-    vim.notify((url:gsub("%%", "%%%%")) --[[@as string]])
+    ---@diagnostic disable-next-line: need-check-nil
+    vim.notify(url:gsub("%%", "%%%%") --[[@as string]])
   end
 
   return url
