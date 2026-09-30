@@ -4,6 +4,10 @@ local Defaults = {
   -- print permanent url in command line
   message = true,
 
+  -- warn when the file has changed since the commit the url points at, i.e.
+  -- when its line numbers no longer describe the file.
+  warn_on_file_change = true,
+
   -- highlight the linked region
   highlight_duration = 500,
 

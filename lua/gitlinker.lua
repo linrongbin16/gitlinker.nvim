@@ -195,7 +195,7 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
---- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
@@ -259,10 +259,21 @@ local _link = function(opts)
       vim.inspect(confs)
     )
   )
+  local warn_on_file_change = confs.warn_on_file_change
+  if type(opts.warn_on_file_change) == "boolean" then
+    warn_on_file_change = opts.warn_on_file_change
+  end
+  if lk.file_changed and warn_on_file_change then
+    local warning = string.format(
+      "Line numbers can be wrong, %s has changed since %s",
+      lk.file,
+      string.sub(lk.rev, 1, 8)
+    )
+    vim.notify(warning:gsub("%%", "%%%%"), vim.log.levels.WARN)
+  end
+
   if message then
-    local msg = lk.file_changed and url .. " (lines can be wrong due to file change)" or url --[[@as string]]
-    msg = msg:gsub("%%", "%%%%")
-    vim.notify(msg --[[@as string]])
+    vim.notify((url:gsub("%%", "%%%%")) --[[@as string]])
   end
 
   return url
@@ -382,7 +393,7 @@ local function setup(opts)
   end
 end
 
---- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
+--- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
 local function link_api(opts)
   opts = opts
     or {
