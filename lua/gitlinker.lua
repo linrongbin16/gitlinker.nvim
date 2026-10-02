@@ -212,9 +212,6 @@ local _link = function(opts)
     lk.file = opts.file
     lk.file_changed = false
   end
-  if str.not_empty(opts.rev) then
-    lk.rev = opts.rev
-  end
 
   async.await(1, vim.schedule)
 
