@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.5.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.0...v5.5.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* follow-up to PR [#306](https://github.com/linrongbin16/gitlinker.nvim/issues/306), which completes it. ([#309](https://github.com/linrongbin16/gitlinker.nvim/issues/309)) ([a4f59e3](https://github.com/linrongbin16/gitlinker.nvim/commit/a4f59e3e76aa772965251e3accd45788483fafd5))
+* resolve rev revspecs, and separate the file-change warning from message ([#306](https://github.com/linrongbin16/gitlinker.nvim/issues/306)) ([693bc4f](https://github.com/linrongbin16/gitlinker.nvim/commit/693bc4f420af714ccc5bb38ad242bed26d294003))
+
 ## [5.5.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.4.0...v5.5.0) (2026-06-07)
 
 
