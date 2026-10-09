@@ -261,17 +261,17 @@ local _link = function(opts)
     warn_on_file_change = opts.warn_on_file_change
   end
   if lk.file_changed and warn_on_file_change then
-    local warning = string.format(
-      "Line numbers can be wrong, %s has changed since %s",
+    local msg = string.format(
+      "line numbers can be wrong, %s has changed since %s",
       lk.file,
       string.sub(lk.rev, 1, 8)
     )
-    vim.notify(warning:gsub("%%", "%%%%"), vim.log.levels.WARN)
+    log.warn(msg:gsub("%%", "%%%%"))
   end
 
   if message then
     ---@diagnostic disable-next-line: need-check-nil
-    vim.notify(url:gsub("%%", "%%%%") --[[@as string]])
+    log.info(url:gsub("%%", "%%%%") --[[@as string]])
   end
 
   return url
