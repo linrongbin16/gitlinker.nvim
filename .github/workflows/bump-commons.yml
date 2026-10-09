@@ -26,4 +26,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         if: ${{ github.ref != 'refs/heads/master' }}
         with:
-          commit_message: "chore(pr): auto-commit"
+          commit_message: "build(deps): bump commons.nvim deps"
