@@ -261,12 +261,12 @@ local _link = function(opts)
     warn_on_file_change = opts.warn_on_file_change
   end
   if lk.file_changed and warn_on_file_change then
-    local msg = string.format(
+    local warning = string.format(
       "line numbers can be wrong, %s has changed since %s",
       lk.file,
       string.sub(lk.rev, 1, 8)
     )
-    log.warn(msg:gsub("%%", "%%%%"))
+    log.warn(warning:gsub("%%", "%%%%"))
   end
 
   if message then
