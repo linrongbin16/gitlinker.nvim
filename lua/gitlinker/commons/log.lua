@@ -31,7 +31,7 @@ local LogConfigs = {
   file_name = nil,
 }
 
---- @param opts {name: string, level: integer?, use_console: boolean?, use_file: boolean?, file_name: string?}?
+--- @param opts {name: string?, level: integer?, use_console: boolean?, use_file: boolean?, file_name: string?}?
 local function setup(opts)
   opts = opts or {}
   local level = opts.level or LogLevels.INFO
@@ -45,7 +45,9 @@ local function setup(opts)
   local name = opts.name
   local file_name = opts.file_name
 
-  LogConfigs.name = name
+  if type(name) == "string" and string.len(name) > 0 then
+    LogConfigs.name = name
+  end
   LogConfigs.level = level
   LogConfigs.use_console = use_console
   LogConfigs.use_file = use_file
@@ -66,7 +68,11 @@ local function log(level, msg)
   if LogConfigs.use_console and level >= LogLevels.INFO then
     for _, line in ipairs(msg_lines) do
       if type(line) == "string" and string.len(line) > 0 then
-        vim.notify(line, level)
+        local fmt_line = line
+        if type(LogConfigs.name) == "string" and string.len(LogConfigs.name) > 0 then
+          fmt_line = string.format("[%s] %s", LogConfigs.name, line)
+        end
+        vim.notify(fmt_line, level)
       end
     end
   end
