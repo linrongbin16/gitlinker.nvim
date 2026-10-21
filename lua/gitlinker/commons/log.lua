@@ -72,7 +72,9 @@ local function log(level, msg)
         if type(LogConfigs.name) == "string" and string.len(LogConfigs.name) > 0 then
           fmt_line = string.format("[%s] %s", LogConfigs.name, line)
         end
-        vim.notify(fmt_line, level)
+        vim.schedule(function()
+          vim.notify(fmt_line, level)
+        end)
       end
     end
   end
