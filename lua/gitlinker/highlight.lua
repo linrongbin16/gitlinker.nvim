@@ -17,6 +17,15 @@ M.hl_group_exists = function(name)
 end
 
 local hl_namespace = "NvimGitLinker"
+local hl_group = "NvimGitLinkerHighlightTextObject"
+
+-- Ensures the default highlight group exists (deferred from setup so the
+-- plugin works without an explicit `setup` call, see: :help lua-plugin-init).
+local function ensure_hl_group()
+  if not M.hl_group_exists(hl_group) then
+    vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
+  end
+end
 
 -- Highlights the text selected by the specified range.
 --- @param range gitlinker.Range?
@@ -24,6 +33,7 @@ M.show = function(range)
   if not range then
     return
   end
+  ensure_hl_group()
   local namespace = vim.api.nvim_create_namespace(hl_namespace)
   local lstart, lend = range.lstart, range.lend
   if lend and lend < lstart then
