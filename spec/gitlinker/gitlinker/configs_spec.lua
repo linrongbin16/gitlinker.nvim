@@ -40,6 +40,10 @@ describe("gitlinker.gitlinker", function()
             browse_n = browse_n + 1
           elseif k == "^bitbucket%.org" then
             browse_n = browse_n + 1
+          elseif k == "^ssh%.bitbucket%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^altssh%.bitbucket%.org" then
+            browse_n = browse_n + 1
           elseif k == "^codeberg%.org" then
             browse_n = browse_n + 1
           elseif k == "^git%.samba%.org" then
@@ -49,7 +53,7 @@ describe("gitlinker.gitlinker", function()
             browse_n = browse_n + 1
           end
         end
-        assert_eq(browse_n, 6)
+        assert_eq(browse_n, 8)
       end
 
       assert_eq(#blame_list, 0)
@@ -62,6 +66,10 @@ describe("gitlinker.gitlinker", function()
             blame_n = blame_n + 1
           elseif k == "^bitbucket%.org" then
             blame_n = blame_n + 1
+          elseif k == "^ssh%.bitbucket%.org" then
+            blame_n = blame_n + 1
+          elseif k == "^altssh%.bitbucket%.org" then
+            blame_n = blame_n + 1
           elseif k == "^codeberg%.org" then
             blame_n = blame_n + 1
           elseif k == "^git%.xyz%.com" then
@@ -69,7 +77,7 @@ describe("gitlinker.gitlinker", function()
             blame_n = blame_n + 1
           end
         end
-        assert_eq(blame_n, 5)
+        assert_eq(blame_n, 7)
       end
     end)
     it("test list bindings", function()
@@ -123,13 +131,17 @@ describe("gitlinker.gitlinker", function()
             browse_n = browse_n + 1
           elseif k == "^bitbucket%.org" then
             browse_n = browse_n + 1
+          elseif k == "^ssh%.bitbucket%.org" then
+            browse_n = browse_n + 1
+          elseif k == "^altssh%.bitbucket%.org" then
+            browse_n = browse_n + 1
           elseif k == "^codeberg%.org" then
             browse_n = browse_n + 1
           elseif k == "^git%.samba%.org" then
             browse_n = browse_n + 1
           end
         end
-        assert_eq(browse_n, 5)
+        assert_eq(browse_n, 7)
       end
 
       assert_eq(#blame_list, 2)
@@ -158,11 +170,15 @@ describe("gitlinker.gitlinker", function()
             blame_n = blame_n + 1
           elseif k == "^bitbucket%.org" then
             blame_n = blame_n + 1
+          elseif k == "^ssh%.bitbucket%.org" then
+            blame_n = blame_n + 1
+          elseif k == "^altssh%.bitbucket%.org" then
+            blame_n = blame_n + 1
           elseif k == "^codeberg%.org" then
             blame_n = blame_n + 1
           end
         end
-        assert_eq(blame_n, 4)
+        assert_eq(blame_n, 6)
       end
     end)
   end)

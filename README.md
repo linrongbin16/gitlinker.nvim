@@ -18,7 +18,7 @@ For now supported platforms are:
 
 - https://github.com/
 - https://gitlab.com/
-- https://bitbucket.org/
+- https://bitbucket.org/ (and its ssh hosts `ssh.bitbucket.org`/`altssh.bitbucket.org`)
 - https://codeberg.org/
 - https://git.samba.org/
 
@@ -139,6 +139,8 @@ There're several **router types**:
 > - `blame` generates the `/annotate` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
 > - `default_branch` generates the `/main` or `/master` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
 > - `current_branch` generates the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14.
+>
+> Bitbucket Cloud serves its git-over-ssh traffic on `ssh.bitbucket.org` (and `altssh.bitbucket.org` for the port 443 alternative), which is also bound to the same website, so `git@ssh.bitbucket.org:<workspace>/<repo>.git` remotes generate `https://bitbucket.org/` urls as well.
 
 #### Multiple Remotes
 
@@ -584,7 +586,7 @@ There are some pre-defined APIs in `gitlinker.routers` that you can use:
 
 - `github_browse`/`github_blame`: for https://github.com/.
 - `gitlab_browse`/`gitlab_blame`: for https://gitlab.com/.
-- `bitbucket_browse`/`bitbucket_blame`: for https://bitbucket.org/.
+- `bitbucket_browse`/`bitbucket_blame`: for https://bitbucket.org/ (also works for its ssh hosts `ssh.bitbucket.org`/`altssh.bitbucket.org`).
 - `codeberg_browse`/`codeberg_blame`: for https://codeberg.org/.
 - `samba_browse`: for https://git.samba.org/ (blame not support).
 

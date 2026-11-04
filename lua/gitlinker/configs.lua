@@ -1,5 +1,47 @@
 local M = {}
 
+-- NOTE: Bitbucket Cloud serves ssh traffic on a dedicated host,
+-- 'ssh.bitbucket.org' (and 'altssh.bitbucket.org' for the port 443 alternative),
+-- while the website is still served on 'bitbucket.org'. Since Git over ssh is
+-- what most remotes use, all of them should be bound to the same website:
+-- https://community.atlassian.com/forums/discussion/3234032
+
+-- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+local BITBUCKET_BROWSE = "https://bitbucket.org/"
+  .. "{_A.ORG}/"
+  .. "{_A.REPO}/src/"
+  .. "{_A.REV}/"
+  .. "{_A.FILE}"
+  .. "#lines-{_A.LSTART}"
+  .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}"
+
+-- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+local BITBUCKET_BLAME = "https://bitbucket.org/"
+  .. "{_A.ORG}/"
+  .. "{_A.REPO}/annotate/"
+  .. "{_A.REV}/"
+  .. "{_A.FILE}"
+  .. "#lines-{_A.LSTART}"
+  .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}"
+
+-- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
+local BITBUCKET_DEFAULT_BRANCH = "https://bitbucket.org/"
+  .. "{_A.ORG}/"
+  .. "{_A.REPO}/src/"
+  .. "{_A.DEFAULT_BRANCH}/"
+  .. "{_A.FILE}"
+  .. "#lines-{_A.LSTART}"
+  .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}"
+
+-- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14
+local BITBUCKET_CURRENT_BRANCH = "https://bitbucket.org/"
+  .. "{_A.ORG}/"
+  .. "{_A.REPO}/src/"
+  .. "{_A.CURRENT_BRANCH}/"
+  .. "{_A.FILE}"
+  .. "#lines-{_A.LSTART}"
+  .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}"
+
 local Defaults = {
   -- print permanent url in command line
   message = true,
@@ -37,13 +79,9 @@ local Defaults = {
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
-      ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/src/"
-        .. "{_A.REV}/"
-        .. "{_A.FILE}"
-        .. "#lines-{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      ["^bitbucket%.org"] = BITBUCKET_BROWSE,
+      ["^ssh%.bitbucket%.org"] = BITBUCKET_BROWSE,
+      ["^altssh%.bitbucket%.org"] = BITBUCKET_BROWSE,
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.ORG}/"
@@ -80,13 +118,9 @@ local Defaults = {
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
-      ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/annotate/"
-        .. "{_A.REV}/"
-        .. "{_A.FILE}"
-        .. "#lines-{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      ["^bitbucket%.org"] = BITBUCKET_BLAME,
+      ["^ssh%.bitbucket%.org"] = BITBUCKET_BLAME,
+      ["^altssh%.bitbucket%.org"] = BITBUCKET_BLAME,
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.ORG}/"
@@ -114,13 +148,9 @@ local Defaults = {
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
       -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
-      ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/src/"
-        .. "{_A.DEFAULT_BRANCH}/"
-        .. "{_A.FILE}"
-        .. "#lines-{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      ["^bitbucket%.org"] = BITBUCKET_DEFAULT_BRANCH,
+      ["^ssh%.bitbucket%.org"] = BITBUCKET_DEFAULT_BRANCH,
+      ["^altssh%.bitbucket%.org"] = BITBUCKET_DEFAULT_BRANCH,
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/branch/main/LICENSE#L4-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.ORG}/"
@@ -155,14 +185,10 @@ local Defaults = {
         .. "{_A.FILE}"
         .. "#L{_A.LSTART}"
         .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
-      -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
-      ["^bitbucket%.org"] = "https://bitbucket.org/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/src/"
-        .. "{_A.CURRENT_BRANCH}/"
-        .. "{_A.FILE}"
-        .. "#lines-{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and (':' .. _A.LEND) or '')}",
+      -- example: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14
+      ["^bitbucket%.org"] = BITBUCKET_CURRENT_BRANCH,
+      ["^ssh%.bitbucket%.org"] = BITBUCKET_CURRENT_BRANCH,
+      ["^altssh%.bitbucket%.org"] = BITBUCKET_CURRENT_BRANCH,
       -- example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/branch/main/LICENSE#L4-L6
       ["^codeberg%.org"] = "https://codeberg.org/"
         .. "{_A.ORG}/"
