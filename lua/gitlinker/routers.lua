@@ -75,11 +75,12 @@ end
 --
 --- @param lk gitlinker.Linker
 --- @param range_maker gitlinker.RangeStringify
+--- @param host string?  use the host from 'lk', or override it
 --- @return gitlinker.Builder
-function Builder:new(lk, range_maker)
+function Builder:new(lk, range_maker, host)
   local r = range_maker({ lstart = lk.lstart, lend = lk.lend })
   local o = {
-    domain = string.format("https://%s", lk.host),
+    domain = string.format("https://%s", host or lk.host),
     org = lk.org,
     repo = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
     rev = lk.rev,
@@ -139,10 +140,16 @@ local function gitlab_browse(lk)
   return builder:build("blob")
 end
 
+-- Bitbucket Cloud serves its website on 'bitbucket.org', while its git traffic
+-- over ssh goes to 'ssh.bitbucket.org' (and 'altssh.bitbucket.org' for the
+-- port 443 alternative), so always build the url on the website host.
+-- https://community.atlassian.com/forums/discussion/3234032
+local BITBUCKET_DOMAIN = "bitbucket.org"
+
 --- @param lk gitlinker.Linker
 --- @return string
 local function bitbucket_browse(lk)
-  local builder = Builder:new(lk, bitbucket_line_range)
+  local builder = Builder:new(lk, bitbucket_line_range, BITBUCKET_DOMAIN)
   return builder:build("src")
 end
 
@@ -174,7 +181,7 @@ end
 --- @param lk gitlinker.Linker
 --- @return string
 local function bitbucket_blame(lk)
-  local builder = Builder:new(lk, bitbucket_line_range)
+  local builder = Builder:new(lk, bitbucket_line_range, BITBUCKET_DOMAIN)
   return builder:build("annotate")
 end
 
