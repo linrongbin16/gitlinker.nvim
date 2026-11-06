@@ -1,7 +1,6 @@
 local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
-local uv = vim.uv or vim.loop
 
 --- @class gitlinker.CmdResult
 --- @field stdout string[]
@@ -41,7 +40,7 @@ function CmdResult:print_err(default)
 end
 
 --- @param args string[]
---- @param cwd string?
+--- @param cwd string
 --- @param callback fun(gitlinker.CmdResult):any
 local function _run_cmd_async(args, cwd, callback)
   log.debug(string.format("|_run_cmd_async| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
@@ -67,15 +66,15 @@ end
 
 -- wrap the git command to do the right thing always
 --- @package
---- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
+--- @type fun(args:string[], cwd:string): gitlinker.CmdResult
 local function run_cmd(args, cwd)
-  --- @type fun(args:string[], cwd:string?): gitlinker.CmdResult
+  --- @type fun(args:string[], cwd:string): gitlinker.CmdResult
   local _run_cmd = async.wrap(3, _run_cmd_async)
-  return _run_cmd(args, cwd or uv.cwd())
+  return _run_cmd(args, cwd)
 end
 
 --- @package
---- @param cwd string?
+--- @param cwd string
 --- @return string[]|nil
 local function _get_remote(cwd)
   local args = { "git", "remote" }
@@ -93,7 +92,7 @@ local function _get_remote(cwd)
 end
 
 --- @param remote string
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_remote_url(remote, cwd)
   assert(remote, "remote cannot be nil")
@@ -113,7 +112,7 @@ end
 
 --- @package
 --- @param revspec string?
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function _get_rev(revspec, cwd)
   local args = { "git", "rev-parse", revspec }
@@ -129,7 +128,7 @@ end
 
 --- @package
 --- @param revspec string
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function _get_rev_name(revspec, cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", revspec }
@@ -148,7 +147,7 @@ end
 
 --- @param file string
 --- @param revspec string
---- @param cwd string?
+--- @param cwd string
 --- @return boolean
 local function is_file_in_rev(file, revspec, cwd)
   local args = { "git", "cat-file", "-e", revspec .. ":" .. file }
@@ -167,7 +166,7 @@ end
 
 --- @param file string
 --- @param rev string
---- @param cwd string?
+--- @param cwd string
 --- @return boolean
 local function file_has_changed(file, rev, cwd)
   local args = { "git", "diff", rev, "--", file }
@@ -183,7 +182,7 @@ end
 --- @package
 --- @param revspec string
 --- @param remote string
---- @param cwd string?
+--- @param cwd string
 --- @return boolean
 local function _is_rev_in_remote(revspec, remote, cwd)
   local args = { "git", "branch", "--remotes", "--contains", revspec }
@@ -205,7 +204,7 @@ end
 
 --- @package
 --- @param remote string
---- @param cwd string?
+--- @param cwd string
 --- @return boolean
 local function _has_remote_fetch_config(remote, cwd)
   local args = { "git", "config", string.format("remote.%s.fetch", remote) }
@@ -226,14 +225,15 @@ local function _has_remote_fetch_config(remote, cwd)
 end
 
 --- @param host string
+--- @param cwd string
 --- @return string?
-local function resolve_host(host)
+local function resolve_host(host, cwd)
   if vim.fn.executable("ssh") <= 0 then
     return host
   end
   local errmsg = string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
   local args = { "ssh", "-ttG", host }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
 
   if not result:has_out() then
     result:print_err(errmsg)
@@ -271,7 +271,7 @@ local function resolve_host(host)
 end
 
 --- @param remote string
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_closest_remote_compatible_rev(remote, cwd)
   assert(remote, "remote cannot be nil")
@@ -286,7 +286,7 @@ local function get_closest_remote_compatible_rev(remote, cwd)
     return upstream_rev
   end
 
-  local remote_fetch_configured = _has_remote_fetch_config(remote)
+  local remote_fetch_configured = _has_remote_fetch_config(remote, cwd)
 
   -- try HEAD
   if remote_fetch_configured then
@@ -334,7 +334,7 @@ local function get_closest_remote_compatible_rev(remote, cwd)
   return nil
 end
 
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_root(cwd)
   local args = { "git", "rev-parse", "--show-toplevel" }
@@ -379,7 +379,7 @@ end
 
 --- @package
 --- @param remotes string[]
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function _select_remotes(remotes, cwd)
   -- local result = run_select(remotes)
@@ -410,7 +410,7 @@ local function _select_remotes(remotes, cwd)
   return nil
 end
 
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_branch_remote(cwd)
   -- origin/upstream
@@ -462,7 +462,7 @@ local function get_branch_remote(cwd)
 end
 
 --- @param remote string
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_default_branch(remote, cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
@@ -481,7 +481,7 @@ local function get_default_branch(remote, cwd)
   return splits[#splits]
 end
 
---- @param cwd string?
+--- @param cwd string
 --- @return string?
 local function get_current_branch(cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
