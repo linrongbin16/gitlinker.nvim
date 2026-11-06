@@ -30,6 +30,9 @@ end
 --- @return gitlinker.Linker?
 local function make_linker(remote, file, rev)
   local cwd = _get_buf_dir()
+  if not cwd then
+    return nil
+  end
 
   local file_provided = str.not_empty(file)
   local rev_provided = str.not_empty(rev)
