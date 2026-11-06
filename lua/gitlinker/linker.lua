@@ -69,7 +69,7 @@ local function make_linker(remote, file, rev)
       vim.inspect(parsed_err)
     )
   )
-  local resolved_host = git.resolve_host(parsed_url.host)
+  local resolved_host = git.resolve_host(parsed_url.host, cwd)
   if not resolved_host then
     return nil
   end

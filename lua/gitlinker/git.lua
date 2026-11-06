@@ -226,14 +226,15 @@ local function _has_remote_fetch_config(remote, cwd)
 end
 
 --- @param host string
+--- @param cwd string?
 --- @return string?
-local function resolve_host(host)
+local function resolve_host(host, cwd)
   if vim.fn.executable("ssh") <= 0 then
     return host
   end
   local errmsg = string.format("fatal: failed to resolve host %s via ssh", vim.inspect(host))
   local args = { "ssh", "-ttG", host }
-  local result = run_cmd(args)
+  local result = run_cmd(args, cwd)
 
   if not result:has_out() then
     result:print_err(errmsg)
@@ -286,7 +287,7 @@ local function get_closest_remote_compatible_rev(remote, cwd)
     return upstream_rev
   end
 
-  local remote_fetch_configured = _has_remote_fetch_config(remote)
+  local remote_fetch_configured = _has_remote_fetch_config(remote, cwd)
 
   -- try HEAD
   if remote_fetch_configured then
