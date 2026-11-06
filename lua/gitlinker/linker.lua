@@ -33,12 +33,15 @@ end
 --- @param rev string?
 --- @return gitlinker.Linker?, string?
 local function make_linker(remote, file, rev)
-  local cwd, cwd_err = _get_buf_dir()
-  if not cwd then
-    return nil, cwd_err
+  local buf_dir, buf_dir_err = _get_buf_dir()
+  if not buf_dir then
+    return nil, buf_dir_err
   end
 
-  local root, root_err = git.get_root(cwd)
+  -- Locate the repository root once: every git command below runs there, so
+  -- that pathspecs and `rev:path` tree lookups share a single, stable base
+  -- instead of the buffer directory (which `git diff` would resolve against).
+  local root, root_err = git.get_root(buf_dir)
   if not root then
     return nil, root_err
   end
@@ -48,7 +51,7 @@ local function make_linker(remote, file, rev)
   --- @type string
   local selected_remote
   if str.empty(remote) then
-    local detected_remote, detected_remote_err = git.get_branch_remote(cwd)
+    local detected_remote, detected_remote_err = git.get_branch_remote(root)
     if not detected_remote then
       return nil, detected_remote_err
     end
@@ -57,7 +60,7 @@ local function make_linker(remote, file, rev)
     selected_remote = remote --[[@as string]]
   end
 
-  local remote_url, remote_url_err = git.get_remote_url(selected_remote, cwd)
+  local remote_url, remote_url_err = git.get_remote_url(selected_remote, root)
   if not remote_url then
     return nil, remote_url_err
   end
@@ -79,7 +82,7 @@ local function make_linker(remote, file, rev)
         vim.inspect(parsed_url_err)
       )
   end
-  local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, cwd)
+  local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, root)
   if not resolved_host then
     return nil, resolved_host_err
   end
@@ -89,13 +92,14 @@ local function make_linker(remote, file, rev)
   if rev_provided then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
-    local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], cwd)
+    local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], root)
     if not resolved_rev then
       return nil, resolved_rev_err
     end
     rev = resolved_rev
   else
-    local closest_rev, closest_rev_err = git.get_closest_remote_compatible_rev(selected_remote, cwd)
+    local closest_rev, closest_rev_err =
+      git.get_closest_remote_compatible_rev(selected_remote, root)
     if not closest_rev then
       return nil, closest_rev_err
     end
@@ -110,39 +114,48 @@ local function make_linker(remote, file, rev)
   async.await(1, vim.schedule)
 
   local file_provided = str.not_empty(file)
+  local file_changed = false
   if not file_provided then
-    local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
-    local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
+    -- Both the tree lookup and the diff below run in the repository root, so
+    -- the path handed to them has to be root-relative. A path relative to the
+    -- buffer directory matches nothing there: `git diff` then exits 0 with
+    -- empty output, which reads as "the file has not changed".
+    local relpath = path.buffer_relpath(root)
+    if not relpath then
+      return nil,
+        string.format(
+          "fatal: failed to resolve the buffer path relative to the git repository root: %s (root: %s)",
+          vim.inspect(vim.api.nvim_buf_get_name(0)),
+          vim.inspect(root)
+        )
+    end
 
-    local file_in_rev, file_in_rev_err =
-      git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
+    local file_in_rev, file_in_rev_err = git.is_file_in_rev(relpath, rev, root)
     if not file_in_rev then
       return nil, file_in_rev_err
     end
-    file = buf_path_encoded
-  else
-    file = vim.uri_encode(file)
-  end
+    file = vim.uri_encode(relpath)
 
-  async.await(1, vim.schedule)
+    -- `git` resumed this coroutine in a fast event context, and the checks
+    -- below touch the editor again, so hop back to the main loop first.
+    async.await(1, vim.schedule)
 
-  local file_changed = false
-  if not file_provided then
-    local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-    local changed, changed_err = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
+    local changed, changed_err = git.file_has_changed(relpath, rev, root)
     if changed == nil then
       return nil, changed_err
     end
     file_changed = changed
+  else
+    file = vim.uri_encode(file)
   end
 
   -- A missing default/current branch must not stop the link from being built,
   -- the router simply renders an empty value for it. Report and carry on.
-  local default_branch, default_branch_err = git.get_default_branch(selected_remote, cwd)
+  local default_branch, default_branch_err = git.get_default_branch(selected_remote, root)
   if default_branch_err then
     log.warn(default_branch_err)
   end
-  local current_branch, current_branch_err = git.get_current_branch(cwd)
+  local current_branch, current_branch_err = git.get_current_branch(root)
   if current_branch_err then
     log.warn(current_branch_err)
   end
