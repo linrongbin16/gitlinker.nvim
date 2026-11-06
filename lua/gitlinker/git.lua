@@ -9,11 +9,12 @@ local async = require("gitlinker.commons.async")
 local CmdResult = {}
 
 -- Exit code recorded when the command could not even be started (vim.system
--- raised). Exit codes are process exit statuses, so `255` and `-1` are what a
--- merely failed command typically reports and would be indistinguishable from a
--- spawn error. This sentinel is a negative value well outside the `0..255`
--- range shells use, so it can not be confused with a real exit status.
-CmdResult.SPAWN_FAILED = -1000
+-- raised). A merely failed command reports an exit status in the `0..255` range
+-- (`255` and `-1` are common), which would be indistinguishable from a spawn
+-- error. This sentinel is INT32_MIN: far outside that range, and small enough to
+-- stay exactly representable, since Lua numbers are doubles holding integers
+-- precisely up to 2^53.
+CmdResult.SPAWN_FAILED = -2147483648
 
 --- @return gitlinker.CmdResult
 function CmdResult:new()

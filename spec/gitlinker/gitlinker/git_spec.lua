@@ -222,9 +222,14 @@ describe("gitlinker.git", function()
         spawn_failed.code = git.CmdResult.SPAWN_FAILED
         assert_false(spawn_failed:ok())
         assert_true(spawn_failed:spawn_failed())
-        -- The sentinel sits outside the exit-status range shells produce.
+
+        -- The sentinel is INT32_MIN, far outside the exit-status range shells
+        -- produce, and exactly representable as a Lua number.
+        assert_eq(git.CmdResult.SPAWN_FAILED, -2147483648)
         assert_true(git.CmdResult.SPAWN_FAILED < 0)
         assert_true(git.CmdResult.SPAWN_FAILED ~= -1)
+        assert_eq(tonumber(tostring(git.CmdResult.SPAWN_FAILED)), -2147483648)
+        assert_eq(tonumber(string.format("%d", git.CmdResult.SPAWN_FAILED)), -2147483648)
       end)
     end)
   end)
