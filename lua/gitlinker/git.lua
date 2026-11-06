@@ -2,11 +2,11 @@ local log = require("gitlinker.commons.log")
 local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
 
---- @class gitlinker.CmdResult
---- @field code integer  exit code, `0` means success, `CmdResult.SPAWN_FAILED` means the command never ran.
+--- @class gitlinker.GitResult
+--- @field code integer  exit code, `0` means success, `GitResult.SPAWN_FAILED` means the command never ran.
 --- @field stdout string[]
 --- @field stderr string[]
-local CmdResult = {}
+local GitResult = {}
 
 -- Exit code recorded when the command could not even be started (vim.system
 -- raised). A merely failed command reports an exit status in the `0..255` range
@@ -14,10 +14,10 @@ local CmdResult = {}
 -- error. This sentinel is INT32_MIN: far outside that range, and small enough to
 -- stay exactly representable, since Lua numbers are doubles holding integers
 -- precisely up to 2^53.
-CmdResult.SPAWN_FAILED = -2147483648
+GitResult.SPAWN_FAILED = -2147483648
 
---- @return gitlinker.CmdResult
-function CmdResult:new()
+--- @return gitlinker.GitResult
+function GitResult:new()
   local o = {
     code = 0,
     stdout = {},
@@ -28,35 +28,37 @@ function CmdResult:new()
   return o
 end
 
---- @return boolean
-function CmdResult:has_out()
-  return type(self.stdout) == "table" and #self.stdout > 0
-end
-
---- @return boolean
-function CmdResult:has_err()
-  return type(self.stderr) == "table" and #self.stderr > 0
-end
-
 -- Exit code is the only reliable success signal. Reading stdout is not enough:
 -- `git rev-parse <bad-rev>` exits 128 but still echoes the argument to stdout.
 --- @return boolean
-function CmdResult:ok()
+function GitResult:ok()
   return self.code == 0
 end
 
 -- True when the command never ran at all, as opposed to running and failing.
 --- @return boolean
-function CmdResult:spawn_failed()
-  return self.code == CmdResult.SPAWN_FAILED
+function GitResult:spawn_failed()
+  return self.code == GitResult.SPAWN_FAILED
+end
+
+-- True when the command left nothing usable behind: it either failed, or it
+-- exited successfully but wrote nothing to stdout. Callers that need a value out
+-- of the command have to bail out in both cases, and a bare `ok()` check is not
+-- enough for them, because a zero exit status promises nothing about the output
+-- (`git rev-parse <bad-rev>` exits 128 yet still echoes its argument).
+-- Note this is NOT the same as `not ok()`: commands such as `git cat-file -e`
+-- report success silently and must keep using `ok()` alone.
+--- @return boolean
+function GitResult:silent_failed()
+  return not self:ok() or type(self.stdout) ~= "table" or #self.stdout == 0
 end
 
 -- Build a single error message from the command output, without printing it.
 -- Callers decide whether and when to report the failure.
 --- @param fallback string  message used when the command wrote nothing to stderr.
 --- @return string
-function CmdResult:errmsg(fallback)
-  if self:has_err() then
+function GitResult:errmsg(fallback)
+  if type(self.stderr) == "table" and #self.stderr > 0 then
     return table.concat(self.stderr, "\n")
   end
   return "fatal: " .. fallback
@@ -64,13 +66,13 @@ end
 
 --- @param args string[]
 --- @param cwd string
---- @param callback fun(gitlinker.CmdResult):any
+--- @param callback fun(gitlinker.GitResult):any
 local function _run_cmd_async(args, cwd, callback)
   log.debug(string.format("|_run_cmd_async| args:%s, cwd:%s", vim.inspect(args), vim.inspect(cwd)))
 
   --- @param completed vim.SystemCompleted
   local function on_exit(completed)
-    local result = CmdResult:new()
+    local result = GitResult:new()
     result.code = completed.code or 0
     if str.not_blank(completed.stdout) then
       result.stdout = str.split(str.trim(completed.stdout), "\n", { trimempty = true })
@@ -89,8 +91,8 @@ local function _run_cmd_async(args, cwd, callback)
   if not ok then
     -- vim.system raises instead of invoking on_exit when the cwd or the binary
     -- is missing, so surface this as a normal command failure.
-    local result = CmdResult:new()
-    result.code = CmdResult.SPAWN_FAILED
+    local result = GitResult:new()
+    result.code = GitResult.SPAWN_FAILED
     -- Drop the `[string "..."]:NNN: ` prefix vim adds, it is noise in a message
     -- that ends up in a user-facing notification.
     local msg = tostring(spawn_err):gsub('^%[string ".*"%]:%d+: ', "")
@@ -102,9 +104,9 @@ end
 
 -- wrap the git command to do the right thing always
 --- @package
---- @type fun(args:string[], cwd:string): gitlinker.CmdResult
+--- @type fun(args:string[], cwd:string): gitlinker.GitResult
 local function run_cmd(args, cwd)
-  --- @type fun(args:string[], cwd:string): gitlinker.CmdResult
+  --- @type fun(args:string[], cwd:string): gitlinker.GitResult
   local _run_cmd = async.wrap(3, _run_cmd_async)
   return _run_cmd(args, cwd)
 end
@@ -115,7 +117,7 @@ end
 local function _get_remote(cwd)
   local args = { "git", "remote" }
   local result = run_cmd(args, cwd)
-  if not result:ok() or type(result.stdout) ~= "table" or #result.stdout == 0 then
+  if result:silent_failed() then
     return nil, result:errmsg("git repo has no remote")
   end
   return result.stdout, nil
@@ -128,7 +130,7 @@ local function get_remote_url(remote, cwd)
   assert(remote, "remote cannot be nil")
   local args = { "git", "remote", "get-url", remote }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg("failed to get remote url by remote '" .. remote .. "'")
   end
   return result.stdout[1], nil
@@ -141,7 +143,7 @@ end
 local function _get_rev(revspec, cwd)
   local args = { "git", "rev-parse", revspec }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg(string.format("failed to resolve revision '%s'", tostring(revspec)))
   end
   return result.stdout[1], nil
@@ -154,7 +156,7 @@ end
 local function _get_rev_name(revspec, cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", revspec }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg("git branch has no remote")
   end
   return result.stdout[1], nil
@@ -183,7 +185,7 @@ local function file_has_changed(file, rev, cwd)
   if not result:ok() then
     return nil, result:errmsg(string.format("failed to diff '%s' against '%s'", file, rev))
   end
-  return result:has_out(), nil
+  return type(result.stdout) == "table" and #result.stdout > 0, nil
 end
 
 --- @package
@@ -236,7 +238,7 @@ local function resolve_host(host, cwd)
   local args = { "ssh", "-ttG", host }
   local result = run_cmd(args, cwd)
 
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg(errmsg)
   end
 
@@ -322,7 +324,7 @@ end
 local function get_root(cwd)
   local args = { "git", "rev-parse", "--show-toplevel" }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg("not in a git repository")
   end
   return result.stdout[1], nil
@@ -429,7 +431,7 @@ end
 local function get_default_branch(remote, cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", string.format("%s/HEAD", remote) }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg(string.format("failed to get default branch of remote '%s'", remote))
   end
   log.debug(
@@ -448,7 +450,7 @@ end
 local function get_current_branch(cwd)
   local args = { "git", "rev-parse", "--abbrev-ref", "HEAD" }
   local result = run_cmd(args, cwd)
-  if not result:ok() or not result:has_out() then
+  if result:silent_failed() then
     return nil, result:errmsg("failed to get current branch")
   end
   log.debug(
@@ -462,7 +464,7 @@ local function get_current_branch(cwd)
 end
 
 local M = {
-  CmdResult = CmdResult,
+  GitResult = GitResult,
   _get_remote = _get_remote,
   _get_rev = _get_rev,
   _get_rev_name = _get_rev_name,

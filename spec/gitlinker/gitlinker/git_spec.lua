@@ -204,7 +204,7 @@ describe("gitlinker.git", function()
         assert_eq(type(spawn_err), "string")
         assert_true(string.find(spawn_err, "ENOENT", 1, true) ~= nil)
 
-        local result = git.CmdResult:new()
+        local result = git.GitResult:new()
         assert_eq(result.code, 0)
         assert_true(result:ok())
         assert_false(result:spawn_failed())
@@ -212,24 +212,59 @@ describe("gitlinker.git", function()
         -- A real exit status must never look like a spawn failure. `255` and
         -- `-1` are what a plainly failed command reports.
         for _, code in ipairs({ 1, 128, 255, -1 }) do
-          local failed = git.CmdResult:new()
+          local failed = git.GitResult:new()
           failed.code = code
           assert_false(failed:ok())
           assert_false(failed:spawn_failed())
         end
 
-        local spawn_failed = git.CmdResult:new()
-        spawn_failed.code = git.CmdResult.SPAWN_FAILED
+        local spawn_failed = git.GitResult:new()
+        spawn_failed.code = git.GitResult.SPAWN_FAILED
         assert_false(spawn_failed:ok())
         assert_true(spawn_failed:spawn_failed())
 
         -- The sentinel is INT32_MIN, far outside the exit-status range shells
         -- produce, and exactly representable as a Lua number.
-        assert_eq(git.CmdResult.SPAWN_FAILED, -2147483648)
-        assert_true(git.CmdResult.SPAWN_FAILED < 0)
-        assert_true(git.CmdResult.SPAWN_FAILED ~= -1)
-        assert_eq(tonumber(tostring(git.CmdResult.SPAWN_FAILED)), -2147483648)
-        assert_eq(tonumber(string.format("%d", git.CmdResult.SPAWN_FAILED)), -2147483648)
+        assert_eq(git.GitResult.SPAWN_FAILED, -2147483648)
+        assert_true(git.GitResult.SPAWN_FAILED < 0)
+        assert_true(git.GitResult.SPAWN_FAILED ~= -1)
+        assert_eq(tonumber(tostring(git.GitResult.SPAWN_FAILED)), -2147483648)
+        assert_eq(tonumber(string.format("%d", git.GitResult.SPAWN_FAILED)), -2147483648)
+      end)
+    end)
+    it("silent_failed covers a failing command and an empty success", function()
+      async.run(function()
+        -- Succeeded, but printed nothing: there is no value to hand back.
+        local silent = git.GitResult:new()
+        assert_eq(silent.code, 0)
+        assert_true(silent:ok())
+        assert_true(silent:silent_failed())
+
+        -- Succeeded with output: usable.
+        local ok = git.GitResult:new()
+        ok.stdout = { "some-value" }
+        assert_true(ok:ok())
+        assert_false(ok:silent_failed())
+
+        -- Failed, with or without output: unusable.
+        for _, code in ipairs({ 1, 128, 255, git.GitResult.SPAWN_FAILED }) do
+          local failed = git.GitResult:new()
+          failed.code = code
+          failed.stdout = { "stale output" }
+          assert_false(failed:ok())
+          assert_true(failed:silent_failed())
+        end
+
+        -- `git cat-file -e` reports success by exiting 0 without printing
+        -- anything, so it must keep checking ok() alone; silent_failed() would
+        -- turn every successful probe into a failure.
+        local probe = git.GitResult:new()
+        assert_true(probe:ok())
+        assert_true(probe:silent_failed())
+        local exists, probe_err =
+          git.is_file_in_rev("lua/gitlinker/git.lua", "HEAD", vim.fn.getcwd())
+        assert_true(exists)
+        assert_true(probe_err == nil)
       end)
     end)
   end)
