@@ -196,5 +196,36 @@ describe("gitlinker.git", function()
         assert_eq(type(err), "string")
       end)
     end)
+    it("distinguishes a spawn failure from a failing command", function()
+      async.run(function()
+        -- A missing cwd makes vim.system raise before the command ever runs.
+        local root, spawn_err = git.get_root("/definitely-not-a-real-dir-xyz")
+        assert_true(root == nil)
+        assert_eq(type(spawn_err), "string")
+        assert_true(string.find(spawn_err, "ENOENT", 1, true) ~= nil)
+
+        local result = git.CmdResult:new()
+        assert_eq(result.code, 0)
+        assert_true(result:ok())
+        assert_false(result:spawn_failed())
+
+        -- A real exit status must never look like a spawn failure. `255` and
+        -- `-1` are what a plainly failed command reports.
+        for _, code in ipairs({ 1, 128, 255, -1 }) do
+          local failed = git.CmdResult:new()
+          failed.code = code
+          assert_false(failed:ok())
+          assert_false(failed:spawn_failed())
+        end
+
+        local spawn_failed = git.CmdResult:new()
+        spawn_failed.code = git.CmdResult.SPAWN_FAILED
+        assert_false(spawn_failed:ok())
+        assert_true(spawn_failed:spawn_failed())
+        -- The sentinel sits outside the exit-status range shells produce.
+        assert_true(git.CmdResult.SPAWN_FAILED < 0)
+        assert_true(git.CmdResult.SPAWN_FAILED ~= -1)
+      end)
+    end)
   end)
 end)

@@ -3,10 +3,17 @@ local str = require("gitlinker.commons.str")
 local async = require("gitlinker.commons.async")
 
 --- @class gitlinker.CmdResult
---- @field code integer  exit code, `0` means success.
+--- @field code integer  exit code, `0` means success, `CmdResult.SPAWN_FAILED` means the command never ran.
 --- @field stdout string[]
 --- @field stderr string[]
 local CmdResult = {}
+
+-- Exit code recorded when the command could not even be started (vim.system
+-- raised). Exit codes are process exit statuses, so `255` and `-1` are what a
+-- merely failed command typically reports and would be indistinguishable from a
+-- spawn error. This sentinel is a negative value well outside the `0..255`
+-- range shells use, so it can not be confused with a real exit status.
+CmdResult.SPAWN_FAILED = -1000
 
 --- @return gitlinker.CmdResult
 function CmdResult:new()
@@ -35,6 +42,12 @@ end
 --- @return boolean
 function CmdResult:ok()
   return self.code == 0
+end
+
+-- True when the command never ran at all, as opposed to running and failing.
+--- @return boolean
+function CmdResult:spawn_failed()
+  return self.code == CmdResult.SPAWN_FAILED
 end
 
 -- Build a single error message from the command output, without printing it.
@@ -76,8 +89,11 @@ local function _run_cmd_async(args, cwd, callback)
     -- vim.system raises instead of invoking on_exit when the cwd or the binary
     -- is missing, so surface this as a normal command failure.
     local result = CmdResult:new()
-    result.code = -1
-    result.stderr = { tostring(spawn_err) }
+    result.code = CmdResult.SPAWN_FAILED
+    -- Drop the `[string "..."]:NNN: ` prefix vim adds, it is noise in a message
+    -- that ends up in a user-facing notification.
+    local msg = tostring(spawn_err):gsub('^%[string ".*"%]:%d+: ', "")
+    result.stderr = { "fatal: " .. msg }
     log.debug(string.format("|_run_cmd_async| spawn failed:%s", vim.inspect(spawn_err)))
     callback(result)
   end
