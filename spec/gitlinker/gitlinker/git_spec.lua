@@ -11,7 +11,7 @@ describe("gitlinker.git", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local async = require("gitlinker.commons.async")
+  local wait_async = require("spec.testutil").wait_async
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
   local gitlinker = require("gitlinker")
@@ -19,7 +19,7 @@ describe("gitlinker.git", function()
 
   describe("[git]", function()
     it("_get_remote", function()
-      async.run(function()
+      wait_async(function()
         local r, err = git._get_remote(cwd)
         print(string.format("_get_remote:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
         if r then
@@ -32,7 +32,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_remote_url", function()
-      async.run(function()
+      wait_async(function()
         local remote, remote_err = git.get_branch_remote(cwd)
         print(
           string.format(
@@ -59,7 +59,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("_get_rev(@{u})", function()
-      async.run(function()
+      wait_async(function()
         local rev, err = git._get_rev("@{u}", cwd)
         print(string.format("_get_rev:%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
         if rev then
@@ -72,7 +72,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("_get_rev with an unknown revspec reports an error", function()
-      async.run(function()
+      wait_async(function()
         local rev, err = git._get_rev("definitely-not-a-real-rev-xyz", cwd)
         print(string.format("_get_rev(bad):%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
         -- `git rev-parse` exits non-zero but still echoes the argument on
@@ -83,7 +83,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("_get_rev_name(@{u})", function()
-      async.run(function()
+      wait_async(function()
         local rev, err = git._get_rev_name("@{u}", cwd)
         print(string.format("_get_rev_name:%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
         if rev then
@@ -96,7 +96,12 @@ describe("gitlinker.git", function()
       end)
     end)
     it("is_file_in_rev", function()
-      async.run(function()
+      -- `path.buffer_relpath` calls Vimscript functions (`getcwd`, `resolve`),
+      -- which cannot run in the fast event context the coroutine resumes in
+      -- after `git` exits. Compute it here, exactly like `linker.make_linker`
+      -- does when it hops back with `async.await(1, vim.schedule)`.
+      local bufpath = path.buffer_relpath(cwd)
+      wait_async(function()
         local remote = git.get_branch_remote(cwd)
         if not remote then
           return
@@ -110,7 +115,6 @@ describe("gitlinker.git", function()
           return
         end
 
-        local bufpath = path.buffer_relpath() --[[@as string]]
         if not bufpath then
           return
         end
@@ -125,7 +129,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("is_file_in_rev reports an error for a missing file", function()
-      async.run(function()
+      wait_async(function()
         local rev = git._get_rev("HEAD", cwd)
         if not rev then
           return
@@ -143,7 +147,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("resolve_host", function()
-      async.run(function()
+      wait_async(function()
         local actual, err = git.resolve_host("github.com", cwd)
         print(string.format("resolve_host:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
         assert_eq(actual, "github.com")
@@ -151,7 +155,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_default_branch", function()
-      async.run(function()
+      wait_async(function()
         local actual, err = git.get_default_branch("origin", cwd)
         print(string.format("default branch:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
         if actual then
@@ -163,7 +167,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_current_branch", function()
-      async.run(function()
+      wait_async(function()
         local actual, err = git.get_current_branch(cwd)
         print(string.format("current branch:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
         if actual then
@@ -175,7 +179,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_root", function()
-      async.run(function()
+      wait_async(function()
         local actual, err = git.get_root(cwd)
         print(string.format("get_root:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
         if actual then
@@ -187,7 +191,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("returns an error instead of raising when cwd does not exist", function()
-      async.run(function()
+      wait_async(function()
         local actual, err = git.get_root("/definitely-not-a-real-dir-xyz")
         print(
           string.format("get_root(bad cwd):%s, err:%s\n", vim.inspect(actual), vim.inspect(err))
@@ -197,7 +201,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("distinguishes a spawn failure from a failing command", function()
-      async.run(function()
+      wait_async(function()
         -- A missing cwd makes vim.system raise before the command ever runs.
         local root, spawn_err = git.get_root("/definitely-not-a-real-dir-xyz")
         assert_true(root == nil)
@@ -233,7 +237,7 @@ describe("gitlinker.git", function()
       end)
     end)
     it("silent_failed covers a failing command and an empty success", function()
-      async.run(function()
+      wait_async(function()
         -- Succeeded, but printed nothing: there is no value to hand back.
         local silent = git.GitResult:new()
         assert_eq(silent.code, 0)
