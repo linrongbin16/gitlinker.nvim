@@ -6,7 +6,7 @@ local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 
---- @return string?
+--- @return string?, string?
 local function _get_buf_dir()
   local buf_path = vim.api.nvim_buf_get_name(0)
   local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
@@ -18,121 +18,134 @@ local function _get_buf_dir()
     )
   )
   if str.empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
-    return nil
+    return nil,
+      string.format(
+        "fatal: current buffer is not in a valid git repository: %s",
+        vim.inspect(buf_path)
+      )
   end
-  return buf_dir
+  return buf_dir, nil
 end
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param remote string?
 --- @param file string?
 --- @param rev string?
---- @return gitlinker.Linker?
+--- @return gitlinker.Linker?, string?
 local function make_linker(remote, file, rev)
-  local cwd = _get_buf_dir()
+  local cwd, cwd_err = _get_buf_dir()
   if not cwd then
-    return nil
+    return nil, cwd_err
   end
 
-  local file_provided = str.not_empty(file)
-  local rev_provided = str.not_empty(rev)
-
-  local root = git.get_root(cwd)
+  local root, root_err = git.get_root(cwd)
   if not root then
-    return nil
+    return nil, root_err
   end
 
+  -- `remote` is optional on the public API, but every git call below needs a
+  -- concrete name, so resolve it once into a non-optional local.
+  --- @type string
+  local selected_remote
   if str.empty(remote) then
-    remote = git.get_branch_remote(cwd)
+    local detected_remote, detected_remote_err = git.get_branch_remote(cwd)
+    if not detected_remote then
+      return nil, detected_remote_err
+    end
+    selected_remote = detected_remote
+  else
+    selected_remote = remote --[[@as string]]
   end
-  if not remote then
-    return nil
-  end
-  -- logger.debug("|linker - Linker:make| remote:%s", vim.inspect(remote))
 
-  local remote_url = git.get_remote_url(remote, cwd)
+  local remote_url, remote_url_err = git.get_remote_url(selected_remote, cwd)
   if not remote_url then
-    return nil
+    return nil, remote_url_err
   end
 
-  local parsed_url, parsed_err = giturlparser.parse(remote_url) --[[@as table, string?]]
+  local parsed_url, parsed_url_err = giturlparser.parse(remote_url) --[[@as table, string?]]
   log.debug(
     string.format(
       "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
       vim.inspect(remote),
       vim.inspect(parsed_url),
-      vim.inspect(parsed_err)
+      vim.inspect(parsed_url_err)
     )
   )
-  log.ensure(
-    parsed_url ~= nil,
-    string.format(
-      "failed to parse git remote url:%s, error:%s",
-      vim.inspect(remote_url),
-      vim.inspect(parsed_err)
-    )
-  )
-  local resolved_host = git.resolve_host(parsed_url.host, cwd)
+  if not parsed_url then
+    return nil,
+      string.format(
+        "fatal: failed to parse git remote url:%s, error:%s",
+        vim.inspect(remote_url),
+        vim.inspect(parsed_url_err)
+      )
+  end
+  local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, cwd)
   if not resolved_host then
-    return nil
+    return nil, resolved_host_err
   end
 
-  -- logger.debug(
-  --     "|linker - Linker:make| remote_url:%s",
-  --     vim.inspect(remote_url)
-  -- )
-
+  local rev_provided = str.not_empty(rev)
+  local saved_rev = rev
   if rev_provided then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
-    rev = git._get_rev(rev --[[@as string]], cwd) or rev
+    local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], cwd)
+    if not resolved_rev then
+      return nil, resolved_rev_err
+    end
+    rev = resolved_rev
   else
-    rev = git.get_closest_remote_compatible_rev(remote, cwd)
+    local closest_rev, closest_rev_err = git.get_closest_remote_compatible_rev(selected_remote, cwd)
+    if not closest_rev then
+      return nil, closest_rev_err
+    end
+    rev = closest_rev
   end
   if str.empty(rev) then
-    return nil
+    return nil,
+      string.format("fatal: failed to resolve the revision %s to link to", vim.inspect(saved_rev))
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
   async.await(1, vim.schedule)
 
+  local file_provided = str.not_empty(file)
   if not file_provided then
     local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
     local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
-    -- logger.debug(
-    --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
-    --     vim.inspect(root),
-    --     vim.inspect(buf_path_on_root)
-    -- )
 
-    local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
-    if not file_in_rev_result then
-      return nil
+    local file_in_rev, file_in_rev_err =
+      git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
+    if not file_in_rev then
+      return nil, file_in_rev_err
     end
     file = buf_path_encoded
   else
     file = vim.uri_encode(file)
   end
 
-  -- logger.debug(
-  --     "|linker - Linker:make| file_in_rev_result:%s",
-  --     vim.inspect(file_in_rev_result)
-  -- )
-
   async.await(1, vim.schedule)
 
   local file_changed = false
   if not file_provided then
     local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-    file_changed = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
-    -- logger.debug(
-    --     "|linker - Linker:make| buf_path_on_cwd:%s",
-    --     vim.inspect(buf_path_on_cwd)
-    -- )
+    local changed, changed_err = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
+    if changed == nil then
+      return nil, changed_err
+    end
+    file_changed = changed
   end
 
-  local default_branch = git.get_default_branch(remote, cwd)
-  local current_branch = git.get_current_branch(cwd)
+  -- A missing default/current branch must not stop the link from being built,
+  -- the router simply renders an empty value for it. Report and carry on.
+  local default_branch, default_branch_err = git.get_default_branch(selected_remote, cwd)
+  if default_branch_err then
+    log.warn(default_branch_err)
+  end
+  local current_branch, current_branch_err = git.get_current_branch(cwd)
+  if current_branch_err then
+    log.warn(current_branch_err)
+  end
 
   local o = {
     remote_url = remote_url,
@@ -157,7 +170,7 @@ local function make_linker(remote, file, rev)
   }
 
   log.debug(string.format("|make_linker| o:%s", vim.inspect(o)))
-  return o
+  return o, nil
 end
 
 local M = {
