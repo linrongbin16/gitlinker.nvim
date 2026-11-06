@@ -20,7 +20,7 @@ local function _get_buf_dir()
   if str.empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
     return nil,
       string.format(
-        "fatal: current buffer has no valid directory, buffer:%s",
+        "fatal: current buffer is not in a valid git repository: %s",
         vim.inspect(buf_path)
       )
   end
@@ -38,9 +38,6 @@ local function make_linker(remote, file, rev)
     return nil, cwd_err
   end
 
-  local file_provided = str.not_empty(file)
-  local rev_provided = str.not_empty(rev)
-
   local root, root_err = git.get_root(cwd)
   if not root then
     return nil, root_err
@@ -51,9 +48,9 @@ local function make_linker(remote, file, rev)
   --- @type string
   local selected_remote
   if str.empty(remote) then
-    local detected_remote, detected_err = git.get_branch_remote(cwd)
+    local detected_remote, detected_remote_err = git.get_branch_remote(cwd)
     if not detected_remote then
-      return nil, detected_err
+      return nil, detected_remote_err
     end
     selected_remote = detected_remote
   else
@@ -65,13 +62,13 @@ local function make_linker(remote, file, rev)
     return nil, remote_url_err
   end
 
-  local parsed_url, parsed_err = giturlparser.parse(remote_url) --[[@as table, string?]]
+  local parsed_url, parsed_url_err = giturlparser.parse(remote_url) --[[@as table, string?]]
   log.debug(
     string.format(
       "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
       vim.inspect(remote),
       vim.inspect(parsed_url),
-      vim.inspect(parsed_err)
+      vim.inspect(parsed_url_err)
     )
   )
   if not parsed_url then
@@ -79,43 +76,47 @@ local function make_linker(remote, file, rev)
       string.format(
         "fatal: failed to parse git remote url:%s, error:%s",
         vim.inspect(remote_url),
-        vim.inspect(parsed_err)
+        vim.inspect(parsed_url_err)
       )
   end
-  local resolved_host, host_err = git.resolve_host(parsed_url.host, cwd)
+  local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, cwd)
   if not resolved_host then
-    return nil, host_err
+    return nil, resolved_host_err
   end
 
+  local rev_provided = str.not_empty(rev)
+  local saved_rev = rev
   if rev_provided then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
-    local resolved_rev, rev_err = git._get_rev(rev --[[@as string]], cwd)
+    local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], cwd)
     if not resolved_rev then
-      return nil, rev_err
+      return nil, resolved_rev_err
     end
     rev = resolved_rev
   else
-    local closest_rev, closest_err = git.get_closest_remote_compatible_rev(selected_remote, cwd)
+    local closest_rev, closest_rev_err = git.get_closest_remote_compatible_rev(selected_remote, cwd)
     if not closest_rev then
-      return nil, closest_err
+      return nil, closest_rev_err
     end
     rev = closest_rev
   end
   if str.empty(rev) then
-    return nil, "fatal: failed to resolve the revision to link to"
+    return nil,
+      string.format("fatal: failed to resolve the revision %s to link to", vim.inspect(saved_rev))
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
   async.await(1, vim.schedule)
 
+  local file_provided = str.not_empty(file)
   if not file_provided then
     local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
     local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
 
-    local file_in_rev_result, file_in_rev_err =
+    local file_in_rev, file_in_rev_err =
       git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
-    if not file_in_rev_result then
+    if not file_in_rev then
       return nil, file_in_rev_err
     end
     file = buf_path_encoded
