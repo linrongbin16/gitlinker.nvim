@@ -102,23 +102,34 @@ describe("gitlinker.git", function()
       -- does when it hops back with `async.await(1, vim.schedule)`.
       local bufpath = path.buffer_relpath(cwd)
       wait_async(function()
-        local remote = git.get_branch_remote(cwd)
-        if not remote then
-          return
-        end
-        local remote_url = git.get_remote_url(remote, cwd)
-        if not remote_url then
-          return
-        end
-        local rev = git.get_closest_remote_compatible_rev(remote, cwd) --[[@as string]]
-        if not rev then
-          return
-        end
+        -- Fail instead of returning on a missing prerequisite: a silent
+        -- `return` would report a passing test that never asserted anything,
+        -- which is how this whole suite used to go green.
+        local remote, remote_err = git.get_branch_remote(cwd)
+        assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
+        local remote_name = remote --[[@as string]]
 
-        if not bufpath then
-          return
+        local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
+        assert_true(
+          remote_url ~= nil,
+          "this test needs a git remote url: " .. tostring(remote_url_err)
+        )
+
+        -- Prefer the revision `linker.make_linker` would use, but a shallow
+        -- detached clone (CI) has no remote-tracking refs at all. Any commit
+        -- works here: `is_file_in_rev` only needs a revision naming a tree.
+        local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
+        if rev == nil then
+          rev, rev_err = git._get_rev("HEAD", cwd)
         end
-        local actual, err = git.is_file_in_rev(bufpath, rev, cwd)
+        assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
+        local rev_name = rev --[[@as string]]
+
+        assert_true(
+          bufpath ~= nil,
+          "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
+        )
+        local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
         print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
         if actual then
           assert_true(actual)
@@ -130,11 +141,9 @@ describe("gitlinker.git", function()
     end)
     it("is_file_in_rev reports an error for a missing file", function()
       wait_async(function()
-        local rev = git._get_rev("HEAD", cwd)
-        if not rev then
-          return
-        end
-        local actual, err = git.is_file_in_rev("no/such/file-xyz.lua", rev, cwd)
+        local rev, rev_err = git._get_rev("HEAD", cwd)
+        assert_true(rev ~= nil, "this test needs a git repository at HEAD: " .. tostring(rev_err))
+        local actual, err = git.is_file_in_rev("no/such/file-xyz.lua", rev --[[@as string]], cwd)
         print(
           string.format(
             "is_file_in_rev(missing):%s, err:%s\n",
