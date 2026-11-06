@@ -201,8 +201,11 @@ local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker(opts.remote, opts.file, opts.rev)
+  local lk, lk_err = linker.make_linker(opts.remote, opts.file, opts.rev)
   if not lk then
+    if lk_err then
+      log.err(lk_err)
+    end
     return nil
   end
   lk.lstart = opts.lstart

@@ -19,8 +19,13 @@ describe("gitlinker.linker", function()
   describe("[make_linker]", function()
     it("make", function()
       async.run(function()
-        local lk = linker.make_linker() --[[@as gitlinker.Linker]]
-        print(string.format("linker:%s", vim.inspect(lk)))
+        local lk, err = linker.make_linker()
+        print(string.format("linker:%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        if lk then
+          assert_true(err == nil)
+        else
+          assert_eq(type(err), "string")
+        end
         if github_actions then
           assert_true(type(lk) == "table" or lk == nil)
         else
@@ -40,8 +45,13 @@ describe("gitlinker.linker", function()
     end)
     it("make with range", function()
       async.run(function()
-        local lk = linker.make_linker() --[[@as gitlinker.Linker]]
-        print(string.format("linker:%s", vim.inspect(lk)))
+        local lk, err = linker.make_linker()
+        print(string.format("linker:%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        if lk then
+          assert_true(err == nil)
+        else
+          assert_eq(type(err), "string")
+        end
         if github_actions then
           assert_true(type(lk) == "table" or lk == nil)
         else
@@ -57,6 +67,36 @@ describe("gitlinker.linker", function()
           assert_eq(type(lk.current_branch), "string")
           assert_true(string.len(lk.current_branch) >= 0)
         end
+      end)
+    end)
+    it("returns an error for an unknown rev", function()
+      async.run(function()
+        local lk, err = linker.make_linker(nil, nil, "definitely-not-a-real-rev-xyz")
+        print(string.format("linker(bad rev):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        assert_true(lk == nil)
+        assert_eq(type(err), "string")
+        assert_true(string.len(err) > 0)
+      end)
+    end)
+    it("returns an error outside a git repository", function()
+      local tmp = vim.fn.tempname()
+      vim.fn.mkdir(tmp, "p")
+      vim.cmd("edit " .. tmp .. "/plain.txt")
+      async.run(function()
+        local lk, err = linker.make_linker()
+        print(string.format("linker(no repo):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        assert_true(lk == nil)
+        assert_eq(type(err), "string")
+      end)
+      vim.fn.delete(tmp, "rf")
+    end)
+    it("returns an error for an unknown remote", function()
+      async.run(function()
+        local lk, err = linker.make_linker("no-such-remote-xyz", nil, nil)
+        print(string.format("linker(bad remote):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        assert_true(lk == nil)
+        assert_eq(type(err), "string")
+        assert_true(string.len(err) > 0)
       end)
     end)
   end)
