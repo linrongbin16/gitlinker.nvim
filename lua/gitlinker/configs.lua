@@ -244,16 +244,6 @@ M._merge_routers = function(opts)
     end
   end
 
-  -- default list
-  for default_router_type, default_router_bindings in pairs(Defaults.router) do
-    -- list
-    for i, tuple in ipairs(default_router_bindings) do
-      if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
-        table.insert(result[default_router_type].list_routers, tuple)
-      end
-    end
-  end
-
   -- user map
   if type(opts.router) == "table" then
     for user_router_type, user_router_bindings in pairs(opts.router) do
