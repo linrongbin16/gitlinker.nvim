@@ -3,7 +3,7 @@
 -- copy url to clipboard
 --- @param url string
 local function clipboard(url)
-  vim.api.nvim_command("let @+ = '" .. url .. "'")
+  vim.fn.setreg("+", url)
 end
 
 -- open url in browser
