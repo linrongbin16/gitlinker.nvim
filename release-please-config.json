@@ -1,0 +1,9 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "gitlinker.nvim",
+      "include-component-in-tag": false
+    }
+  }
+}
