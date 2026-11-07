@@ -1,5 +1,5 @@
 local log = require("gitlinker.commons.log")
-local str = require("gitlinker.commons.str")
+local types = require("gitlinker.types")
 local async = require("gitlinker.commons.async")
 
 local git = require("gitlinker.git")
@@ -17,7 +17,7 @@ local function _get_buf_dir()
       vim.inspect(buf_dir)
     )
   )
-  if str.empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
+  if types.str_empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
     return nil,
       string.format(
         "fatal: current buffer is not in a valid git repository: %s",
@@ -50,7 +50,7 @@ local function make_linker(remote, file, rev)
   -- concrete name, so resolve it once into a non-optional local.
   --- @type string
   local selected_remote
-  if str.empty(remote) then
+  if types.str_empty(remote) then
     local detected_remote, detected_remote_err = git.get_branch_remote(root)
     if not detected_remote then
       return nil, detected_remote_err
@@ -90,7 +90,7 @@ local function make_linker(remote, file, rev)
   local saved_rev = rev
 
   -- If rev (git commit ID) is not provided, detect with current git HEAD commit
-  if str.not_empty(rev) then
+  if not types.str_empty(rev) then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
     local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], root)
@@ -106,7 +106,7 @@ local function make_linker(remote, file, rev)
     end
     rev = closest_rev
   end
-  if str.empty(rev) then
+  if types.str_empty(rev) then
     return nil,
       string.format("fatal: failed to resolve the revision %s to link to", vim.inspect(saved_rev))
   end
@@ -117,7 +117,7 @@ local function make_linker(remote, file, rev)
   local file_changed = false
 
   -- If file parameter is not provided, detect file with current buffer
-  if str.empty(file) then
+  if types.str_empty(file) then
     -- Both the tree lookup and the diff below run in the repository root, so
     -- the path handed to them has to be root-relative. A path relative to the
     -- buffer directory matches nothing there: `git diff` then exits 0 with

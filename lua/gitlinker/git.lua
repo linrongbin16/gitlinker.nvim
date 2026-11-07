@@ -1,5 +1,5 @@
 local log = require("gitlinker.commons.log")
-local str = require("gitlinker.commons.str")
+local types = require("gitlinker.types")
 local async = require("gitlinker.commons.async")
 
 --- @class gitlinker.GitResult
@@ -74,11 +74,11 @@ local function _run_cmd_async(args, dir, callback)
   local function on_exit(completed)
     local result = GitResult:new()
     result.code = completed.code or 0
-    if str.not_blank(completed.stdout) then
+    if not types.str_blank(completed.stdout) then
       result.stdout =
         vim.split(vim.trim(completed.stdout), "\n", { plain = true, trimempty = true })
     end
-    if str.not_blank(completed.stderr) then
+    if not types.str_blank(completed.stderr) then
       result.stderr =
         vim.split(vim.trim(completed.stderr), "\n", { plain = true, trimempty = true })
     end
