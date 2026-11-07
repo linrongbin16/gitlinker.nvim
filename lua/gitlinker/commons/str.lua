@@ -2,7 +2,6 @@ local M = {}
 
 local string_len = string.len
 local string_byte = string.byte
-local string_sub = string.sub
 local string_gsub = string.gsub
 
 --- @param s any
@@ -15,12 +14,6 @@ end
 --- @return boolean
 M.not_empty = function(s)
   return type(s) == "string" and string_len(s) > 0
-end
-
---- @param s any
---- @return boolean
-M.blank = function(s)
-  return type(s) ~= "string" or string_len(vim.trim(s)) == 0
 end
 
 --- @param s any
@@ -39,36 +32,6 @@ M.find = function(s, t, start)
 
   start = start or 1
   for i = start, #s do
-    local match = true
-    for j = 1, #t do
-      if i + j - 1 > #s then
-        match = false
-        break
-      end
-      local a = string_byte(s, i + j - 1)
-      local b = string_byte(t, j)
-      if a ~= b then
-        match = false
-        break
-      end
-    end
-    if match then
-      return i
-    end
-  end
-  return nil
-end
-
---- @param s string
---- @param t string
---- @param rstart integer?  by default rstart=#s
---- @return integer?
-M.rfind = function(s, t, rstart)
-  assert(type(s) == "string")
-  assert(type(t) == "string")
-
-  rstart = rstart or #s
-  for i = rstart, 1, -1 do
     local match = true
     for j = 1, #t do
       if i + j - 1 > #s then
@@ -172,126 +135,6 @@ M.endswith = function(s, t, opts)
   else
     return string_len(s) >= string_len(t) and s:sub(#s - #t + 1) == t
   end
-end
-
---- @param s string
---- @param p string
---- @param r string
---- @return string, integer
-M.replace = function(s, p, r)
-  assert(type(s) == "string")
-  assert(type(p) == "string")
-  assert(type(r) == "string")
-
-  local sn = string_len(s)
-  local pn = string_len(p)
-  local pos = 1
-  local matched = 0
-  local result = s
-
-  while pos <= sn do
-    pos = M.find(result, p, pos) --[[@as integer]]
-    if type(pos) ~= "number" then
-      break
-    end
-    result = string_sub(result, 1, pos - 1) .. r .. string_sub(result, pos + pn)
-    pos = pos + pn
-    matched = matched + 1
-  end
-
-  return result, matched
-end
-
---- @param c string
---- @return boolean
-M.isspace = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%s") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.isalnum = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%w") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.isdigit = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%d") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.isxdigit = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%x") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.isalpha = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%a") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.islower = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%l") ~= nil
-end
-
---- @param c string
---- @return boolean
-M.isupper = function(c)
-  assert(type(c) == "string")
-  assert(string_len(c) == 1)
-  return c:match("%u") ~= nil
-end
-
---- @param s string
---- @param pos integer
---- @param ch string
---- @return string
-M.setchar = function(s, pos, ch)
-  assert(type(s) == "string")
-  assert(type(pos) == "number")
-  assert(type(ch) == "string")
-  assert(string_len(ch) == 1)
-
-  local n = string_len(s)
-
-  local buffer = ""
-  if pos > 1 then
-    buffer = string_sub(s, 1, pos - 1)
-  end
-  buffer = buffer .. ch
-  if pos < n then
-    buffer = buffer .. string_sub(s, pos + 1)
-  end
-
-  return buffer
-end
-
---- @param s string
---- @return string[]
-M.tochars = function(s)
-  assert(type(s) == "string")
-  local l = {}
-  local n = string_len(s)
-  for i = 1, n do
-    table.insert(l, string_sub(s, i, i))
-  end
-  return l
 end
 
 return M
