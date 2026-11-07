@@ -5,6 +5,7 @@ local pack_len = util.pack_len
 local unpack_len = util.unpack_len
 local is_callable = util.is_callable
 local gc_fun = util.gc_fun
+local stringify = util.stringify
 
 --- This module implements an asynchronous programming library for Neovim,
 --- centered around the principle of **Structured Concurrency**. This design
@@ -220,9 +221,16 @@ local M = {}
 -- platforms.
 local MAX_TIMEOUT = 2 ^ 31 - 1
 
---- Weak table to keep track of running tasks
+--- Keep unfinished tasks and their resources alive until completion.
+---
+--- This used to be a weak table, which cannot work on LuaJIT: a weak-keyed
+--- entry is only collected once nothing references the key, but the value here
+--- (the task) references the key (its coroutine) back, and Lua 5.1 has no
+--- ephemerons to break such cycles. Abandoned tasks therefore leaked forever.
+--- Keeping a strong reference lets the callback GC proxy below fail the wait
+--- and run the normal cleanup instead.
 --- @type table<thread,vim.async.Task<any>?>
-local threads = setmetatable({}, { __mode = 'k' })
+local threads = {}
 
 --- Returns the currently running task.
 --- @return vim.async.Task<any>?
@@ -486,10 +494,14 @@ do --- Task
   --- @package
   --- @param err any
   function Task:_raise(err)
-    if self:status() == 'running' then
-      -- TODO(lewis6991): is there a better way to do this?
+    local status = self:status()
+    if status == 'running' or status == 'normal' then
+      -- A running coroutine, or one beneath it (`normal`), cannot be resumed
+      -- recursively. Deliver the error after the current stack unwinds.
       vim.schedule(function()
-        self:_resume(err)
+        if not self:completed() then
+          self:_resume(err)
+        end
       end)
     else
       self:_resume(err)
@@ -573,7 +585,7 @@ do --- Task
           local err_msg = err or 'unknown error'
           self._future:complete(err_msg)
           if parent and not self._closing then
-            parent:_raise('child error: ' .. tostring(err_msg))
+            parent:_raise('child error: ' .. stringify(err_msg))
           end
         end
       else
@@ -621,11 +633,13 @@ do --- Task
     --- @param on_defer fun(err?:any, ...:any)
     --- @return any[]? next_args
     --- @return vim.async.Closable? closable
-    local function handle_awaitable(awaitable, on_defer)
+    local function handle_awaitable(awaitable, on_defer, task)
       local ok, closable_or_err
       local settled = false
       local next_args --- @type any[]?
-      ok, closable_or_err = pcall(awaitable, function(...)
+
+      --- @param ... any
+      local function complete_await(...)
         if settled then
           -- error here?
           return
@@ -637,7 +651,21 @@ do --- Task
         else
           on_defer(...)
         end
+      end
+
+      -- A callback the awaitable drops can never settle this wait, so the task
+      -- would stay suspended forever. Wrap it in a GC proxy: once the callback
+      -- becomes unreachable, fail the wait on a later event-loop turn so the
+      -- normal cleanup still runs.
+      local callback = gc_fun(complete_await, function()
+        if not settled and not task:completed() then
+          vim.schedule(function()
+            complete_await('await callback was discarded')
+          end)
+        end
       end)
+
+      ok, closable_or_err = pcall(awaitable, callback)
 
       if not ok then
         return pack_len(closable_or_err)
@@ -759,7 +787,7 @@ do --- Task
           if not self:completed() then
             self:_resume(...)
           end
-        end)
+        end, self)
       end
     end
   end
@@ -864,11 +892,17 @@ do --- M.await()
     --- @param callback fun(...:any)
     --- @return any?
     return function(callback)
-      args[argc] = function(...)
+      -- The thunk must not retain the inserted callback after setup returns:
+      -- this closure stays reachable from the suspended coroutine's stack, so
+      -- keeping `args` alive would keep the callback (and its GC proxy) alive
+      -- and the "callback was discarded" failure could never be detected.
+      local call_args = args
+      args = nil
+      call_args[argc] = function(...)
         callback(nil, ...)
       end
-      args.n = math.max(args.n, argc)
-      return fun(unpack_len(args))
+      call_args.n = math.max(call_args.n, argc)
+      return fun(unpack_len(call_args))
     end
   end
 
@@ -998,17 +1032,19 @@ end
 function M.pcall(fn)
   vim.validate('fn', fn, 'callable')
 
-  local captured_traceback
+  -- `debug.traceback()` returns a non-string error unchanged, so comparing the
+  -- handler result against the captured traceback cannot tell a child error
+  -- apart from a regular table error: both would re-throw. Track the decision
+  -- explicitly so `pcall(function() error({}) end)` returns instead of raising.
+  local rethrow = false
   local results = pack_len(xpcall(fn, function(err)
-    -- Error handler runs before stack is unwound
-    -- Capture the full traceback here
-    captured_traceback = debug.traceback(err, 2)
-
     -- Check if this is a child error or cancellation
     if type(err) == 'string' then
       if err:match('^child error: ') or err == 'closed' then
-        -- For child errors/cancellations, return the traceback so it can be re-thrown
-        return captured_traceback
+        -- Capture the full traceback before the stack is unwound, so the
+        -- re-thrown error keeps its context.
+        rethrow = true
+        return debug.traceback(err, 2)
       end
     end
 
@@ -1016,15 +1052,9 @@ function M.pcall(fn)
     return err
   end))
 
-  local ok = results[1]
-
-  if not ok then
-    local err = results[2]
-    -- If this is a child error or cancellation, re-throw with the full traceback
-    if err == captured_traceback then
-      -- This is a child error or cancellation - re-throw it
-      error(err, 0)
-    end
+  if not results[1] and rethrow then
+    -- This is a child error or cancellation - re-throw it with the traceback
+    error(results[2], 0)
   end
 
   return unpack_len(results)
@@ -1332,6 +1362,29 @@ do --- M._future()
     end
   end
 
+  --- Invoke an observer without letting its error escape through completion.
+  ---
+  --- Observer errors used to be collected and re-raised from `complete()`,
+  --- which aborted the caller mid-finalization: a failing observer on a child
+  --- task skipped the "child error:" propagation to the parent, silently
+  --- dropping the failure. Report such errors on a later event-loop turn
+  --- instead, so they cannot fail the completing call or interrupt the other
+  --- observers.
+  --- @private
+  --- @param callback fun(err?: any, ...: any)
+  function Future:_invoke(callback)
+    local ok, traceback = xpcall(function()
+      callback(self._err, unpack_len(self._result))
+    end, function(err)
+      return debug.traceback(stringify(err == nil and 'error(nil)' or err), 2)
+    end)
+    if not ok then
+      vim.schedule(function()
+        error(traceback, 0)
+      end)
+    end
+  end
+
   --- Add a callback to be run when the Future is done.
   ---
   --- The callback is called with the arguments:
@@ -1340,11 +1393,16 @@ do --- M._future()
   ---
   --- If the Future is already done when this method is called, the callback is
   --- called immediately with the results.
+  ---
+  --- Callback errors are reported through the scheduler with their traceback.
+  --- They do not change the Future result, interrupt other callbacks, or reach
+  --- the caller that completes the Future or registers a callback. Catch errors
+  --- inside the callback to handle them locally.
   --- @param callback fun(err?: any, ...: any)
   function Future:wait(callback)
     if self:completed() then
       -- Already completed or closed
-      callback(self._err, unpack_len(self._result))
+      self:_invoke(callback)
     else
       self._callbacks[self._callback_pos] = callback
       self._callback_pos = self._callback_pos + 1
@@ -1366,17 +1424,12 @@ do --- M._future()
       self._result = pack_len(...)
     end
 
-    local errs = {} --- @type string[]
-    -- Need to use pairs to avoid gaps caused by removed callbacks
-    for _, cb in pairs(self._callbacks) do
-      local ok, cb_err = pcall(cb, err, ...)
-      if not ok then
-        errs[#errs + 1] = cb_err
-      end
-    end
+    local callbacks = self._callbacks
+    self._callbacks = {}
 
-    if #errs > 0 then
-      error(table.concat(errs, '\n'), 0)
+    -- Need to use pairs to avoid gaps caused by removed callbacks
+    for _, cb in pairs(callbacks) do
+      self:_invoke(cb)
     end
   end
 
