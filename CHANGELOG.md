@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.5.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v5.5.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **async:** stop losing errors while tasks settle ([#321](https://github.com/linrongbin16/gitlinker.nvim/issues/321)) ([bc40939](https://github.com/linrongbin16/gitlinker.nvim/commit/bc409398e630dd81d37fab13cde426dd85b74c84))
+* **git:** always run git commands in the buffer directory ([#315](https://github.com/linrongbin16/gitlinker.nvim/issues/315)) ([eb939a4](https://github.com/linrongbin16/gitlinker.nvim/commit/eb939a4041597391dbaf47fd504545cd92103459))
+* **git:** run git commands in the repository root ([#318](https://github.com/linrongbin16/gitlinker.nvim/issues/318)) ([61b54a6](https://github.com/linrongbin16/gitlinker.nvim/commit/61b54a60504eeac6077744e76f1df9d0d7f036d8))
+
 ## [5.5.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.0...v5.5.1) (2026-10-21)
 
 
