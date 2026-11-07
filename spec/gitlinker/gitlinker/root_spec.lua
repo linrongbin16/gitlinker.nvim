@@ -18,7 +18,7 @@ describe("gitlinker root semantics", function()
 
   local git = require("gitlinker.git")
   local linker = require("gitlinker.linker")
-  local async = require("gitlinker.commons.async")
+  local async = require("gitlinker.async")
   local wait_async = require("spec.testutil").wait_async
 
   local original_cwd = vim.fn.getcwd()

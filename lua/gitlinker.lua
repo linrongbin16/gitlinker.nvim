@@ -1,6 +1,6 @@
 local types = require("gitlinker.types")
 local log = require("gitlinker.log")
-local async = require("gitlinker.commons.async")
+local async = require("gitlinker.async")
 
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")

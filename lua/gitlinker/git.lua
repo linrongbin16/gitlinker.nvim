@@ -1,6 +1,6 @@
 local log = require("gitlinker.log")
 local types = require("gitlinker.types")
-local async = require("gitlinker.commons.async")
+local async = require("gitlinker.async")
 
 --- @class gitlinker.GitResult
 --- @field code integer  exit code, `0` means success, `GitResult.SPAWN_FAILED` means the command never ran.

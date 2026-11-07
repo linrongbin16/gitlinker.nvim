@@ -1,4 +1,4 @@
-local async = require("gitlinker.commons.async")
+local async = require("gitlinker.async")
 
 --- Run `fn` in an async context and let its failures reach the test runner.
 ---
