@@ -198,81 +198,159 @@ local Defaults = {
 --- @type gitlinker.Options
 local Configs = {}
 
---- @param opts gitlinker.Options
---- @return table<string, {list_routers:table,map_routers:table}>
-M._merge_routers = function(opts)
-  local result = {}
-
-  -- users list
-  if type(opts.router) == "table" then
-    -- user_router_type: browse, blame, etc
-    for user_router_type, user_router_bindings in pairs(opts.router) do
-      if result[user_router_type] == nil then
-        result[user_router_type] = {}
-        result[user_router_type].list_routers = {}
-        result[user_router_type].map_routers = {}
-      end
-      -- list
-      for i, tuple in ipairs(user_router_bindings) do
-        if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
-          -- prepend to head for higher priority
-          table.insert(result[user_router_type].list_routers, 1, tuple)
-        end
+--- Merge user provided "list" style router bindings into `result`.
+---
+--- A "list" binding is an ordered array of `{pattern, route}` tuples. Each
+--- tuple is prepended to the head of `list_routers`, so entries added later
+--- are matched (and therefore prioritized) before earlier ones.
+---
+--- Example:
+--- ```lua
+--- -- input: opts.router = {
+--- --   browse = {
+--- --     { "^github%.your%.host", "https://github.your.host/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}" },
+--- --     { "^gitlab%.your%.host", function(lk) return "https://gitlab.your.host/" .. lk.repo end },
+--- --   },
+--- -- }
+--- -- result.browse.list_routers after this call:
+--- --   { { "^gitlab%.your%.host", <function> }, { "^github%.your%.host", "https://..." } }
+--- ```
+---
+--- @param result table<string, {list_routers:table,map_routers:table}> merged result being built
+--- @param user_routers table<string, table> user `opts.router` bindings
+local function _merge_user_list_routers(result, user_routers)
+  for router_type, bindings in pairs(user_routers) do
+    if result[router_type] == nil then
+      result[router_type] = { list_routers = {}, map_routers = {} }
+    end
+    for i, tuple in ipairs(bindings) do
+      if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
+        -- prepend to head for higher priority
+        table.insert(result[router_type].list_routers, 1, tuple)
       end
     end
   end
+end
 
-  -- default map
-  for default_router_type, default_router_bindings in pairs(Defaults.router) do
-    if result[default_router_type] == nil then
-      result[default_router_type] = {}
-      result[default_router_type].list_routers = {}
-      result[default_router_type].map_routers = {}
+--- Merge default "map" style router bindings into `result` as the fallback.
+---
+--- A "map" binding is keyed by a host pattern and maps to a route (a string
+--- template or a lua function). Only valid `string` patterns with a
+--- `string`/`function` route are accepted.
+---
+--- Example:
+--- ```lua
+--- -- input: Defaults.router = {
+--- --   browse = {
+--- --     ["^github%.com"] = "https://github.com/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}",
+--- --   },
+--- -- }
+--- -- result.browse.map_routers after this call:
+--- --   { ["^github%.com"] = "https://github.com/..." }
+--- ```
+---
+--- @param result table<string, {list_routers:table,map_routers:table}> merged result being built
+--- @param default_routers table<string, table> `Defaults.router` bindings
+local function _merge_default_map_routers(result, default_routers)
+  for router_type, bindings in pairs(default_routers) do
+    if result[router_type] == nil then
+      result[router_type] = { list_routers = {}, map_routers = {} }
     end
-    -- map
-    for pattern, route in pairs(default_router_bindings) do
-      if result[default_router_type].map_routers == nil then
-        result[default_router_type].map_routers = {}
-      end
+    for pattern, route in pairs(bindings) do
       if
         type(pattern) == "string"
         and string.len(pattern) > 0
         and (type(route) == "string" or type(route) == "function")
       then
-        result[default_router_type].map_routers[pattern] = route
+        result[router_type].map_routers[pattern] = route
       end
     end
   end
+end
 
-  -- default list
-  for default_router_type, default_router_bindings in pairs(Defaults.router) do
-    -- list
-    for i, tuple in ipairs(default_router_bindings) do
-      if type(i) == "number" and type(tuple) == "table" and #tuple == 2 then
-        table.insert(result[default_router_type].list_routers, tuple)
+--- Merge user provided "map" style router bindings into `result`, overwriting
+--- default bindings that share the same pattern.
+---
+--- This is how a user overrides or extends a default host route.
+---
+--- Example:
+--- ```lua
+--- -- input: opts.router = {
+--- --   browse = {
+--- --     ["^github%.com"] = "https://my-proxy.example.com/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}",
+--- --   },
+--- -- }
+--- -- result.browse.map_routers after this call: the "^github%.com" default
+--- --   route is replaced by the user's proxy route.
+--- ```
+---
+--- @param result table<string, {list_routers:table,map_routers:table}> merged result being built
+--- @param user_routers table<string, table> user `opts.router` bindings
+local function _merge_user_map_routers(result, user_routers)
+  for router_type, bindings in pairs(user_routers) do
+    if result[router_type] == nil then
+      result[router_type] = { list_routers = {}, map_routers = {} }
+    end
+    for pattern, route in pairs(bindings) do
+      if
+        type(pattern) == "string"
+        and string.len(pattern) > 0
+        and (type(route) == "string" or type(route) == "function")
+      then
+        -- override default routers
+        result[router_type].map_routers[pattern] = route
       end
     end
   end
+end
 
-  -- user map
-  if type(opts.router) == "table" then
-    for user_router_type, user_router_bindings in pairs(opts.router) do
-      -- map
-      for pattern, route in pairs(user_router_bindings) do
-        if result[user_router_type].map_routers == nil then
-          result[user_router_type].map_routers = {}
-        end
-        if
-          type(pattern) == "string"
-          and string.len(pattern) > 0
-          and (type(route) == "string" or type(route) == "function")
-        then
-          -- override default routers
-          result[user_router_type].map_routers[pattern] = route
-        end
-      end
-    end
-  end
+--- Merge default (`Defaults.router`) and user (`opts.router`) router bindings
+--- into a single lookup structure.
+---
+--- The result is keyed by router type (`browse`, `blame`, `default_branch`, ...)
+--- and each entry holds:
+--- - `list_routers`: an ordered array of `{pattern, route}` tuples, matched first.
+--- - `map_routers`: a `pattern -> route` table, matched as a fallback.
+---
+--- Merge order and priority (higher first):
+--- 1. user list bindings — prepended to `list_routers`.
+--- 2. default map bindings — the built-in fallback.
+--- 3. user map bindings — overwrite the defaults.
+---
+--- Example:
+--- ```lua
+--- -- input opts.router:
+--- -- {
+--- --   browse = {
+--- --     { "^github%.your%.host", function(lk) ... end },      -- list tuple
+--- --     ["^github%.com"] = "https://my-proxy.example.com/...", -- map entry
+--- --   },
+--- -- }
+--- -- output shape:
+--- -- {
+--- --   browse = {
+--- --     list_routers = { { "^github%.your%.host", <function> } },
+--- --     map_routers = {
+--- --       ["^github%.com"] = "https://my-proxy.example.com/...",
+--- --       ["^gitlab%.com"] = "https://gitlab.com/...", -- untouched default
+--- --     },
+--- --   },
+--- --   blame = { list_routers = {}, map_routers = { ... } },
+--- --   default_branch = { list_routers = {}, map_routers = { ... } },
+--- -- }
+--- ```
+---
+--- @param opts gitlinker.Options
+--- @return table<string, {list_routers:table,map_routers:table}>
+M._merge_routers = function(opts)
+  local result = {}
+
+  local user_routers = type(opts.router) == "table" and opts.router or {}
+
+  _merge_user_list_routers(result, user_routers)
+  _merge_default_map_routers(result, Defaults.router)
+  _merge_user_map_routers(result, user_routers)
+
   -- logger.debug("|gitlinker._merge_routers| result:%s", vim.inspect(result))
   return result
 end
