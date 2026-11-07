@@ -575,28 +575,52 @@ require("gitlinker").setup({
 })
 ```
 
-If you need to bind a github enterprise host, please reuse the default `github.com` router by adding your own host pattern:
+If you need to bind a github enterprise host, please implement it with a lua function that reuses the same url structure as the default `github.com` router:
 
 ```lua
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_browse(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blob",
+    lk.rev,
+    location,
+  }, "/")
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_blame(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blame",
+    lk.rev,
+    location,
+  }, "/")
+end
+
 require('gitlinker').setup({
   router = {
     browse = {
-      ["^github%.your%.host"] = "https://github.com/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/blob/"
-        .. "{_A.REV}/"
-        .. "{_A.FILE}?plain=1"
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      ["^github%.your%.host"] = github_browse,
     },
     blame = {
-      ["^github%.your%.host"] = "https://github.com/"
-        .. "{_A.ORG}/"
-        .. "{_A.REPO}/blame/"
-        .. "{_A.REV}/"
-        .. "{_A.FILE}?plain=1"
-        .. "#L{_A.LSTART}"
-        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+      ["^github%.your%.host"] = github_blame,
     },
   }
 })
