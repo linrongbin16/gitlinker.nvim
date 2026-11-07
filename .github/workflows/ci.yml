@@ -15,16 +15,16 @@ jobs:
     if: ${{ github.ref != 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: amannn/action-semantic-pull-request@v5
+      - uses: actions/checkout@v7
+      - uses: amannn/action-semantic-pull-request@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: JohnnyMorganz/stylua-action@v4
+      - uses: actions/checkout@v7
+      - uses: JohnnyMorganz/stylua-action@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
@@ -45,7 +45,7 @@ jobs:
         nvim_version: [stable, nightly]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
