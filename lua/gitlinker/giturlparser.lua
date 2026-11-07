@@ -218,49 +218,86 @@ M._parse_host = function(p, start)
 
   local plen = string.len(p)
 
-  -- find ':', the end position of host, start position of port
-  local first_colon_pos = M._find(p, ":", start)
-  if type(first_colon_pos) == "number" and first_colon_pos > start then
-    -- host end with ':', port start with ':'
-    host, host_pos = M._make(p, start, first_colon_pos - 1)
+  -- IPv6 host, e.g. [::1], [2001:db8::1]:2222
+  if M._find(p, "[", start) == start then
+    local close_bracket_pos = M._find(p, "]", start + 1)
+    if type(close_bracket_pos) == "number" then
+      -- host is the address without the enclosing brackets
+      host, host_pos = M._make(p, start + 1, close_bracket_pos - 1)
 
-    -- find first slash '/' (after second ':'), the end position of port, start position of path
-    local first_slash_pos = M._find(p, "/", first_colon_pos + 1)
-    -- print(
-    --   string.format(
-    --     "_parse_host, start:%s, first_colon_pos:%s, first_slash_pos:%s\n",
-    --     inspect(start),
-    --     inspect(first_colon_pos),
-    --     inspect(first_slash_pos)
-    --   )
-    -- )
-    if type(first_slash_pos) == "number" then
-      if first_slash_pos > first_colon_pos + 1 then
-        -- port end with '/'
-        port, port_pos = M._make(p, first_colon_pos + 1, first_slash_pos - 1)
-        path_obj = M._parse_path(p, first_slash_pos)
-      else
-        assert(first_slash_pos == first_colon_pos + 1)
-        -- port is empty, host still end with '/'
-        path_obj = M._parse_path(p, first_slash_pos)
+      local colon_pos = M._find(p, ":", close_bracket_pos + 1)
+      if type(colon_pos) == "number" and colon_pos == close_bracket_pos + 1 then
+        -- ']:' -> port follows
+        local first_slash_pos = M._find(p, "/", close_bracket_pos + 2)
+        if type(first_slash_pos) == "number" then
+          port, port_pos =
+            M._make(p, close_bracket_pos + 2, first_slash_pos - 1)
+          path_obj = M._parse_path(p, first_slash_pos)
+        else
+          port, port_pos = M._make(p, close_bracket_pos + 2, plen)
+        end
+      elseif
+        M._find(p, "/", close_bracket_pos + 1) == close_bracket_pos + 1
+      then
+        -- ']/' -> path follows, no port
+        path_obj = M._parse_path(p, close_bracket_pos + 1)
       end
-    else
-      -- path not found, port end until url end
-      port, port_pos = M._make(p, first_colon_pos + 1, plen)
     end
-  else
-    -- port not found, host (highly possibly) end with '/'
 
-    -- find first slash '/', the end position of host, start position of path
-    local first_slash_pos = M._find(p, "/", start)
-    if type(first_slash_pos) == "number" and first_slash_pos > start then
-      -- host end with '/'
-      host, host_pos = M._make(p, start, first_slash_pos - 1)
-      path_obj = M._parse_path(p, first_slash_pos)
-    else
-      -- first slash not found, host is omitted, path end until url end
-      path_obj = M._parse_path(p, start)
+    return {
+      host = host,
+      host_pos = host_pos,
+      port = port,
+      port_pos = port_pos,
+      path_obj = path_obj,
+    }
+  end
+
+  -- find first slash '/', the end position of the host[:port] section,
+  -- start position of path
+  local first_slash_pos = M._find(p, "/", start)
+  if first_slash_pos == start then
+    -- slash at start: host (and port) are omitted, path until url end
+    path_obj = M._parse_path(p, start)
+    return {
+      host = host,
+      host_pos = host_pos,
+      port = port,
+      port_pos = port_pos,
+      path_obj = path_obj,
+    }
+  end
+
+  -- the host[:port] section ends at the first slash, or at url end
+  local hostport_end = type(first_slash_pos) == "number"
+      and (first_slash_pos - 1)
+    or plen
+
+  -- find first ':' within the host[:port] section, to split host and port
+  local first_colon_pos = M._find(p, ":", start)
+  if type(first_colon_pos) == "number" and first_colon_pos <= hostport_end then
+    -- port exists
+    if first_colon_pos > start then
+      -- host ends with ':', port starts with ':'
+      host, host_pos = M._make(p, start, first_colon_pos - 1)
     end
+    -- else: colon at start, host is omitted (empty), port follows
+
+    if first_colon_pos < hostport_end then
+      -- port is non-empty, ends with '/' or url end
+      port, port_pos = M._make(p, first_colon_pos + 1, hostport_end)
+    end
+    -- else: port is empty
+  else
+    -- port not found, host ends with '/' or url end
+    if start <= hostport_end then
+      host, host_pos = M._make(p, start, hostport_end)
+    end
+  end
+
+  -- parse path after the host[:port] section
+  if type(first_slash_pos) == "number" then
+    path_obj = M._parse_path(p, first_slash_pos)
   end
 
   return {
@@ -288,7 +325,27 @@ M._parse_host_with_omit_ssh = function(p, start)
   --- @type giturlparser._GitUrlPath
   local path_obj = {}
 
-  local plen = string.len(p)
+  -- IPv6 host, e.g. [::1], [2001:db8::1]
+  if M._find(p, "[", start) == start then
+    local close_bracket_pos = M._find(p, "]", start + 1)
+    if type(close_bracket_pos) == "number" then
+      -- host is the address without the enclosing brackets
+      host, host_pos = M._make(p, start + 1, close_bracket_pos - 1)
+
+      -- in scp-like syntax the ']' is followed by ':path'
+      if M._find(p, ":", close_bracket_pos + 1) == close_bracket_pos + 1 then
+        path_obj = M._parse_path(p, close_bracket_pos + 2)
+      end
+    end
+
+    return {
+      host = host,
+      host_pos = host_pos,
+      port = port,
+      port_pos = port_pos,
+      path_obj = path_obj,
+    }
+  end
 
   -- find ':', the end position of host, start position of path
   local first_colon_pos = M._find(p, ":", start)
@@ -331,8 +388,6 @@ M._parse_user = function(p, start, ssh_protocol_omitted)
   --- @type giturlparser._GitUrlHost
   local host_obj = {}
 
-  local plen = string.len(p)
-
   local host_start_pos = start
 
   -- find first '@', the end position of user and password
@@ -367,6 +422,10 @@ M._parse_user = function(p, start, ssh_protocol_omitted)
 
     -- host start from '@', user (and password) end position
     host_start_pos = first_at_pos + 1
+  elseif type(first_at_pos) == "number" then
+    -- '@' at start position: empty user (and password) found
+    -- host start from '@', skip the leading '@'
+    host_start_pos = start + 1
   else
     -- user (and password) not found
     -- host start from beginning
@@ -441,7 +500,17 @@ M.parse = function(url)
 
     -- find first ':', host end position on omitted ssh protocol
     local first_colon_pos = M._find(url, ":")
-    if type(first_colon_pos) == "number" and first_colon_pos > 1 then
+    -- scp-like syntax is only recognized if there is no slash before the
+    -- first colon; otherwise it is a local path that contains a colon
+    -- (e.g. './foo:bar', '/abs/path:with:colons').
+    local first_slash_pos = M._find(url, "/")
+    local is_scp_like = type(first_colon_pos) == "number"
+      and first_colon_pos > 1
+      and not (
+        type(first_slash_pos) == "number"
+        and first_slash_pos < first_colon_pos
+      )
+    if is_scp_like then
       local user_obj = M._parse_user(url, 1, true)
       local host_obj = user_obj.host_obj
       local path_obj = host_obj.path_obj
