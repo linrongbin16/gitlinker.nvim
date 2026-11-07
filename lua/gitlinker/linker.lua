@@ -87,9 +87,10 @@ local function make_linker(remote, file, rev)
     return nil, resolved_host_err
   end
 
-  local rev_provided = str.not_empty(rev)
   local saved_rev = rev
-  if rev_provided then
+
+  -- If rev (git commit ID) is not provided, detect with current git HEAD commit
+  if str.not_empty(rev) then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
     local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], root)
@@ -113,9 +114,10 @@ local function make_linker(remote, file, rev)
 
   async.await(1, vim.schedule)
 
-  local file_provided = str.not_empty(file)
   local file_changed = false
-  if not file_provided then
+
+  -- If file parameter is not provided, detect file with current buffer
+  if str.empty(file) then
     -- Both the tree lookup and the diff below run in the repository root, so
     -- the path handed to them has to be root-relative. A path relative to the
     -- buffer directory matches nothing there: `git diff` then exits 0 with
