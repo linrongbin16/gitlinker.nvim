@@ -1,4 +1,4 @@
-local log = require("gitlinker.commons.log")
+local log = require("gitlinker.log")
 
 --- @param m string
 --- @return boolean

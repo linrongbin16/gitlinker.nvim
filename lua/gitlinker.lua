@@ -1,8 +1,6 @@
-local tbl = require("gitlinker.commons.tbl")
-local str = require("gitlinker.commons.str")
-local num = require("gitlinker.commons.num")
-local log = require("gitlinker.commons.log")
-local async = require("gitlinker.commons.async")
+local types = require("gitlinker.types")
+local log = require("gitlinker.log")
+local async = require("gitlinker.async")
 
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")
@@ -15,7 +13,7 @@ local highlight = require("gitlinker.highlight")
 local function _url_template_engine(lk, template)
   local OPEN_BRACE = "{"
   local CLOSE_BRACE = "}"
-  if str.empty(template) or tbl.tbl_empty(lk) then
+  if types.str_empty(template) or types.tbl_empty(lk) then
     return nil
   end
 
@@ -26,13 +24,13 @@ local function _url_template_engine(lk, template)
   local i = 1
   local n = string.len(template)
   while i <= n do
-    local open_pos = str.find(template, OPEN_BRACE, i)
+    local open_pos = types.str_search(template, OPEN_BRACE, i)
     if not open_pos then
       table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
     end
     table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
-    local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
+    local close_pos = types.str_search(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     log.ensure(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
@@ -71,13 +69,13 @@ local function _url_template_engine(lk, template)
         PORT = lk.port or "",
         USER = lk.user or "",
         ORG = lk.org or "",
-        REPO = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
+        REPO = types.str_strip_suffix(lk.repo, ".git"),
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
-        LEND = num.ge(lk.lend, lk.lstart) and lk.lend or lk.lstart,
-        DEFAULT_BRANCH = str.not_empty(lk.default_branch) and lk.default_branch or "",
-        CURRENT_BRANCH = str.not_empty(lk.current_branch) and lk.current_branch or "",
+        LEND = types.greater_equal(lk.lend, lk.lstart) and lk.lend or lk.lstart,
+        DEFAULT_BRANCH = types.str_empty(lk.default_branch) and "" or lk.default_branch,
+        CURRENT_BRANCH = types.str_empty(lk.current_branch) and "" or lk.current_branch,
       })
       log.debug(
         string.format(
@@ -211,7 +209,7 @@ local _link = function(opts)
   lk.lstart = opts.lstart
   lk.lend = opts.lend
 
-  if str.not_empty(opts.file) then
+  if not types.str_empty(opts.file) then
     lk.file = opts.file
     lk.file_changed = false
   end
@@ -226,7 +224,7 @@ local _link = function(opts)
   --   vim.inspect(opts.router)
   -- )
   log.ensure(
-    ok and str.not_empty(url),
+    ok and not types.str_empty(url),
     string.format(
       "fatal: failed to generate permanent url from remote (%s): %s",
       vim.inspect(lk.remote_url),
@@ -301,11 +299,11 @@ local function _parse_args(args)
   local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
   for _, a in ipairs(args_splits) do
     if string.len(a) > 0 then
-      if str.startswith(a, "remote=") then
+      if vim.startswith(a, "remote=") then
         remote = a:sub(8)
-      elseif str.startswith(a, "file=") then
+      elseif vim.startswith(a, "file=") then
         file = a:sub(6)
-      elseif str.startswith(a, "rev=") then
+      elseif vim.startswith(a, "rev=") then
         rev = a:sub(5)
       else
         router_type = a
@@ -322,11 +320,9 @@ local function setup(opts)
 
   -- logger
   log.setup({
-    name = "gitlinker",
     level = confs.debug and vim.log.levels.DEBUG or vim.log.levels.INFO,
     use_console = confs.console_log,
     use_file = confs.file_log,
-    file_name = "gitlinker.log",
   })
 
   -- command
@@ -402,7 +398,7 @@ local function link_api(opts)
       action = require("gitlinker.actions").clipboard,
     }
 
-  opts.router_type = str.not_empty(opts.router_type) and opts.router_type or "browse"
+  opts.router_type = types.str_empty(opts.router_type) and "browse" or opts.router_type
   opts.action = vim.is_callable(opts.action) and opts.action
     or require("gitlinker.actions").clipboard
   opts.router = vim.is_callable(opts.router) and opts.router
@@ -410,7 +406,10 @@ local function link_api(opts)
       return _router(opts.router_type, lk)
     end
 
-  if not num.ge(opts.lstart, 0) and not num.ge(opts.lend, 0) then
+  -- A caller that names a line only gives one end of the range, and a caller
+  -- that gives neither wants the lines covered by the last visual selection.
+  local has_line_numbers = types.greater_equal(opts.lstart, 0) or types.greater_equal(opts.lend, 0)
+  if not has_line_numbers then
     local r = range.make_range()
     opts.lstart = math.min(r.lstart, r.lend)
     opts.lend = math.max(r.lstart, r.lend)

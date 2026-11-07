@@ -1,5 +1,5 @@
 ---@diagnostic disable
-local util = require('gitlinker.commons.async._util')
+local util = require('gitlinker.async._util')
 
 local pack_len = util.pack_len
 local unpack_len = util.unpack_len

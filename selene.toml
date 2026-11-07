@@ -1,9 +1,8 @@
 std = "vim"
 
 exclude = [
-  "lua/gitlinker/commons/*.lua",
-  "lua/gitlinker/commons/*/*.lua",
-  "lua/gitlinker/commons/*/*/*.lua",
+  "lua/gitlinker/async.lua",
+  "lua/gitlinker/async/*.lua",
   "lua/gitlinker/giturlparser.lua",
 ]
 

@@ -1,60 +1,42 @@
 local uv = vim.uv or vim.loop
-local IS_WINDOWS = vim.fn.has("win32") > 0 or vim.fn.has("win64") > 0
-local PATH_SEPARATOR = IS_WINDOWS and "\\" or "/"
 
--- :lua print(vim.inspect(vim.log.levels))
-local LogLevels = vim.log.levels
+-- For Windows: $env:USERPROFILE\AppData\Local\nvim-data\gitlinker.log
+-- For *NIX: ~/.local/share/nvim/gitlinker.log
+local LOG_NAME = "gitlinker"
+local LOG_FILE = vim.fs.joinpath(vim.fn.stdpath("data"), "gitlinker.log")
 
 local LogLevelNames = {
-  [0] = "TRACE",
-  [1] = "DEBUG",
-  [2] = "INFO",
-  [3] = "WARN",
-  [4] = "ERROR",
-  [5] = "OFF",
-}
-
-local LogHighlights = {
-  [0] = "Comment",
-  [1] = "Comment",
-  [2] = "None",
-  [3] = "WarningMsg",
-  [4] = "ErrorMsg",
-  [5] = "ErrorMsg",
+  [vim.log.levels.TRACE] = "TRACE",
+  [vim.log.levels.DEBUG] = "DEBUG",
+  [vim.log.levels.INFO] = "INFO",
+  [vim.log.levels.WARN] = "WARN",
+  [vim.log.levels.ERROR] = "ERROR",
+  [vim.log.levels.OFF] = "OFF",
 }
 
 local LogConfigs = {
-  name = nil,
-  level = LogLevels.INFO,
+  level = vim.log.levels.INFO,
   use_console = true,
   use_file = false,
-  file_name = nil,
 }
 
---- @param opts {name: string?, level: integer?, use_console: boolean?, use_file: boolean?, file_name: string?}?
+--- @param opts {level: integer?, use_console: boolean?, use_file: boolean?}?
 local function setup(opts)
   opts = opts or {}
-  local level = opts.level or LogLevels.INFO
+  local level = opts.level or vim.log.levels.INFO
+
   local use_console
   if type(opts.use_console) == "boolean" then
     use_console = opts.use_console
   else
     use_console = true
   end
-  local use_file = type(opts.use_file) == "boolean" and opts.use_file or false
-  local name = opts.name
-  local file_name = opts.file_name
 
-  if type(name) == "string" and string.len(name) > 0 then
-    LogConfigs.name = name
-  end
+  local use_file = type(opts.use_file) == "boolean" and opts.use_file or false
+
   LogConfigs.level = level
   LogConfigs.use_console = use_console
   LogConfigs.use_file = use_file
-
-  -- For Windows: $env:USERPROFILE\AppData\Local\nvim-data\${file_name}.log
-  -- For *NIX: ~/.local/share/nvim/${file_name}.log
-  LogConfigs.file_name = string.format("%s%s%s", vim.fn.stdpath("data"), PATH_SEPARATOR, file_name)
 end
 
 --- @param level integer
@@ -65,13 +47,10 @@ local function log(level, msg)
   end
 
   local msg_lines = vim.split(msg, "\n", { plain = true })
-  if LogConfigs.use_console and level >= LogLevels.INFO then
+  if LogConfigs.use_console and level >= vim.log.levels.INFO then
     for _, line in ipairs(msg_lines) do
       if type(line) == "string" and string.len(line) > 0 then
-        local fmt_line = line
-        if type(LogConfigs.name) == "string" and string.len(LogConfigs.name) > 0 then
-          fmt_line = string.format("[%s] %s", LogConfigs.name, line)
-        end
+        local fmt_line = string.format("[%s] %s", LOG_NAME, line)
         vim.schedule(function()
           vim.notify(fmt_line, level)
         end)
@@ -79,7 +58,7 @@ local function log(level, msg)
     end
   end
   if LogConfigs.use_file then
-    local fp = io.open(LogConfigs.file_name, "a")
+    local fp = io.open(LOG_FILE, "a")
     if fp then
       for _, line in ipairs(msg_lines) do
         local secs, ms = uv.gettimeofday()
@@ -100,27 +79,27 @@ end
 
 --- @param s string
 local function debug(s)
-  log(LogLevels.DEBUG, s)
+  log(vim.log.levels.DEBUG, s)
 end
 
 --- @param s string
 local function info(s)
-  log(LogLevels.INFO, s)
+  log(vim.log.levels.INFO, s)
 end
 
 --- @param s string
 local function warn(s)
-  log(LogLevels.WARN, s)
+  log(vim.log.levels.WARN, s)
 end
 
 --- @param s string
 local function err(s)
-  log(LogLevels.ERROR, s)
+  log(vim.log.levels.ERROR, s)
 end
 
 --- @param s string
 local function throw(s)
-  log(LogLevels.ERROR, s)
+  log(vim.log.levels.ERROR, s)
   error(s)
 end
 
@@ -135,11 +114,9 @@ end
 local M = {
   setup = setup,
   debug = debug,
-  log = log,
   info = info,
   warn = warn,
   err = err,
-  throw = throw,
   ensure = ensure,
 }
 

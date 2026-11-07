@@ -1,8 +1,7 @@
 # gitlinker.nvim
 
 <p>
-<a href="https://github.com/neovim/neovim/releases/"><img alt="Neovim" src="https://img.shields.io/badge/require-stable-blue" /></a>
-<a href="https://luarocks.org/modules/linrongbin16/gitlinker.nvim"><img alt="luarocks" src="https://img.shields.io/luarocks/v/linrongbin16/gitlinker.nvim" /></a>
+<a href="https://github.com/neovim/neovim/releases/tag/v0.12.0"><img alt="Neovim" src="https://img.shields.io/badge/require-0.12%2B-blue" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?label=ci" /></a>
 </p>
 
@@ -67,7 +66,7 @@ PRs are welcomed for other git host websites!
 >
 > This plugin always supports the latest stable and (possibly) nightly Neovim version.
 
-- Neovim &ge; 0.10.
+- Neovim &ge; 0.12.
 - [git](https://git-scm.com/).
 - [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
 - [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).

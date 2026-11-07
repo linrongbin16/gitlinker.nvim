@@ -1,5 +1,5 @@
-local str = require("gitlinker.commons.str")
-local log = require("gitlinker.commons.log")
+local types = require("gitlinker.types")
+local log = require("gitlinker.log")
 
 local range = require("gitlinker.range")
 
@@ -81,7 +81,7 @@ function Builder:new(lk, range_maker)
   local o = {
     domain = string.format("https://%s", lk.host),
     org = lk.org,
-    repo = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
+    repo = types.str_strip_suffix(lk.repo, ".git"),
     rev = lk.rev,
     location = string.format("%s%s", lk.file, type(r) == "string" and r or ""),
   }
