@@ -211,7 +211,7 @@ require("gitlinker").link(opts)
 
   - `action`: What action should do. By default it will copy the generated link to clipboard. It has below options, please see [`gitlinker.Action`](#gitlinkeraction) for more details.
     - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
-    - `require("gitlinker.actions").system`: Open url in browser.
+    - `require("gitlinker.actions").open`: Open url in browser.
 
   - `lstart`/`lend`: Line range, i.e. start and end line numbers. By default it uses the current line or visual selections. You can also overwrite them to specify the line numbers.
   - `message`: Whether print message in command line. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can overwrite the configured behavior by passing your option to this field.
@@ -252,7 +252,7 @@ function(url:string):any
 For now we have below builtin actions:
 
 - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
-- `require("gitlinker.actions").system`: Open url in browser.
+- `require("gitlinker.actions").open`: Open url in browser.
 
 If you only need to print the generated url, you can pass a callback function to consume:
 
@@ -349,7 +349,7 @@ vim.keymap.set(
   {"n", 'v'},
   "<leader>gL",
   function()
-    require("gitlinker").link({ action = require("gitlinker.actions").system })
+    require("gitlinker").link({ action = require("gitlinker.actions").open })
   end,
   { silent = true, noremap = true, desc = "GitLink!" }
 )
@@ -368,7 +368,7 @@ vim.keymap.set(
   function()
     require("gitlinker").link({
       router_type = "blame",
-      action = require("gitlinker.actions").system,
+      action = require("gitlinker.actions").open,
     })
   end,
   { silent = true, noremap = true, desc = "GitLink! blame" }
@@ -388,7 +388,7 @@ vim.keymap.set(
   function()
     require("gitlinker").link({
       router_type = "default_branch",
-      action = require("gitlinker.actions").system,
+      action = require("gitlinker.actions").open,
     })
   end,
   { silent = true, noremap = true, desc = "GitLink! default_branch" }
@@ -408,7 +408,7 @@ vim.keymap.set(
   function()
     require("gitlinker").link({
       router_type = "current_branch",
-      action = require("gitlinker.actions").system,
+      action = require("gitlinker.actions").open,
     })
   end,
   { silent = true, noremap = true, desc = "GitLink! current_branch" }

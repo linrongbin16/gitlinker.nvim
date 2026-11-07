@@ -37,7 +37,7 @@ require("lazy").setup({
       {
         "<leader>gL",
         function()
-          require("gitlinker").link({ action = require("gitlinker.actions").system })
+          require("gitlinker").link({ action = require("gitlinker.actions").open })
         end,
         mode = { "n", "x" },
         desc = "GitLink!",
@@ -57,7 +57,7 @@ require("lazy").setup({
         "<leader>gB",
         function()
           require("gitlinker").link({
-            action = require("gitlinker.actions").system,
+            action = require("gitlinker.actions").open,
             router_type = "blame",
           })
         end,
@@ -79,7 +79,7 @@ require("lazy").setup({
         "<leader>gD",
         function()
           require("gitlinker").link({
-            action = require("gitlinker.actions").system,
+            action = require("gitlinker.actions").open,
             router_type = "default_branch",
           })
         end,
