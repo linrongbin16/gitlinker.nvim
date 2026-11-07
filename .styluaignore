@@ -1,3 +1,1 @@
 lua/gitlinker/giturlparser.lua
-lua/gitlinker/async.lua
-lua/gitlinker/async/*.lua

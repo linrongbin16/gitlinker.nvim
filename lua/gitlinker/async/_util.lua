@@ -4,7 +4,7 @@ local M = {}
 --- @param ... any
 --- @return {[integer]: any, n: integer}
 function M.pack_len(...)
-  return { n = select('#', ...), ... }
+  return { n = select("#", ...), ... }
 end
 
 --- like unpack() but use the length set by F.pack_len if present
@@ -27,7 +27,7 @@ end
 --- @return string
 function M.stringify(err)
   local ok, message = pcall(tostring, err)
-  return ok and message or '<unprintable error>'
+  return ok and message or "<unprintable error>"
 end
 
 --- Create a function that runs a function when it is garbage collected.
