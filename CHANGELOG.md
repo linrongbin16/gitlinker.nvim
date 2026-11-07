@@ -1,5 +1,23 @@
 # Changelog
 
+## [6.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v6.0.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **router:** remove legacy routers.lua ([#328](https://github.com/linrongbin16/gitlinker.nvim/issues/328))
+
+### Bug Fixes
+
+* **async:** stop losing errors while tasks settle ([#321](https://github.com/linrongbin16/gitlinker.nvim/issues/321)) ([bc40939](https://github.com/linrongbin16/gitlinker.nvim/commit/bc409398e630dd81d37fab13cde426dd85b74c84))
+* **git:** always run git commands in the buffer directory ([#315](https://github.com/linrongbin16/gitlinker.nvim/issues/315)) ([eb939a4](https://github.com/linrongbin16/gitlinker.nvim/commit/eb939a4041597391dbaf47fd504545cd92103459))
+* **git:** run git commands in the repository root ([#318](https://github.com/linrongbin16/gitlinker.nvim/issues/318)) ([61b54a6](https://github.com/linrongbin16/gitlinker.nvim/commit/61b54a60504eeac6077744e76f1df9d0d7f036d8))
+
+
+### Code Refactoring
+
+* **router:** remove legacy routers.lua ([#328](https://github.com/linrongbin16/gitlinker.nvim/issues/328)) ([b583e2c](https://github.com/linrongbin16/gitlinker.nvim/commit/b583e2cbd83f2f58557d43818d932304f85d45ff))
+
 ## [5.5.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v5.5.2) (2026-11-07)
 
 
