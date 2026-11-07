@@ -1,3 +1,45 @@
+local uv = vim.uv or vim.loop
+
+--- Trim the surrounding spaces, then turn double backslashes into a single one
+--- and every backslash into a slash, so that Windows separators work on every
+--- platform.
+--- @param p string
+--- @return string
+local function _normalize_sep(p)
+  local result = vim.trim(p)
+  result = string.gsub(result, [[\\]], [[\]])
+  result = string.gsub(result, [[\]], [[/]])
+  return result
+end
+
+--- Expand a leading `~` into the home directory.
+--- @param p string
+--- @return string
+local function _expand(p)
+  if string.sub(p, 1, 1) ~= "~" then
+    return p
+  end
+  local home = uv.os_homedir()
+  if not home then
+    return p
+  end
+  return home .. string.sub(p, 2)
+end
+
+--- Normalize a path: expand `~` and use slashes as the separator everywhere.
+---
+--- This does not collapse `.`, `..` or repeated separators. Paths coming from
+--- the editor are passed through `vim.fn.resolve` before this, which already
+--- returns a normalized absolute path.
+--- @param p string
+--- @return string
+local function _normalize(p)
+  assert(type(p) == "string")
+  local result = _normalize_sep(p)
+  result = _expand(result)
+  return _normalize_sep(result)
+end
+
 --- Remove the trailing separators of a normalized directory path, but keep a
 --- bare root (`/`) intact so that it stays absolute.
 --- @param dir string
@@ -42,11 +84,9 @@ end
 --- @param dir string?  the directory to be relative to, defaults to `vim.fn.getcwd()`.
 --- @return string?  the relative path, or nil when the buffer is not inside `dir`.
 local function buffer_relpath(dir)
-  local path = require("gitlinker.commons.path")
-
   dir = dir or vim.fn.getcwd()
   dir = vim.fn.resolve(dir)
-  dir = path.normalize(dir, { double_backslash = true, expand = true })
+  dir = _normalize(dir)
   dir = _strip_trailing_sep(dir)
   if string.len(dir) == 0 then
     -- No directory means no meaningful "relative to": matching the empty
@@ -56,7 +96,7 @@ local function buffer_relpath(dir)
 
   local bufpath = vim.api.nvim_buf_get_name(0)
   bufpath = vim.fn.resolve(bufpath)
-  bufpath = path.normalize(bufpath, { double_backslash = true, expand = true })
+  bufpath = _normalize(bufpath)
 
   local result = _relative_to(bufpath, dir)
   return result
