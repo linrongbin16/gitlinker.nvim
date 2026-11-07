@@ -462,9 +462,9 @@ To create customized urls for other git hosts, please bind the target git host n
 - `_A.REV`: Git commit ID. For example:
   - `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
 - `_A.FILE`: Relative file path. For example:
-  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
+  - `lua/gitlinker/git.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/git.lua`.
 - `_A.LSTART`/`_A.LEND`: Start/end line number. For example:
-  - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
+  - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/git.lua#L5-L13`.
 
 There're 2 more sugar components derived from `_A.PATH`:
 
@@ -482,10 +482,10 @@ There're 2 more sugar components derived from `_A.PATH`:
 There're 2 more sugar components for git branches:
 
 - `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
+  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/git.lua#L37-L156`.
   - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
 - `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
-  - `feat-router-types` in `https://github.com/ruifm/gitlinker.nvim/blob/feat-router-types/lua/gitlinker/routers.lua#L37-L156`.
+  - `feat-router-types` in `https://github.com/ruifm/gitlinker.nvim/blob/feat-router-types/lua/gitlinker/git.lua#L37-L156`.
 
 With above components, you can customize the line numbers (for example) in form `?&line=1&lines-count=2` like this:
 
@@ -508,10 +508,6 @@ require("gitlinker").setup({
 The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (the error message can be confusing if there's any syntax issue).
 
 #### Lua Function
-
-> [!NOTE]
->
-> Please see [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples.
 
 You can also implement the router with a lua function. The function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
 
@@ -579,24 +575,52 @@ require("gitlinker").setup({
 })
 ```
 
-There are some pre-defined APIs in `gitlinker.routers` that you can use:
-
-- `github_browse`/`github_blame`: for https://github.com/.
-- `gitlab_browse`/`gitlab_blame`: for https://gitlab.com/.
-- `bitbucket_browse`/`bitbucket_blame`: for https://bitbucket.org/.
-- `codeberg_browse`/`codeberg_blame`: for https://codeberg.org/.
-- `samba_browse`: for https://git.samba.org/ (blame not support).
-
-If you need to bind a github enterprise host, please use:
+If you need to bind a github enterprise host, please implement it with a lua function that reuses the same url structure as the default `github.com` router:
 
 ```lua
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_browse(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blob",
+    lk.rev,
+    location,
+  }, "/")
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_blame(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blame",
+    lk.rev,
+    location,
+  }, "/")
+end
+
 require('gitlinker').setup({
   router = {
     browse = {
-      ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
+      ["^github%.your%.host"] = github_browse,
     },
     blame = {
-      ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
+      ["^github%.your%.host"] = github_blame,
     },
   }
 })

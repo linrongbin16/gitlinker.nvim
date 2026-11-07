@@ -55,8 +55,6 @@ describe("gitlinker", function()
     },
   })
 
-  local routers = require("gitlinker.routers")
-
   describe("[_url_template_engine]", function()
     it("test nil parameters", function()
       assert_eq(gitlinker._url_template_engine(nil, "asdfasdf"), nil)
@@ -123,7 +121,6 @@ describe("gitlinker", function()
         actual,
         "https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l13"
       )
-      assert_eq(actual, routers.samba_browse(lk))
     end)
     it("git.samba.org/samba.git with different lstart/lend", function()
       local lk = {
@@ -145,7 +142,6 @@ describe("gitlinker", function()
         actual,
         "https://git.samba.org/?p=samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12"
       )
-      assert_eq(actual, routers.samba_browse(lk))
     end)
     it("git.samba.org/bbaumbach/samba.git with same lstart/lend", function()
       local lk = {
@@ -167,7 +163,6 @@ describe("gitlinker", function()
         actual,
         "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l13"
       )
-      assert_eq(actual, routers.samba_browse(lk))
     end)
     it("git.samba.org/bbaumbach/samba.git with different lstart/lend", function()
       local lk = {
@@ -189,7 +184,6 @@ describe("gitlinker", function()
         actual,
         "https://git.samba.org/?p=bbaumbach/samba.git;a=blob;f=wscript;hb=399b1d05473c711fc5592a6ffc724e231c403486#l12"
       )
-      assert_eq(actual, routers.samba_browse(lk))
     end)
     it("github with same lstart/lend", function()
       local lk = {
@@ -211,7 +205,6 @@ describe("gitlinker", function()
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L13-L47"
       )
-      assert_eq(actual, routers.github_browse(lk))
     end)
     it("github with different lstart/lend", function()
       local lk = {
@@ -231,7 +224,6 @@ describe("gitlinker", function()
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1"
       )
-      assert_eq(actual, routers.github_browse(lk))
     end)
     it("ssh://git@github.com:/myorg/myrepo.git", function()
       local lk = {
@@ -251,7 +243,6 @@ describe("gitlinker", function()
         actual,
         "https://github.com/myorg/myrepo/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1"
       )
-      assert_eq(actual, routers.github_browse(lk))
     end)
     it("ssh://git@git.xyz.com with same lstart/lend", function()
       local lk = {
@@ -273,7 +264,6 @@ describe("gitlinker", function()
         actual,
         "https://git.xyz.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L13-L47"
       )
-      assert_eq(actual, routers.github_browse(lk))
     end)
     it("ssh://git@git.xyz.com with different lstart/lend", function()
       local lk = {
@@ -295,7 +285,6 @@ describe("gitlinker", function()
         actual,
         "https://git.xyz.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1"
       )
-      assert_eq(actual, routers.github_browse(lk))
     end)
     it("gitlab with same line start and line end", function()
       local lk = {
@@ -315,7 +304,6 @@ describe("gitlinker", function()
         actual,
         "https://gitlab.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L3"
       )
-      assert_eq(actual, routers.gitlab_browse(lk))
     end)
     it("gitlab with different line start and line end", function()
       local lk = {
@@ -335,7 +323,6 @@ describe("gitlinker", function()
         actual,
         "https://gitlab.com/linrongbin16/gitlinker.nvim/blob/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L2-L5"
       )
-      assert_eq(actual, routers.gitlab_browse(lk))
     end)
     it("bitbucket with same line start and line end", function()
       local lk = {
@@ -355,7 +342,6 @@ describe("gitlinker", function()
         actual,
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1"
       )
-      assert_eq(actual, routers.bitbucket_browse(lk))
     end)
     it("bitbucket with different line start and line end", function()
       local lk = {
@@ -375,7 +361,6 @@ describe("gitlinker", function()
         actual,
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-27:51"
       )
-      assert_eq(actual, routers.bitbucket_browse(lk))
     end)
     it("codeberg with same line start and line end", function()
       local lk = {
@@ -395,7 +380,6 @@ describe("gitlinker", function()
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?display=source#L17"
       )
-      assert_eq(actual, routers.codeberg_browse(lk))
     end)
     it("codeberg with different line start and line end", function()
       local lk = {
@@ -415,7 +399,6 @@ describe("gitlinker", function()
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?display=source#L27-L53"
       )
-      assert_eq(actual, routers.codeberg_browse(lk))
     end)
   end)
   describe("[_blame]", function()
@@ -437,7 +420,6 @@ describe("gitlinker", function()
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1"
       )
-      assert_eq(actual, routers.github_blame(lk))
     end)
     it("github with different lstart/lend", function()
       local lk = {
@@ -457,7 +439,6 @@ describe("gitlinker", function()
         actual,
         "https://github.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?plain=1#L1-L2"
       )
-      assert_eq(actual, routers.github_blame(lk))
     end)
     it("gitlab with same lstart/lend", function()
       local lk = {
@@ -477,7 +458,6 @@ describe("gitlinker", function()
         actual,
         "https://gitlab.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1"
       )
-      assert_eq(actual, routers.gitlab_blame(lk))
     end)
     it("gitlab with different lstart/lend", function()
       local lk = {
@@ -497,7 +477,6 @@ describe("gitlinker", function()
         actual,
         "https://gitlab.com/linrongbin16/gitlinker.nvim/blame/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#L1-L2"
       )
-      assert_eq(actual, routers.gitlab_blame(lk))
     end)
     it("bitbucket with same lstart/lend", function()
       local lk = {
@@ -517,7 +496,6 @@ describe("gitlinker", function()
         actual,
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-13"
       )
-      assert_eq(actual, routers.bitbucket_blame(lk))
     end)
     it("bitbucket with different lstart/lend", function()
       local lk = {
@@ -537,7 +515,6 @@ describe("gitlinker", function()
         actual,
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1:2"
       )
-      assert_eq(actual, routers.bitbucket_blame(lk))
     end)
     it("codeberg with same lstart/lend", function()
       local lk = {
@@ -557,7 +534,6 @@ describe("gitlinker", function()
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?display=source#L13"
       )
-      assert_eq(actual, routers.codeberg_blame(lk))
     end)
     it("codeberg with different lstart/lend", function()
       local lk = {
@@ -577,7 +553,6 @@ describe("gitlinker", function()
         actual,
         "https://codeberg.org/linrongbin16/gitlinker.nvim/blame/commit/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua?display=source#L13-L21"
       )
-      assert_eq(actual, routers.codeberg_blame(lk))
     end)
   end)
   describe("[_worker]", function()
