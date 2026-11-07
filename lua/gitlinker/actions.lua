@@ -8,13 +8,13 @@ end
 
 -- open url in browser
 --- @param url string
-local function system(url)
+local function open(url)
   vim.ui.open(url)
 end
 
 local M = {
   clipboard = clipboard,
-  system = system,
+  open = open,
 }
 
 return M
