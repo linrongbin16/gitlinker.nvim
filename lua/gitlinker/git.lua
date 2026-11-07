@@ -75,10 +75,12 @@ local function _run_cmd_async(args, dir, callback)
     local result = GitResult:new()
     result.code = completed.code or 0
     if str.not_blank(completed.stdout) then
-      result.stdout = str.split(str.trim(completed.stdout), "\n", { trimempty = true })
+      result.stdout =
+        vim.split(vim.trim(completed.stdout), "\n", { plain = true, trimempty = true })
     end
     if str.not_blank(completed.stderr) then
-      result.stderr = str.split(str.trim(completed.stderr), "\n", { trimempty = true })
+      result.stderr =
+        vim.split(vim.trim(completed.stderr), "\n", { plain = true, trimempty = true })
     end
     log.debug(string.format("|_run_cmd_async| result:%s", vim.inspect(result)))
     callback(result)
