@@ -1,5 +1,5 @@
 local types = require("gitlinker.types")
-local log = require("gitlinker.commons.log")
+local log = require("gitlinker.log")
 local async = require("gitlinker.commons.async")
 
 local configs = require("gitlinker.configs")
@@ -320,11 +320,9 @@ local function setup(opts)
 
   -- logger
   log.setup({
-    name = "gitlinker",
     level = confs.debug and vim.log.levels.DEBUG or vim.log.levels.INFO,
     use_console = confs.console_log,
     use_file = confs.file_log,
-    file_name = "gitlinker.log",
   })
 
   -- command

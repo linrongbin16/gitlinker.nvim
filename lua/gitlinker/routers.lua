@@ -1,5 +1,5 @@
 local types = require("gitlinker.types")
-local log = require("gitlinker.commons.log")
+local log = require("gitlinker.log")
 
 local range = require("gitlinker.range")
 

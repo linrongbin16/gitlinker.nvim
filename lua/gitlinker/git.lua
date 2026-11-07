@@ -1,4 +1,4 @@
-local log = require("gitlinker.commons.log")
+local log = require("gitlinker.log")
 local types = require("gitlinker.types")
 local async = require("gitlinker.commons.async")
 
