@@ -59,8 +59,5 @@ jobs:
       - unit_test
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: googleapis/release-please-action@v5
         id: release
-        with:
-          release-type: simple
-          package-name: gitlinker.nvim
