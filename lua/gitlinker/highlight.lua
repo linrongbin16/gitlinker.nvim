@@ -1,7 +1,7 @@
 local M = {}
 
--- Highlight group used to highlight the linked line range. It is created by
--- `gitlinker.setup()` and can be redefined by users before the plugin loads.
+-- Highlight group used to highlight the linked line range. It can be redefined
+-- by users before the plugin loads.
 --- @type string
 M.GROUP = "NvimGitLinkerHighlightTextObject"
 
@@ -55,6 +55,18 @@ M.show = function(pos, bufnr, timeout)
     return
   end
   local namespace = vim.api.nvim_create_namespace(M.NAMESPACE)
+  -- Define the group when the highlight is about to be drawn, unless something
+  -- else already did. `vim.hl.range()` accepts an undefined group and draws
+  -- nothing for it without raising anything, so a missing group shows up as a
+  -- highlight that silently never appears. Building it here rather than once in
+  -- `setup()` covers two more ways to end up with no definition: a scheme
+  -- switch, which empties the definition of every group it does not know about
+  -- but keeps their ids, and a setup that turned the highlight off while a
+  -- later call asks for it again through the `highlight_duration` option of
+  -- `link()`. Nothing is built for a session that never links.
+  if not M.exists(M.GROUP) then
+    vim.api.nvim_set_hl(0, M.GROUP, { link = "Search" })
+  end
   -- Let `vim.hl.range()` own the timer. Each call records the ids of the
   -- extmarks it created and clears only those, so a highlight that expires
   -- leaves a later one alone. Clearing the namespace instead would wipe both
