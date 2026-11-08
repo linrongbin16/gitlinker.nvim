@@ -240,9 +240,29 @@ local _link = function(opts)
   if type(opts.highlight_duration) == "number" then
     highlight_duration = opts.highlight_duration
   end
-  if highlight_duration > 0 then
-    highlight.show({ lstart = lk.lstart, lend = lk.lend })
-    vim.defer_fn(highlight.clear, confs.highlight_duration)
+  -- A caller that names only `lend` leaves `lstart` unset, and there is no
+  -- line range to highlight then.
+  if highlight_duration > 0 and lk.lstart then
+    -- Build the positions here rather than inside `highlight.show`: both the
+    -- buffer and the line widths have to be read now, because by the time the
+    -- scheduled callback runs the current buffer may be a different one.
+    local bufnr = vim.api.nvim_get_current_buf()
+    local lstart, lend = lk.lstart, lk.lend
+    if lend and lend < lstart then
+      lstart, lend = lend, lstart
+    end
+    local llast = lend or lstart
+    local start_pos = { lstart - 1, 0 }
+    -- `llast` is named explicitly: the one-argument form measures whatever line
+    -- the cursor happens to sit on, and `bufnr` is still the current buffer
+    -- here, so no buffer switch is needed to reach its lines.
+    local finish_pos = { llast - 1, vim.fn.col({ llast, "$" }) }
+    vim.schedule(function()
+      highlight.show({ start_pos, finish_pos }, bufnr)
+      vim.defer_fn(function()
+        highlight.clear(bufnr)
+      end, confs.highlight_duration)
+    end)
   end
 
   local message = confs.message
