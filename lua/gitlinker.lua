@@ -278,7 +278,7 @@ local _link = function(opts)
   return url
 end
 
---- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _void_link = function(opts)
   return async.run(_link, opts)
@@ -391,7 +391,7 @@ local function setup(opts)
 end
 
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
-local function link_api(opts)
+local function link(opts)
   opts = opts
     or {
       router_type = "browse",
@@ -421,6 +421,7 @@ local function link_api(opts)
     lstart = opts.lstart,
     lend = opts.lend,
     message = opts.message,
+    warn_on_file_change = opts.warn_on_file_change,
     highlight_duration = opts.highlight_duration,
     remote = opts.remote,
     file = opts.file,
@@ -437,7 +438,7 @@ local M = {
   _blame = _blame,
 
   setup = setup,
-  link = link_api,
+  link = link,
 }
 
 return M

@@ -156,7 +156,7 @@ With more than one git remote configured the plugin does not guess: it opens a p
 --- @alias gitlinker.Linker {remote_url:string, protocol:string?, username:string?, password:string?, host:string, port:string?, org:string?, user:string?, repo:string, rev:string, file:string, lstart:integer, lend:integer, file_changed:boolean, default_branch:string?, current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
---- @param opts {router_type:string?, router:gitlinker.Router?, action:gitlinker.Action?, lstart:integer?, lend:integer?, message:boolean?, highlight_duration:integer?, remote:string?, file:string?, rev:string?}?
+--- @param opts {router_type:string?, router:gitlinker.Router?, action:gitlinker.Action?, lstart:integer?, lend:integer?, message:boolean?, warn_on_file_change:boolean?, highlight_duration:integer?, remote:string?, file:string?, rev:string?}?
 require("gitlinker").link(opts)
 ```
 
@@ -194,6 +194,7 @@ require("gitlinker").link({
 
   - `lstart`/`lend`: Line range, i.e. start and end line numbers. Defaults to the current line, or to the last visual selection when in visual mode.
   - `message`: Whether to print the url in the command line. Defaults to the configured value, see [Configuration](#configuration).
+  - `warn_on_file_change`: Whether to print a warning message when file is changed. Defaults to the configured value, see [Configuration](#configuration).
   - `highlight_duration`: How long, in milliseconds, to highlight the linked line range. Defaults to the configured value. `0` disables both the highlight and the `vim.defer_fn` that clears it.
   - `remote`: Specify the git remote. Defaults to the remote detected from the branch upstream.
   - `file`: Specify the relative file path. Defaults to the current buffer's name.
