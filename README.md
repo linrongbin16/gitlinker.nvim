@@ -155,17 +155,10 @@ With more than one git remote configured the plugin does not guess: it opens a p
 > Reading [Customize Urls](#customize-urls) first helps, it explains the router design this API is built on.
 
 ```lua
---- @alias gitlinker.Linker {remote_url:string, protocol:string?,
----   username:string?, password:string?, host:string, port:string?,
----   org:string?, user:string?, repo:string, rev:string, file:string,
----   lstart:integer, lend:integer, file_changed:boolean,
----   default_branch:string?, current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string, protocol:string?, username:string?, password:string?, host:string, port:string?, org:string?, user:string?, repo:string, rev:string, file:string, lstart:integer, lend:integer, file_changed:boolean, default_branch:string?, current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
---- @param opts {router_type:string?, router:gitlinker.Router?,
----   action:gitlinker.Action?, lstart:integer?, lend:integer?,
----   message:boolean?, highlight_duration:integer?, remote:string?,
----   file:string?, rev:string?}?
+--- @param opts {router_type:string?, router:gitlinker.Router?, action:gitlinker.Action?, lstart:integer?, lend:integer?, message:boolean?, highlight_duration:integer?, remote:string?, file:string?, rev:string?}?
 require("gitlinker").link(opts)
 ```
 
