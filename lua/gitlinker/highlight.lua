@@ -36,12 +36,27 @@ M.show = function(range)
   if lend and lend < lstart then
     lstart, lend = lend, lstart
   end
-  -- Columns are 0-based here, so start at column 0 to keep the first character
-  -- of the start line inside the highlight.
-  local pos1 = { lstart - 1, 0 }
-  local pos2 = { (lend or lstart) - 1, vim.fn.col("$") }
+  -- `vim.hl.range()` documents `start` and `finish` only as "a (line, column)
+  -- tuple" and never says which base they use. Both components are 0-based,
+  -- unlike |getpos()|, which is 1-based and returns a four-element list:
+  -- `hl.lua` adds one to each component before building that list.
+  --
+  --   line   -- 0-based, so buffer line `lstart` is `lstart - 1`
+  --   column -- 0-based byte offset, so column 0 is the first character
+  --
+  -- `gitlinker.Range` numbers lines from 1, hence the `- 1` on both. The
+  -- start column is 0 so the first character of the start line is included;
+  -- anything higher would clip it.
+  --
+  -- The end column works the other way around. `col("$")` is 1-based and
+  -- points one past the last character (`7` for `abcdef`), and read as a
+  -- 0-based end column that is exactly what an end bound wants, so it takes
+  -- no adjustment. `hl.lua` also clamps the column to the line length, so an
+  -- overshoot would be harmless, but the intended value costs nothing.
+  local start_pos = { lstart - 1, 0 }
+  local finish_pos = { (lend or lstart) - 1, vim.fn.col("$") }
   vim.schedule(function()
-    vim.hl.range(0, namespace, M.GROUP, pos1, pos2, { inclusive = true })
+    vim.hl.range(0, namespace, M.GROUP, start_pos, finish_pos, { inclusive = true })
     -- Force the screen to highlight the text immediately
     vim.cmd("redraw")
   end)
