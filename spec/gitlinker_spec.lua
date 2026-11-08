@@ -694,6 +694,146 @@ describe("gitlinker", function()
     end)
   end)
 
+  describe("[command range]", function()
+    -- `:1,3GitLink` used to be unioned with the cursor line, so running it from
+    -- line 15 linked lines 1 to 15. These cases capture the url through
+    -- `clipboard_override` and read the line anchor back out of it.
+    local repo
+    local saved_override
+
+    --- Run `args` and fail loudly when it exits non-zero: a silently broken
+    --- fixture would otherwise surface as a confusing assertion error later.
+    --- @param args string[]
+    local function sh(args)
+      local out = vim.fn.system(args)
+      assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
+    end
+
+    --- Run `run` and return the line anchor of the url it copies out.
+    --- @param run fun()
+    --- @return string?
+    local function anchor_of(run)
+      local url
+      local confs = require("gitlinker.configs").get()
+      confs.clipboard_override = function(u)
+        url = u
+      end
+      run()
+      confs.clipboard_override = saved_override
+      vim.wait(5000, function()
+        return url ~= nil
+      end, 10)
+      -- The url arrives from inside the async task, which keeps going for a
+      -- few more scheduled steps. Let it finish before the fixture is torn
+      -- down, or the leftover step reads a buffer that no longer belongs to
+      -- this repository and logs a fatal of its own.
+      vim.wait(300)
+      return url and url:match("#L[%dL%-]*$") or nil
+    end
+
+    before_each(function()
+      -- Earlier describes start tasks they never join. Give them a few turns
+      -- to finish before this block switches the current buffer out from under
+      -- them, which would make their path lookup fail and log a fatal.
+      vim.wait(300)
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      local lines = {}
+      for i = 1, 20 do
+        lines[i] = "line " .. i
+      end
+      vim.fn.writefile(lines, repo .. "/demo.txt")
+
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "add", "--all" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--message", "init" })
+      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
+      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", "HEAD" })
+      sh({
+        "git",
+        "-C",
+        repo,
+        "symbolic-ref",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/main",
+      })
+      sh({ "git", "-C", repo, "branch", "--set-upstream-to=origin/main", "main" })
+
+      vim.cmd("edit! " .. vim.fn.fnameescape(repo .. "/demo.txt"))
+      saved_override = require("gitlinker.configs").get().clipboard_override
+    end)
+
+    after_each(function()
+      -- Let the task started by `GitLink` run to the end while its buffer is
+      -- still around: it only reaches its last steps after a few scheduled
+      -- turns, and tearing the fixture down early makes those steps read a
+      -- buffer that belongs to no repository any more.
+      vim.wait(300)
+      require("gitlinker.configs").get().clipboard_override = saved_override
+      vim.cmd("silent! enew!")
+      vim.fn.delete(repo, "rf")
+    end)
+
+    it("links the cursor line when no range is given", function()
+      vim.api.nvim_win_set_cursor(0, { 15, 0 })
+      assert_eq(
+        anchor_of(function()
+          vim.cmd("GitLink")
+        end),
+        "#L15"
+      )
+    end)
+
+    it("links the range given on the command line", function()
+      vim.api.nvim_win_set_cursor(0, { 15, 0 })
+      assert_eq(
+        anchor_of(function()
+          vim.cmd("1,3GitLink")
+        end),
+        "#L1-L3",
+        "cursor line 15 must not join the range"
+      )
+    end)
+
+    it("links a single line range given on the command line", function()
+      vim.api.nvim_win_set_cursor(0, { 15, 0 })
+      assert_eq(
+        anchor_of(function()
+          vim.cmd("2GitLink")
+        end),
+        "#L2"
+      )
+    end)
+
+    it("links the whole file given a percent range", function()
+      vim.api.nvim_win_set_cursor(0, { 15, 0 })
+      assert_eq(
+        anchor_of(function()
+          vim.cmd("%GitLink")
+        end),
+        "#L1-L20"
+      )
+    end)
+
+    it("links the visual selection when it is mapped through <cmd>", function()
+      -- The mapping in the readme runs `<cmd>GitLink<cr>` in visual mode, so
+      -- the command gets no range: the selection has to be recovered from the
+      -- marks instead.
+      vim.api.nvim_win_set_cursor(0, { 4, 0 })
+      local anchor = anchor_of(function()
+        vim.api.nvim_feedkeys(
+          vim.api.nvim_replace_termcodes("Vjj<Cmd>GitLink<CR>", true, false, true),
+          "x",
+          false
+        )
+      end)
+      assert_eq(anchor, "#L4-L6")
+    end)
+  end)
+
   describe("[link]", function()
     it("browse", function()
       gitlinker.link()
