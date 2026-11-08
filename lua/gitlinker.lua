@@ -261,7 +261,7 @@ local _link = function(opts)
       highlight.show({ start_pos, finish_pos }, bufnr)
       vim.defer_fn(function()
         highlight.clear(bufnr)
-      end, confs.highlight_duration)
+      end, highlight_duration)
     end)
   end
 
