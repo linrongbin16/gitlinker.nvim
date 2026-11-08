@@ -36,7 +36,9 @@ M.show = function(range)
   if lend and lend < lstart then
     lstart, lend = lend, lstart
   end
-  local pos1 = { lstart - 1, 1 }
+  -- Columns are 0-based here, so start at column 0 to keep the first character
+  -- of the start line inside the highlight.
+  local pos1 = { lstart - 1, 0 }
   local pos2 = { (lend or lstart) - 1, vim.fn.col("$") }
   vim.schedule(function()
     vim.highlight.range(0, namespace, M.GROUP, pos1, pos2, { inclusive = true })
