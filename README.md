@@ -319,7 +319,28 @@ Calling `setup()` is optional: the plugin file calls it with empty options when 
 >
 > Recommend reading [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for a better understanding of git urls.
 
-There are two ways to customize url generations: [string template](#string-template) and [lua function](#lua-function).
+You can bind a router to a private git host with a key-value pair, the key is a [lua pattern](https://www.lua.org/pil/20.2.html) (similar to [Regular expression](https://en.wikipedia.org/wiki/Regular_expression) but much worse), the value is either a [string template](#string-template) or a [lua function](#lua-function).
+
+For example with GitHub Enterprise domain, you can add your own bindings:
+
+```lua
+require("gitlinker").setup({
+  router = {
+    browse = {
+      -- map style: pattern as key, implementation as value
+      ["^your%.github%.com"] = "https://your.github.com/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}?plain=1"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+    },
+  },
+})
+```
+
+In above example, the key `"^your%.github%.com"` matches the remote git domain `"your.github.com"`, and it will generate the git url with a string template, with multiple components: `_A.ORG`, `_A.REPO`, `_A.REV`, etc. See [string template](#string-template) for more details.
 
 #### String Template
 
@@ -365,7 +386,7 @@ require("gitlinker").setup({
 })
 ```
 
-The template string uses curly braces `{}` to hold lua expressions, evaluated through [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), so anything `luaeval` accepts works, including string literals. Error messages from a broken template can be confusing, since they come from `luaeval` and not from this plugin.
+The template string uses curly braces `{}` to hold lua expressions, evaluated through [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), so anything `luaeval` accepts works, including string literals. While error messages from a broken template can be confusing.
 
 #### Lua Function
 
@@ -505,35 +526,12 @@ require("gitlinker").setup({
 })
 ```
 
-Use it like any builtin router, it shows up in the completion list too:
+Use it like any builtin router:
 
 ```vim
 GitLink file_only
 GitLink! file_only
 ```
-
-Bindings come in two shapes, and both can be mixed inside the same router type:
-
-```lua
-require("gitlinker").setup({
-  router = {
-    browse = {
-      -- list style: an ordered list of {pattern, implementation} pairs
-      {
-        "^git%.example%.com",
-        "https://git.example.com/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}",
-      },
-      -- map style: pattern as key, implementation as value
-      ["^github%.com"] = "https://github.com/{_A.ORG}/{_A.REPO}"
-        .. "/blob/{_A.REV}/{_A.FILE}",
-    },
-  },
-})
-```
-
-> [!NOTE]
->
-> When several bindings could match the same host, the list style wins over the map style, and inside the list the **last** matching entry wins, since each pair is prepended to the front. The default bindings from [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) sit between the two: a user list entry beats a default binding, a user map entry replaces the default binding with the same key.
 
 ### Alternative Clipboard
 
@@ -559,8 +557,6 @@ require("gitlinker").setup({
 })
 ```
 
-`clipboard_override` also applies to `:GitLink`, which would otherwise call `vim.fn.setreg("+", url)`. The bang form (`:GitLink!`) always opens the url in the browser and ignores it.
-
 ### Highlight Group
 
 | Highlight Group                  | Default Group | Description                          |
@@ -568,26 +564,6 @@ require("gitlinker").setup({
 | NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
 
 The group is created only when `highlight_duration` is greater than `0`, and only if it does not exist yet, so you can define your own colors before the plugin loads.
-
-## Breaking Changes
-
-Upgrading from [ruifm/gitlinker.nvim](https://github.com/ruifm/gitlinker.nvim)? The old entry points were replaced:
-
-| Old                                                  | New                                                                              |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
-| default key mappings                                 | none, the plugin ships `:GitLink` and no mappings                                |
-| `require("gitlinker").get_buf_range_url(mode, opts)` | `require("gitlinker").link(opts)`                                                |
-| `require("gitlinker").get_repo_url()`                | not available, use `link()` with a custom router                                 |
-| `require("gitlinker").actions.open_in_browser`       | `require("gitlinker.actions").open`                                              |
-| `mappings = { ... }` in `setup()`                    | `vim.keymap.set(...)`, see [Recommended Key Mappings](#recommended-key-mappings) |
-| `blob` / `src` router types                          | `browse`                                                                         |
-| `cfg = { ... }` in `setup()`                         | the [configuration table](#configuration)                                        |
-
-Other changes worth knowing:
-
-- 5.5.2 removed the last pieces of `commons.nvim`. The async runtime, the logger, the git wrapper and the type helpers are all in-tree now, so the plugin has no lua dependency at all.
-- 5.0.0 upgraded `commons.nvim` to 2.x, which broke configs written against the 1.x api.
-- 4.0.0 removed the default key mappings, and 3.0.0 renamed the `blob` router to `browse` and merged `src` into it.
 
 ## Development
 
