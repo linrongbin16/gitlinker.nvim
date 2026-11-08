@@ -44,11 +44,12 @@ end
 -- an overshoot would be harmless, but the intended value costs nothing.
 --
 --- @param bufnr integer Buffer to highlight.
---- @param start {integer,integer} 0-based `(line, column)` to start at.
---- @param finish {integer,integer} 0-based `(line, column)` to end at.
+--- @param start [integer,integer] 0-based `(line, column)` to start at.
+--- @param finish [integer,integer] 0-based `(line, column)` to end at.
 --- @param timeout integer How long to keep the highlight, in milliseconds.
---- @return uv.uv_timer_t timer The timer that will clear the highlight.
---- @return fun() clear Clears this highlight alone, leaving any other one in the
+--- @return uv.uv_timer_t? timer The timer that will clear the highlight, if one
+--- was started. `vim.hl.range()` returns no timer when the buffer is gone.
+--- @return fun()? clear Clears this highlight alone, leaving any other one in the
 --- buffer untouched.
 M.show = function(bufnr, start, finish, timeout)
   -- The buffer may be gone by the time a scheduled call runs.

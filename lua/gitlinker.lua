@@ -202,7 +202,7 @@ end
 ---
 --- @param opts {lstart:integer?,lend:integer?,highlight_duration:integer?}
 --- @param confs gitlinker.Options
---- @return {bufnr:integer,start:{integer,integer},finish:{integer,integer},duration:integer}?
+--- @return {bufnr:integer,start:[integer,integer],finish:[integer,integer],duration:integer}?
 local function _highlight_target(opts, confs)
   local duration = confs.highlight_duration
   if type(opts.highlight_duration) == "number" then
