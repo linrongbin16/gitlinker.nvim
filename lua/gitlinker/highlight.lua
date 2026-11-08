@@ -9,20 +9,18 @@ M.GROUP = "NvimGitLinkerHighlightTextObject"
 --- @type string
 M.NAMESPACE = "NvimGitLinker"
 
+-- A group that was defined at least once keeps an id even after its attributes
+-- are cleared, so ask for its definition rather than its id: a scheme switch
+-- empties the definition without removing the id.
+--
+-- `create = false` keeps the lookup read-only; the default creates the group as
+-- a side effect, which would make a second check report a group that exists but
+-- has no attributes.
 --- @param name string
+--- @return boolean
 M.hl_group_exists = function(name)
-  if vim.fn.has("nvim-0.9") > 0 and type(vim.api.nvim_get_hl) == "function" then
-    local hl = vim.api.nvim_get_hl(0, { name = name })
-    -- logger.debug("|highlight.hl_group_exists| hl:%s", vim.inspect(hl))
-    return type(hl) == "table" and not vim.tbl_isempty(hl)
-  else
-    local result = vim.fn.hlID(name)
-    -- logger.debug(
-    --     "|highlight.hl_group_exists| hl id:%s",
-    --     vim.inspect(result)
-    -- )
-    return result > 0
-  end
+  local hl = vim.api.nvim_get_hl(0, { name = name, create = false })
+  return type(hl) == "table" and not vim.tbl_isempty(hl)
 end
 
 -- Highlights the region between the two positions with the highlight group.

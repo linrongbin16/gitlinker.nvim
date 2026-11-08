@@ -44,6 +44,27 @@ describe("gitlinker.highlight", function()
       vim.api.nvim_win_set_cursor(0, { 1, 0 })
       highlight.clear(bufnr)
     end)
+    it("hl_group_exists sees a defined group", function()
+      vim.api.nvim_set_hl(0, "ProbeDefined", { link = "Search" })
+      assert_true(highlight.hl_group_exists("ProbeDefined"))
+    end)
+    it("hl_group_exists rejects a group that was never defined", function()
+      assert_false(highlight.hl_group_exists("ProbeNeverDefined"))
+    end)
+    it("hl_group_exists rejects a group whose attributes were cleared", function()
+      -- A colorscheme switch empties the definitions without dropping the ids,
+      -- so a check that asks for the id reports a group that draws nothing.
+      vim.api.nvim_set_hl(0, "ProbeCleared", { link = "Search" })
+      vim.api.nvim_set_hl(0, "ProbeCleared", {})
+      assert_eq(vim.fn.hlexists("ProbeCleared"), 1)
+      assert_false(highlight.hl_group_exists("ProbeCleared"))
+    end)
+    it("hl_group_exists does not define the group it looks up", function()
+      -- `nvim_get_hl()` creates the group unless told otherwise, which would
+      -- make the second lookup of a missing group report it as present.
+      highlight.hl_group_exists("ProbeSideEffect")
+      assert_eq(vim.fn.hlexists("ProbeSideEffect"), 0)
+    end)
     it("show", function()
       highlight.show(make_pos(1, 1), bufnr)
       shown_marks(bufnr)
@@ -213,6 +234,38 @@ describe("gitlinker.highlight", function()
         assert_eq(marks[1][4].end_row, 1)
         assert_eq(marks[1][4].end_col, 25)
         highlight.clear(origin)
+      end)
+
+      it("clears after the duration given to link, not the configured one", function()
+        local origin = vim.api.nvim_get_current_buf()
+        highlight.clear(origin)
+
+        local confs = require("gitlinker.configs").get()
+        local saved = confs.highlight_duration
+        -- Far longer than the caller asks for, so a timer fed from the config
+        -- rather than from the option is still pending when the wait below
+        -- gives up. Keep the value in place for the whole test: `_link` reads
+        -- it from inside a scheduled callback, long after `_void_link` returns.
+        confs.highlight_duration = 5000
+        local ok = pcall(require("gitlinker")._void_link, {
+          action = function() end,
+          router = function()
+            return "https://example.com/x"
+          end,
+          lstart = 1,
+          lend = 2,
+          highlight_duration = 50,
+        })
+        assert_true(ok)
+
+        assert_eq(#shown_marks(origin), 1)
+        -- Wait well past the requested duration but nowhere near the configured
+        -- one: the mark has to be gone long before the config would clear it.
+        local cleared = vim.wait(1000, function()
+          return #vim.api.nvim_buf_get_extmarks(origin, ns, 0, -1, {}) == 0
+        end, 10)
+        confs.highlight_duration = saved
+        assert_true(cleared)
       end)
     end)
   end)
