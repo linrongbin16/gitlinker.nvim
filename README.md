@@ -15,26 +15,38 @@ Here is an example of git permlink: https://github.com/neovim/neovim/blob/2e156a
 
 https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/d3e425a5-cf08-487f-badc-d393ca9dda2f
 
+For now supported platforms are:
+
+- https://github.com/
+- https://gitlab.com/
+- https://bitbucket.org/
+- https://codeberg.org/
+- https://git.samba.org/
+
+PRs are welcomed for other git host websites!
+
 ## Features
 
-- **Permalinks, not branch links.** The default `browse` router resolves the current revision to a commit id, so the url keeps pointing at the same bytes after the branch moves on.
-- **Line ranges included.** A single line, a visual selection, or an explicit `:5,8GitLink` all end up as a range, using whatever syntax the host speaks: `#L12-L20` on github, `#lines-12:20` on bitbucket.
-- **Four builtin router types.** `browse`, `blame`, `default_branch` and `current_branch`, each implemented for github.com, gitlab.com, bitbucket.org, codeberg.org and git.samba.org.
-- **Every url is a template.** Rebind a host to a string template such as `"https://{_A.HOST}/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}#L{_A.LSTART}"`, or drop down to a plain lua function when a template is not expressive enough.
-- **Zero configuration.** The plugin runs `setup()` itself on load, so `:GitLink` works before you write a single line of config.
-- **No third-party dependencies.** One Neovim and one `git` binary; child processes are spawned asynchronously.
-- **Custom actions.** The url is handed to an action callback: copy it, open it, or consume it yourself.
+- Features:
+
+3. Improvements:
+   - Use git `stderr` output as error message.
+   - Async child process IO via coroutine and `uv.spawn`.
+   - No third-party dependencies.
+
+- Provide `GitLink` command, not default key mappings.
+- Support Windows and WSL2 platforms.
+- Support git blame, default branch and current branch.
+- Respect ssh host alias.
+- Add `?plain=1` for markdown files.
+- Fully customizable [git url](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) generation.
 
 ## Requirements
 
-- Neovim &ge; 0.12 (built on `vim.async`).
-- [git](https://git-scm.com/), available in `$PATH`.
-- [ssh](https://www.openssh.com/) (optional), only used to resolve ssh host aliases from `~/.ssh/config`.
-- [wslu](https://packages.ubuntu.com/search?keywords=wslu) (optional), for the `wslview` helper Neovim's own `vim.ui.open` uses on Windows wsl2. The plugin never calls it directly.
-
-> [!NOTE]
->
-> This plugin always supports the latest stable and (possibly) nightly Neovim version.
+- Neovim &ge; 0.12.
+- [git](https://git-scm.com/) available in `$PATH`.
+- [ssh](https://www.openssh.com/) (optional, used to resolve ssh host aliases from `~/.ssh/config`).
+- [wslu](https://packages.ubuntu.com/search?keywords=wslu) (optional, used to open browser from Windows wsl2).
 
 ## Installation
 
