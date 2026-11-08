@@ -247,6 +247,29 @@ require("gitlinker").link({
 
 ### Recommended Key Mappings
 
+With vim commands:
+
+```lua
+local function cmdmap(lhs, cmd, desc)
+  vim.keymap.set(
+    { "n", "v" },
+    lhs,
+    "<cmd>" .. cmd .. "<cr>",
+    { silent = true, desc = desc }
+  )
+end
+
+-- browse
+cmdmap("<leader>gl", "GitLink", "Copy git permalink")
+cmdmap("<leader>gL", "GitLink!", "Open git permalink")
+
+-- blame
+cmdmap("<leader>gb", "GitLink blame", "Copy git blame link")
+cmdmap("<leader>gB", "GitLink! blame", "Open git blame link")
+```
+
+With lua apis:
+
 ```lua
 local gitlinker = require("gitlinker")
 local actions = require("gitlinker.actions")
@@ -268,64 +291,7 @@ keymap(
   { router_type = "blame", action = actions.open },
   "Open git blame link"
 )
-
--- default branch
-keymap(
-  "<leader>gd",
-  { router_type = "default_branch" },
-  "Copy default branch link"
-)
-keymap(
-  "<leader>gD",
-  { router_type = "default_branch", action = actions.open },
-  "Open default branch link"
-)
-
--- current branch
-keymap(
-  "<leader>gc",
-  { router_type = "current_branch" },
-  "Copy current branch link"
-)
-keymap(
-  "<leader>gC",
-  { router_type = "current_branch", action = actions.open },
-  "Open current branch link"
-)
 ```
-
-The same mappings with the user command, if you prefer that route:
-
-```lua
-local function cmdmap(lhs, cmd, desc)
-  vim.keymap.set(
-    { "n", "v" },
-    lhs,
-    "<cmd>" .. cmd .. "<cr>",
-    { silent = true, desc = desc }
-  )
-end
-
--- browse
-cmdmap("<leader>gl", "GitLink", "Copy git permalink")
-cmdmap("<leader>gL", "GitLink!", "Open git permalink")
-
--- blame
-cmdmap("<leader>gb", "GitLink blame", "Copy git blame link")
-cmdmap("<leader>gB", "GitLink! blame", "Open git blame link")
-
--- default branch
-cmdmap("<leader>gd", "GitLink default_branch", "Copy default branch link")
-cmdmap("<leader>gD", "GitLink! default_branch", "Open default branch link")
-
--- current branch
-cmdmap("<leader>gc", "GitLink current_branch", "Copy current branch link")
-cmdmap("<leader>gC", "GitLink! current_branch", "Open current branch link")
-```
-
-> [!NOTE]
->
-> Always wrap `link()` in `function() ... end`, as above, instead of passing `require("gitlinker").link` as the right hand side directly. `vim.keymap.set` treats a function right hand side as a callback and calls it with no arguments, which silently drops the options table.
 
 ## Configuration
 
@@ -348,10 +314,6 @@ require("gitlinker").setup(opts)
 | `clipboard_override`  | `function?` \| `false`      | `false`                                               | Custom clipboard writer used by `:GitLink`, see [Alternative Clipboard](#alternative-clipboard). |
 
 Calling `setup()` is optional: the plugin file calls it with empty options when the plugin is loaded. Calling it a second time merges over the defaults again, so repeated calls are harmless.
-
-> [!NOTE]
->
-> `warn_on_file_change` is currently only honored through `setup()`. The per-call field exists on `link()` but is not forwarded, so pass it in the configuration.
 
 ### Customize Urls
 
