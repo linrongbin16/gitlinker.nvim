@@ -241,6 +241,44 @@ describe("gitlinker.highlight", function()
         wipe(origin)
       end)
 
+      it("highlights the buffer it started in, even after the user switched away", function()
+        local origin = vim.api.nvim_get_current_buf()
+        wipe(origin)
+
+        -- The fixture file's second line is the long one; the buffer the user
+        -- switches to holds a single short line. If the range were measured
+        -- after the switch, both the buffer and the end column would be wrong.
+        local other = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(other, 0, -1, false, { "x" })
+
+        local confs = require("gitlinker.configs").get()
+        local saved = confs.highlight_duration
+        confs.highlight_duration = 5000
+        -- The router runs after the git work is done, so switching here lands
+        -- right before the highlight is drawn: the same moment a user would
+        -- land on another file while the link is still being resolved.
+        local ok = pcall(require("gitlinker")._void_link, {
+          action = function() end,
+          router = function()
+            vim.api.nvim_set_current_buf(other)
+            return "https://example.com/x"
+          end,
+          lstart = 1,
+          lend = 2,
+        })
+        confs.highlight_duration = saved
+        assert_true(ok)
+
+        local marks = shown_marks(origin)
+        assert_eq(#marks, 1)
+        assert_eq(marks[1][4].end_row, 1)
+        assert_eq(marks[1][4].end_col, 25)
+
+        assert_eq(#vim.api.nvim_buf_get_extmarks(other, ns, 0, -1, {}), 0)
+        wipe(origin)
+        vim.cmd("silent! enew!")
+      end)
+
       it("defines the group when a call asks for a highlight that setup skipped", function()
         local origin = vim.api.nvim_get_current_buf()
         wipe(origin)

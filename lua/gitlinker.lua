@@ -193,11 +193,48 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
+--- Resolve what to highlight, before the first `await` of `_link`.
+---
+--- `_link` yields to the event loop a few times before it draws anything, so
+--- the buffer and the line width have to be read up front: by the time
+--- `highlight.show()` runs, the current buffer may belong to another file and
+--- the range would be sized from whichever file the user switched to.
+---
+--- @param opts {lstart:integer?,lend:integer?,highlight_duration:integer?}
+--- @param confs gitlinker.Options
+--- @return {bufnr:integer,pos:{[1]:{integer,integer},[2]:{integer,integer}},duration:integer}?
+local function _highlight_target(opts, confs)
+  local duration = confs.highlight_duration
+  if type(opts.highlight_duration) == "number" then
+    duration = opts.highlight_duration
+  end
+  -- A caller that names only `lend` leaves `lstart` unset, and there is no
+  -- line range to highlight then.
+  if duration <= 0 or not opts.lstart then
+    return nil
+  end
+  local lstart, lend = opts.lstart, opts.lend
+  if lend and lend < lstart then
+    lstart, lend = lend, lstart
+  end
+  local llast = lend or lstart
+  return {
+    bufnr = vim.api.nvim_get_current_buf(),
+    -- `llast` is named explicitly: the one-argument form of `col()` measures
+    -- whatever line the cursor happens to sit on, which is only the end line
+    -- when the range is a single line.
+    pos = { { lstart - 1, 0 }, { llast - 1, vim.fn.col({ llast, "$" }) } },
+    duration = duration,
+  }
+end
+
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
+
+  local highlight_target = _highlight_target(opts, confs)
 
   local lk, lk_err = linker.make_linker(opts.remote, opts.file, opts.rev)
   if not lk then
@@ -236,29 +273,12 @@ local _link = function(opts)
     opts.action(url --[[@as string]])
   end
 
-  local highlight_duration = confs.highlight_duration
-  if type(opts.highlight_duration) == "number" then
-    highlight_duration = opts.highlight_duration
-  end
-  -- A caller that names only `lend` leaves `lstart` unset, and there is no
-  -- line range to highlight then.
-  if highlight_duration > 0 and lk.lstart then
-    -- Build the positions here rather than inside `highlight.show`: both the
-    -- buffer and the line widths have to be read now, because by the time the
-    -- scheduled callback runs the current buffer may be a different one.
-    local bufnr = vim.api.nvim_get_current_buf()
-    local lstart, lend = lk.lstart, lk.lend
-    if lend and lend < lstart then
-      lstart, lend = lend, lstart
-    end
-    local llast = lend or lstart
-    local start_pos = { lstart - 1, 0 }
-    -- `llast` is named explicitly: the one-argument form measures whatever line
-    -- the cursor happens to sit on, and `bufnr` is still the current buffer
-    -- here, so no buffer switch is needed to reach its lines.
-    local finish_pos = { llast - 1, vim.fn.col({ llast, "$" }) }
+  if highlight_target then
+    local bufnr = highlight_target.bufnr
+    local pos = highlight_target.pos
+    local duration = highlight_target.duration
     vim.schedule(function()
-      highlight.show({ start_pos, finish_pos }, bufnr, highlight_duration)
+      highlight.show(pos, bufnr, duration)
     end)
   end
 
