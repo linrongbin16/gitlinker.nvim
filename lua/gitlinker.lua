@@ -258,10 +258,7 @@ local _link = function(opts)
     -- here, so no buffer switch is needed to reach its lines.
     local finish_pos = { llast - 1, vim.fn.col({ llast, "$" }) }
     vim.schedule(function()
-      highlight.show({ start_pos, finish_pos }, bufnr)
-      vim.defer_fn(function()
-        highlight.clear(bufnr)
-      end, highlight_duration)
+      highlight.show({ start_pos, finish_pos }, bufnr, highlight_duration)
     end)
   end
 

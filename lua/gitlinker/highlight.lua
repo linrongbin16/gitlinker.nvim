@@ -45,28 +45,29 @@ end
 --
 --- @param pos {[1]:{integer,integer},[2]:{integer,integer}}
 --- @param bufnr integer Buffer to highlight.
-M.show = function(pos, bufnr)
+--- @param timeout integer How long to keep the highlight, in milliseconds.
+--- @return uv.uv_timer_t timer The timer that will clear the highlight.
+--- @return fun() clear Clears this highlight alone, leaving any other one in the
+--- buffer untouched.
+M.show = function(pos, bufnr, timeout)
   -- The buffer may be gone by the time a scheduled call runs.
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return
   end
   local namespace = vim.api.nvim_create_namespace(M.NAMESPACE)
-  vim.hl.range(bufnr, namespace, M.GROUP, pos[1], pos[2], { inclusive = true })
+  -- Let `vim.hl.range()` own the timer. Each call records the ids of the
+  -- extmarks it created and clears only those, so a highlight that expires
+  -- leaves a later one alone. Clearing the namespace instead would wipe both
+  -- as soon as the earlier of the two timers fired, and would also restart the
+  -- id counter: the next highlight would be handed an id that a pending timer
+  -- still means to delete.
+  local timer, clear = vim.hl.range(bufnr, namespace, M.GROUP, pos[1], pos[2], {
+    inclusive = true,
+    timeout = timeout,
+  })
   -- Force the screen to highlight the text immediately
   vim.cmd("redraw")
-end
-
--- Clears the gitlinker highlights for the buffer.
---- @param bufnr integer Buffer to clear.
-M.clear = function(bufnr)
-  -- The timer that calls this may outlive the buffer it was started for.
-  if not vim.api.nvim_buf_is_valid(bufnr) then
-    return
-  end
-  local namespace = vim.api.nvim_create_namespace(M.NAMESPACE)
-  vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
-  -- Force the screen to clear the highlight immediately
-  vim.cmd("redraw")
+  return timer, clear
 end
 
 return M
