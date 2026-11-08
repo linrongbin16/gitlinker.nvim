@@ -125,38 +125,95 @@ describe("gitlinker.highlight", function()
       assert_true(pcall(highlight.show, pos, id))
       assert_true(pcall(highlight.clear, id))
     end)
-    it("link highlights the requested lines of the buffer it started in", function()
+    describe("[link]", function()
       -- End to end: `gitlinker.lua` builds the positions and hands them over.
-      -- The buffer needs a path inside the repository, so open a real file.
-      vim.cmd("edit! lua/gitlinker.lua")
-      local origin = vim.api.nvim_get_current_buf()
-      vim.api.nvim_buf_set_lines(origin, 0, -1, false, { "short", "a much longer second line" })
-      vim.api.nvim_win_set_cursor(0, { 1, 0 })
-      highlight.clear(origin)
+      -- The buffer has to sit in a git repository that has a remote, which the
+      -- checkout this suite runs from is not guaranteed to be, so build a
+      -- throwaway one instead of relying on the surrounding environment.
+      local repo
+      local file
 
-      local confs = require("gitlinker.configs").get()
-      local saved = confs.highlight_duration
-      confs.highlight_duration = 5000
-      local ok = pcall(require("gitlinker")._void_link, {
-        action = function() end,
-        router = function()
-          return "https://example.com/x"
-        end,
-        lstart = 1,
-        lend = 2,
-      })
-      confs.highlight_duration = saved
-      assert_true(ok)
+      --- Run `args` and fail loudly when it exits non-zero: a silently broken
+      --- fixture would otherwise surface as a confusing assertion error later.
+      --- @param args string[]
+      local function sh(args)
+        local out = vim.fn.system(args)
+        assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
+      end
 
-      local marks = shown_marks(origin)
-      assert_eq(#marks, 1)
-      assert_eq(marks[1][2], 0)
-      assert_eq(marks[1][3], 0)
-      -- The end column is the width of line 2, read while the cursor was still
-      -- on line 1: measuring the cursor line would give 6 instead of 25.
-      assert_eq(marks[1][4].end_row, 1)
-      assert_eq(marks[1][4].end_col, 25)
-      highlight.clear(origin)
+      before_each(function()
+        repo = vim.fn.tempname()
+        file = repo .. "/demo.txt"
+        vim.fn.mkdir(repo, "p")
+        local fd = assert(io.open(file, "w"))
+        fd:write("short\na much longer second line\n")
+        fd:close()
+
+        sh({ "git", "init", "--quiet", "-b", "main", repo })
+        sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+        sh({ "git", "-C", repo, "config", "user.name", "test" })
+        sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+        sh({ "git", "-C", repo, "add", "--all" })
+        sh({ "git", "-C", repo, "commit", "--quiet", "--message", "init" })
+        -- The url is only parsed, never contacted. The tracking refs are
+        -- created by hand because these tests must not touch the network: the
+        -- linker refuses to link a revision the remote does not have.
+        sh({
+          "git",
+          "-C",
+          repo,
+          "remote",
+          "add",
+          "origin",
+          "https://github.com/acme/demo.git",
+        })
+        sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", "HEAD" })
+        sh({
+          "git",
+          "-C",
+          repo,
+          "symbolic-ref",
+          "refs/remotes/origin/HEAD",
+          "refs/remotes/origin/main",
+        })
+        sh({ "git", "-C", repo, "branch", "--set-upstream-to=origin/main", "main" })
+        vim.cmd("edit! " .. vim.fn.fnameescape(file))
+        vim.api.nvim_win_set_cursor(0, { 1, 0 })
+      end)
+
+      after_each(function()
+        vim.cmd("silent! enew!")
+        vim.fn.delete(repo, "rf")
+      end)
+
+      it("highlights the requested lines of the buffer it started in", function()
+        local origin = vim.api.nvim_get_current_buf()
+        highlight.clear(origin)
+
+        local confs = require("gitlinker.configs").get()
+        local saved = confs.highlight_duration
+        confs.highlight_duration = 5000
+        local ok = pcall(require("gitlinker")._void_link, {
+          action = function() end,
+          router = function()
+            return "https://example.com/x"
+          end,
+          lstart = 1,
+          lend = 2,
+        })
+        confs.highlight_duration = saved
+        assert_true(ok)
+
+        local marks = shown_marks(origin)
+        assert_eq(#marks, 1)
+        assert_eq(marks[1][2], 0)
+        assert_eq(marks[1][3], 0)
+        -- The end column is the width of line 2, read while the cursor was still
+        -- on line 1: measuring the cursor line would give 6 instead of 25.
+        assert_eq(marks[1][4].end_row, 1)
+        assert_eq(marks[1][4].end_col, 25)
+        highlight.clear(origin)
+      end)
     end)
   end)
 end)
