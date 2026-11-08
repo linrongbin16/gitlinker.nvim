@@ -27,13 +27,6 @@ PRs are welcomed for other git host websites!
 
 ## Features
 
-- Features:
-
-3. Improvements:
-   - Use git `stderr` output as error message.
-   - Async child process IO via coroutine and `uv.spawn`.
-   - No third-party dependencies.
-
 - Provide `GitLink` command, not default key mappings.
 - Support Windows and WSL2 platforms.
 - Support git blame, default branch and current branch.
