@@ -391,7 +391,7 @@ local function setup(opts)
 end
 
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
-local function link_api(opts)
+local function link(opts)
   opts = opts
     or {
       router_type = "browse",
@@ -437,7 +437,7 @@ local M = {
   _blame = _blame,
 
   setup = setup,
-  link = link_api,
+  link = link,
 }
 
 return M
