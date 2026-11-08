@@ -397,13 +397,6 @@ local function setup(opts)
       return suggestions
     end,
   })
-
-  -- Configure highlight group
-  if confs.highlight_duration > 0 then
-    if not highlight.exists(highlight.GROUP) then
-      vim.api.nvim_set_hl(0, highlight.GROUP, { link = "Search" })
-    end
-  end
 end
 
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?

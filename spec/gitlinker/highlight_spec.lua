@@ -241,6 +241,60 @@ describe("gitlinker.highlight", function()
         wipe(origin)
       end)
 
+      it("defines the group when a call asks for a highlight that setup skipped", function()
+        local origin = vim.api.nvim_get_current_buf()
+        wipe(origin)
+
+        -- A setup that disables the highlight leaves the group undefined, and
+        -- `vim.hl.range()` draws nothing for an undefined group without saying
+        -- so. A call that brings its own duration still has to show up.
+        vim.api.nvim_set_hl(0, highlight.GROUP, {})
+        assert_false(highlight.exists(highlight.GROUP))
+
+        local confs = require("gitlinker.configs").get()
+        local saved = confs.highlight_duration
+        confs.highlight_duration = 0
+        local ok = pcall(require("gitlinker")._void_link, {
+          action = function() end,
+          router = function()
+            return "https://example.com/x"
+          end,
+          lstart = 1,
+          lend = 2,
+          highlight_duration = 5000,
+        })
+        confs.highlight_duration = saved
+        assert_true(ok)
+
+        -- The group is built in the same scheduled callback that creates the
+        -- extmarks, so waiting for the marks covers both.
+        assert_eq(#shown_marks(origin), 1)
+        assert_true(highlight.exists(highlight.GROUP))
+        wipe(origin)
+      end)
+
+      it("show rebuilds the group a scheme switch emptied", function()
+        -- A scheme switch drops the definition of every group it does not know
+        -- about but leaves the ids behind, so a group built once at load time
+        -- stays empty for the rest of the session.
+        vim.api.nvim_set_hl(0, highlight.GROUP, { link = "Search" })
+        assert_true(highlight.exists(highlight.GROUP))
+        vim.api.nvim_set_hl(0, highlight.GROUP, {})
+        assert_false(highlight.exists(highlight.GROUP))
+
+        highlight.show(make_pos(1, 2), bufnr, 10000)
+        assert_eq(#shown_marks(bufnr), 1)
+        assert_true(highlight.exists(highlight.GROUP))
+        assert_eq(vim.api.nvim_get_hl(0, { name = highlight.GROUP }).link, "Search")
+      end)
+
+      it("show leaves a group the user defined alone", function()
+        vim.api.nvim_set_hl(0, highlight.GROUP, { fg = 0xff0000 })
+        highlight.show(make_pos(1, 2), bufnr, 10000)
+        assert_eq(#shown_marks(bufnr), 1)
+        assert_eq(vim.api.nvim_get_hl(0, { name = highlight.GROUP }).fg, 0xff0000)
+      end)
+
       it("clears after the duration given to link, not the configured one", function()
         local origin = vim.api.nvim_get_current_buf()
         wipe(origin)
