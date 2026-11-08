@@ -366,18 +366,25 @@ local function setup(opts)
 
   -- command
   vim.api.nvim_create_user_command(confs.command.name, function(command_opts)
-    local r = range.make_range()
     local args = (type(command_opts.args) == "string" and string.len(command_opts.args) > 0)
         and vim.trim(command_opts.args)
       or nil
-    -- logger:debug(
-    --   "|setup| command opts:%s, parsed:%s, range:%s",
-    --   vim.inspect(command_opts),
-    --   vim.inspect(args),
-    --   vim.inspect(r)
-    -- )
-    local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+
+    -- A range typed on the command line wins over the cursor line, otherwise
+    -- `:1,3GitLink` run from line 15 would link lines 1 to 15. `range` is what
+    -- separates "no range" from "a range the cursor happens to sit in": Vim
+    -- leaves it at 0 when the command was given none, and only then do
+    -- `line1`/`line2` fall back to the cursor line.
+    local lstart, lend
+    if command_opts.range > 0 then
+      lstart, lend = command_opts.line1, command_opts.line2
+    else
+      -- Visual mode reaches here without a range when it is mapped through
+      -- `<cmd>`, so fall back to the selection the marks still describe.
+      local r = range.make_range()
+      lstart = math.min(r.lstart, r.lend)
+      lend = math.max(r.lstart, r.lend)
+    end
     local parsed = _parse_args(args)
 
     local action = nil
