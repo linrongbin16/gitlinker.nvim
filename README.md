@@ -2,22 +2,18 @@
 
 # gitlinker.nvim
 
-<p align="center">
+<p>
 <a href="https://github.com/neovim/neovim/releases/tag/v0.12.0"><img alt="Neovim" src="https://img.shields.io/badge/require-0.12%2B-blue" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?label=ci" /></a>
 </p>
 
-<p align="center">
-Generate sharable git permalinks, with line ranges, straight from Neovim.
-</p>
+> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias support, blame support and other improvements. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-Put the cursor on a line (or select a range), run `:GitLink`, and the url of that exact blob on the git host website lands in your clipboard:
+Generate sharable git permalinks, with line ranges, straight from Neovim. Put the cursor on a line (or select a range), run `:GitLink`, and the url of that exact blob on the git host website lands in your clipboard:
 
-https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
+Here is an example of git permlink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 
 https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/d3e425a5-cf08-487f-badc-d393ca9dda2f
-
-Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias support, blame support and other improvements. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
 ## Features
 
