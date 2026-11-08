@@ -134,8 +134,6 @@ Same file, four router types, on bitbucket.org:
 - `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
 - `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
 
-`default_branch` resolves the name with `git rev-parse --abbrev-ref <remote>/HEAD`, `current_branch` with `git rev-parse --abbrev-ref HEAD`. Both are best effort: when git cannot answer, the plugin logs a warning and leaves the component empty rather than failing the whole url.
-
 ### Parameters
 
 Three `key=value` arguments override what the current buffer would otherwise provide. They combine with any router type and with the bang:
@@ -216,7 +214,7 @@ function(lk:gitlinker.Linker):string?
 **Returns:**
 
 - The generated url as a `string`, on success.
-- `nil`, on failure, which the plugin reports through `log.ensure`.
+- `nil`, on failure.
 
 #### `gitlinker.Action`
 
@@ -321,6 +319,8 @@ Calling `setup()` is optional: the plugin file calls it with empty options when 
 >
 > Recommend reading [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for a better understanding of git urls.
 
+There are two ways to customize url generations: [string template](#string-template) and [lua function](#lua-function).
+
 #### String Template
 
 > [!NOTE]
@@ -329,26 +329,22 @@ Calling `setup()` is optional: the plugin file calls it with empty options when 
 
 To create customized urls for other git hosts, bind the target git host to an implementation that constructs the url string from the components below, upper case with prefix `_A.`:
 
-| Component           | Value                                                                                        | Example                                                                      |
-| ------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `_A.PROTOCOL`       | Protocol before the `://` delimiter.                                                         | `https` in `https://github.com/...`; empty for `git@github.com:org/repo.git` |
-| `_A.USERNAME`       | User name before the `@` delimiter.                                                          | `git` in `ssh://git@github.com/...`                                          |
-| `_A.PASSWORD`       | Password after the user name.                                                                | `mypass` in `https://myname:mypass@github.com/...`                           |
-| `_A.HOST`           | Host name, without the brackets of an IPv6 literal.                                          | `github.com`, `::1` in `ssh://[::1]:2222/repo.git`                           |
-| `_A.PORT`           | Port after the host.                                                                         | `2222` in `ssh://host.xyz:2222/...`                                          |
-| `_A.ORG`            | Everything between the host and the repository name.                                         | `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`       |
-| `_A.REPO`           | Last path segment, with the `.git` suffix stripped.                                          | `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`     |
-| `_A.REV`            | Resolved commit id.                                                                          | `a009dacda96756a8c418ff5fa689999b148639f6`                                   |
-| `_A.FILE`           | Relative file path, uri-encoded.                                                             | `lua/gitlinker/git.lua`                                                      |
-| `_A.LSTART`         | Start line number.                                                                           | `5`                                                                          |
-| `_A.LEND`           | End line number, never smaller than `_A.LSTART`.                                             | `13`                                                                         |
-| `_A.DEFAULT_BRANCH` | Default branch, from `git rev-parse --abbrev-ref <remote>/HEAD`. Empty when git cannot tell. | `master`, `main`                                                             |
-| `_A.CURRENT_BRANCH` | Current branch, from `git rev-parse --abbrev-ref HEAD`. Empty when git cannot tell.          | `refactor-readme`                                                            |
-| `_A.USER`           | Deprecated alias of `_A.ORG`, kept for compatibility.                                        | same as `_A.ORG`                                                             |
-
-> [!IMPORTANT]
->
-> `_A.ORG` is empty when the remote url has no directory component, for example `ssh://git@host.xyz/repo.git`, where `_A.REPO` is `repo`. `_A.ORG` can also contain slashes, as in `path/to/the`, for a url like `https://github.com/path/to/the/repo.git`.
+| Component           | Value                                                                                                                                                                                                                                                                                                                                                             | Example                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `_A.PROTOCOL`       | Protocol before the `://` delimiter.                                                                                                                                                                                                                                                                                                                              | `https` in `https://github.com/...`; empty for `git@github.com:org/repo.git`   |
+| `_A.USERNAME`       | User name before the `@` delimiter.                                                                                                                                                                                                                                                                                                                               | `git` in `ssh://git@github.com/...`                                            |
+| `_A.PASSWORD`       | Password after the user name.                                                                                                                                                                                                                                                                                                                                     | `mypass` in `https://myname:mypass@github.com/...`                             |
+| `_A.HOST`           | Host name, without the brackets of an IPv6 literal.                                                                                                                                                                                                                                                                                                               | `github.com` in `https://github.com/...`, `::1` in `ssh://[::1]:2222/repo.git` |
+| `_A.PORT`           | Port after the host.                                                                                                                                                                                                                                                                                                                                              | `2222` in `ssh://host.xyz:2222/...`                                            |
+| `_A.ORG`            | Everything between the host and the repository name. This field can be empty when the remote url has no directory component, for example in `ssh://git@host.xyz/repo.git`, `_A.REPO` is `repo`, `_A.ORG` is empty. This field can also contain slashes, for example in `https://github.com/path/to/the/repo.git`, `_A.ORG` is `path/to/the`, `_A.REPO` is `repo`. | `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`         |
+| `_A.REPO`           | Last path segment, with the `.git` suffix stripped.                                                                                                                                                                                                                                                                                                               | `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`       |
+| `_A.REV`            | Resolved commit id.                                                                                                                                                                                                                                                                                                                                               | `a009dacda96756a8c418ff5fa689999b148639f6`                                     |
+| `_A.FILE`           | Relative file path, uri-encoded.                                                                                                                                                                                                                                                                                                                                  | `lua/gitlinker/git.lua`                                                        |
+| `_A.LSTART`         | Start line number.                                                                                                                                                                                                                                                                                                                                                | `5`                                                                            |
+| `_A.LEND`           | End line number, never smaller than `_A.LSTART`.                                                                                                                                                                                                                                                                                                                  | `13`                                                                           |
+| `_A.DEFAULT_BRANCH` | Default branch, from `git rev-parse --abbrev-ref <remote>/HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                      | `master`, `main`                                                               |
+| `_A.CURRENT_BRANCH` | Current branch, from `git rev-parse --abbrev-ref HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                               | `refactor-readme`                                                              |
+| `_A.USER`           | Deprecated alias of `_A.ORG`, kept for compatibility.                                                                                                                                                                                                                                                                                                             | same as `_A.ORG`                                                               |
 
 With these components you can, for example, rewrite the line range into the `?&lines=1&lines-count=2` form:
 
