@@ -41,7 +41,7 @@ M.show = function(range)
   local pos1 = { lstart - 1, 0 }
   local pos2 = { (lend or lstart) - 1, vim.fn.col("$") }
   vim.schedule(function()
-    vim.highlight.range(0, namespace, M.GROUP, pos1, pos2, { inclusive = true })
+    vim.hl.range(0, namespace, M.GROUP, pos1, pos2, { inclusive = true })
     -- Force the screen to highlight the text immediately
     vim.cmd("redraw")
   end)
