@@ -195,7 +195,7 @@ require("gitlinker").link({
   - `lstart`/`lend`: Line range, i.e. start and end line numbers. Defaults to the current line, or to the last visual selection when in visual mode.
   - `message`: Whether to print the url in the command line. Defaults to the configured value, see [Configuration](#configuration).
   - `warn_on_file_change`: Whether to print a warning message when file is changed. Defaults to the configured value, see [Configuration](#configuration).
-  - `highlight_duration`: How long, in milliseconds, to highlight the linked line range. Defaults to the configured value. `0` disables both the highlight and the `vim.defer_fn` that clears it.
+  - `highlight_duration`: How long, in milliseconds, to highlight the linked line range. Defaults to the configured value. `0` disables the highlight.
   - `remote`: Specify the git remote. Defaults to the remote detected from the branch upstream.
   - `file`: Specify the relative file path. Defaults to the current buffer's name.
   - `rev`: Specify the revision. Defaults to the closest revision that exists in the remote.
