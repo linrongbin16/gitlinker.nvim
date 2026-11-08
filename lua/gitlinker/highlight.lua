@@ -9,16 +9,17 @@ M.GROUP = "NvimGitLinkerHighlightTextObject"
 --- @type string
 M.NAMESPACE = "NvimGitLinker"
 
+-- Whether the highlight group `name` is defined.
+--
 -- A group that was defined at least once keeps an id even after its attributes
 -- are cleared, so ask for its definition rather than its id: a scheme switch
 -- empties the definition without removing the id.
 --
 -- `create = false` keeps the lookup read-only; the default creates the group as
--- a side effect, which would make a second check report a group that exists but
--- has no attributes.
+-- a side effect, so a second call would find the group it just made up.
 --- @param name string
 --- @return boolean
-M.hl_group_exists = function(name)
+M.exists = function(name)
   local hl = vim.api.nvim_get_hl(0, { name = name, create = false })
   return type(hl) == "table" and not vim.tbl_isempty(hl)
 end

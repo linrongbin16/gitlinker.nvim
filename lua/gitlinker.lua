@@ -403,7 +403,7 @@ local function setup(opts)
 
   -- Configure highlight group
   if confs.highlight_duration > 0 then
-    if not highlight.hl_group_exists(highlight.GROUP) then
+    if not highlight.exists(highlight.GROUP) then
       vim.api.nvim_set_hl(0, highlight.GROUP, { link = "Search" })
     end
   end
