@@ -85,5 +85,78 @@ describe("gitlinker.highlight", function()
       highlight.clear(bufnr)
       assert_eq(#vim.api.nvim_buf_get_extmarks(bufnr, ns, 0, -1, {}), 0)
     end)
+    it("show and clear target the given buffer, not the current one", function()
+      -- A caller builds the positions while its own buffer is current, then
+      -- hands the pair over: by the time `show`/`clear` run the current buffer
+      -- may be a different one.
+      local origin = bufnr
+      vim.api.nvim_buf_set_lines(origin, 0, -1, false, { "abcdef", "ghijkl" })
+      local pos = make_pos(1, 2)
+
+      local other = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_lines(other, 0, -1, false, { "x", "y" })
+      vim.api.nvim_set_current_buf(other)
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+      highlight.show(pos, origin)
+      local marks = shown_marks(origin)
+      assert_eq(#marks, 1)
+      -- `ghijkl` is 6 bytes wide, so the end column must come from the origin
+      -- buffer, not from the one currently displayed.
+      assert_eq(marks[1][4].end_row, 1)
+      assert_eq(marks[1][4].end_col, 6)
+      assert_eq(#vim.api.nvim_buf_get_extmarks(other, ns, 0, -1, {}), 0)
+
+      vim.api.nvim_set_current_buf(origin)
+      highlight.clear(origin)
+      assert_eq(#vim.api.nvim_buf_get_extmarks(origin, ns, 0, -1, {}), 0)
+
+      vim.api.nvim_set_current_buf(origin)
+      vim.api.nvim_buf_delete(other, { force = true })
+    end)
+    it("show and clear survive a buffer that was deleted first", function()
+      local doomed = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_lines(doomed, 0, -1, false, { "abcdef" })
+      -- The positions are built while the buffer is still alive, so the
+      -- functions only have to cope with it disappearing afterwards.
+      local pos = make_pos(1, 1)
+      local id = doomed
+      vim.api.nvim_buf_delete(doomed, { force = true })
+      assert_true(pcall(highlight.show, pos, id))
+      assert_true(pcall(highlight.clear, id))
+    end)
+    it("link highlights the requested lines of the buffer it started in", function()
+      -- End to end: `gitlinker.lua` builds the positions and hands them over.
+      -- The buffer needs a path inside the repository, so open a real file.
+      vim.cmd("edit! lua/gitlinker.lua")
+      local origin = vim.api.nvim_get_current_buf()
+      vim.api.nvim_buf_set_lines(origin, 0, -1, false, { "short", "a much longer second line" })
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+      highlight.clear(origin)
+
+      local confs = require("gitlinker.configs").get()
+      local saved = confs.highlight_duration
+      confs.highlight_duration = 5000
+      local ok = pcall(require("gitlinker")._void_link, {
+        action = function() end,
+        router = function()
+          return "https://example.com/x"
+        end,
+        lstart = 1,
+        lend = 2,
+      })
+      confs.highlight_duration = saved
+      assert_true(ok)
+
+      local marks = shown_marks(origin)
+      assert_eq(#marks, 1)
+      assert_eq(marks[1][2], 0)
+      assert_eq(marks[1][3], 0)
+      -- The end column is the width of line 2, read while the cursor was still
+      -- on line 1: measuring the cursor line would give 6 instead of 25.
+      assert_eq(marks[1][4].end_row, 1)
+      assert_eq(marks[1][4].end_col, 25)
+      highlight.clear(origin)
+    end)
   end)
 end)
