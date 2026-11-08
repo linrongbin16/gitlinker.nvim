@@ -52,8 +52,18 @@ require("lazy").setup({
     cmd = "GitLink",
     opts = {},
     keys = {
-      { "<leader>gy", "<cmd>GitLink<cr>", mode = { "n", "v" }, desc = "Copy git permalink" },
-      { "<leader>gY", "<cmd>GitLink!<cr>", mode = { "n", "v" }, desc = "Open git permalink" },
+      {
+        "<leader>gy",
+        "<cmd>GitLink<cr>",
+        mode = { "n", "v" },
+        desc = "Copy git permalink",
+      },
+      {
+        "<leader>gY",
+        "<cmd>GitLink!<cr>",
+        mode = { "n", "v" },
+        desc = "Open git permalink",
+      },
     },
   },
 })
@@ -145,10 +155,17 @@ With more than one git remote configured the plugin does not guess: it opens a p
 > Reading [Customize Urls](#customize-urls) first helps, it explains the router design this API is built on.
 
 ```lua
---- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string, protocol:string?,
+---   username:string?, password:string?, host:string, port:string?,
+---   org:string?, user:string?, repo:string, rev:string, file:string,
+---   lstart:integer, lend:integer, file_changed:boolean,
+---   default_branch:string?, current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
---- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
+--- @param opts {router_type:string?, router:gitlinker.Router?,
+---   action:gitlinker.Action?, lstart:integer?, lend:integer?,
+---   message:boolean?, highlight_duration:integer?, remote:string?,
+---   file:string?, rev:string?}?
 require("gitlinker").link(opts)
 ```
 
@@ -175,7 +192,7 @@ require("gitlinker").link({
 
   - `router`: Which router implementation to use. Defaults to the implementations registered by `setup()` (see [Configuration](#configuration)). Passing your own function overrides them for this call, see [`gitlinker.Router`](#gitlinkerrouter).
 
-    > [!NOTE]
+    > [!WARNING]
     >
     > Once this field is set, you have full control over url generation and `router_type` no longer takes effect.
 
@@ -253,10 +270,18 @@ keymap("<leader>gL", { action = actions.open }, "Open git permalink")
 
 -- blame
 keymap("<leader>gb", { router_type = "blame" }, "Copy git blame link")
-keymap("<leader>gB", { router_type = "blame", action = actions.open }, "Open git blame link")
+keymap(
+  "<leader>gB",
+  { router_type = "blame", action = actions.open },
+  "Open git blame link"
+)
 
 -- default branch
-keymap("<leader>gd", { router_type = "default_branch" }, "Copy default branch link")
+keymap(
+  "<leader>gd",
+  { router_type = "default_branch" },
+  "Copy default branch link"
+)
 keymap(
   "<leader>gD",
   { router_type = "default_branch", action = actions.open },
@@ -264,7 +289,11 @@ keymap(
 )
 
 -- current branch
-keymap("<leader>gc", { router_type = "current_branch" }, "Copy current branch link")
+keymap(
+  "<leader>gc",
+  { router_type = "current_branch" },
+  "Copy current branch link"
+)
 keymap(
   "<leader>gC",
   { router_type = "current_branch", action = actions.open },
@@ -276,7 +305,12 @@ The same mappings with the user command, if you prefer that route:
 
 ```lua
 local function cmdmap(lhs, cmd, desc)
-  vim.keymap.set({ "n", "v" }, lhs, "<cmd>" .. cmd .. "<cr>", { silent = true, desc = desc })
+  vim.keymap.set(
+    { "n", "v" },
+    lhs,
+    "<cmd>" .. cmd .. "<cr>",
+    { silent = true, desc = desc }
+  )
 end
 
 -- browse
@@ -373,7 +407,8 @@ require("gitlinker").setup({
         .. "{_A.REV}/"
         .. "{_A.FILE}"
         .. "?&lines={_A.LSTART}"
-        .. "{_A.LEND > _A.LSTART and ('&lines-count=' .. _A.LEND - _A.LSTART + 1) or ''}",
+        .. "{_A.LEND > _A.LSTART and '&lines-count=' or ''}"
+        .. "{_A.LEND > _A.LSTART and (_A.LEND - _A.LSTART + 1) or ''}",
     },
   },
 })
@@ -423,9 +458,11 @@ local function your_router(lk)
   -- org
   builder = builder .. lk.org .. "/"
   -- repo
-  builder = builder
-    .. (string_endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo)
-    .. "/"
+  local repo = lk.repo
+  if string_endswith(repo, ".git") then
+    repo = repo:sub(1, #repo - 4)
+  end
+  builder = builder .. repo .. "/"
   -- blob and rev
   builder = builder .. "blob/" .. lk.rev .. "/"
   -- file
@@ -433,7 +470,8 @@ local function your_router(lk)
   -- line range
   builder = builder .. string.format("?&lines=%d", lk.lstart)
   if lk.lend > lk.lstart then
-    builder = builder .. string.format("&lines-count=%d", lk.lend - lk.lstart + 1)
+    builder = builder
+      .. string.format("&lines-count=%d", lk.lend - lk.lstart + 1)
   end
   return builder
 end
@@ -535,7 +573,8 @@ require("gitlinker").setup({
         "https://git.example.com/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}",
       },
       -- map style: pattern as key, implementation as value
-      ["^github%.com"] = "https://github.com/{_A.ORG}/{_A.REPO}/blob/{_A.REV}/{_A.FILE}",
+      ["^github%.com"] = "https://github.com/{_A.ORG}/{_A.REPO}"
+        .. "/blob/{_A.REV}/{_A.FILE}",
     },
   },
 })
