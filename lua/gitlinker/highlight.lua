@@ -25,57 +25,49 @@ M.hl_group_exists = function(name)
   end
 end
 
--- Highlights the text selected by the specified range.
---- @param range gitlinker.Range?
-M.show = function(range)
-  if not range then
+-- Highlights the region between the two positions with the highlight group.
+--
+-- `pos[1]` and `pos[2]` are the `start` and `finish` arguments of
+-- `vim.hl.range()`, and both components of a `(line, column)` tuple are
+-- 0-based. The API only says "a (line, column) tuple" and never states the
+-- base, which differs from |getpos()|: that one is 1-based and returns a
+-- four-element list, and `hl.lua` adds one to each component on the way there.
+--
+--   line   -- 0-based, so buffer line 1 is line 0
+--   column -- 0-based byte offset, so column 0 is the first character
+--
+-- Callers build the tuples from a `gitlinker.Range` (1-based lines), so the
+-- start is `{ lstart - 1, 0 }` to include the first character of the start
+-- line, and the end takes its column from `col({ lnum, "$" })`. That is
+-- 1-based and points one past the last character (`7` for `abcdef`), which
+-- read as a 0-based end column is exactly what an end bound wants, so it
+-- needs no adjustment. `hl.lua` also clamps the column to the line length, so
+-- an overshoot would be harmless, but the intended value costs nothing.
+--
+--- @param pos {[1]:{integer,integer},[2]:{integer,integer}}
+--- @param bufnr integer Buffer to highlight.
+M.show = function(pos, bufnr)
+  -- The buffer may be gone by the time a scheduled call runs.
+  if not vim.api.nvim_buf_is_valid(bufnr) then
     return
   end
   local namespace = vim.api.nvim_create_namespace(M.NAMESPACE)
-  local lstart, lend = range.lstart, range.lend
-  if lend and lend < lstart then
-    lstart, lend = lend, lstart
-  end
-  vim.schedule(function()
-    -- `vim.hl.range()` documents `start` and `finish` only as "a (line, column)
-    -- tuple" and never says which base they use. Both components are 0-based,
-    -- unlike |getpos()|, which is 1-based and returns a four-element list:
-    -- `hl.lua` adds one to each component before building that list.
-    --
-    --   line   -- 0-based, so buffer line `lstart` is `lstart - 1`
-    --   column -- 0-based byte offset, so column 0 is the first character
-    --
-    -- `gitlinker.Range` numbers lines from 1, hence the `- 1` on both. The
-    -- start column is 0 so the first character of the start line is included;
-    -- anything higher would clip it.
-    --
-    -- The end column works the other way around. `col("$")` is 1-based and
-    -- points one past the last character (`7` for `abcdef`), and read as a
-    -- 0-based end column that is exactly what an end bound wants, so it takes
-    -- no adjustment. `hl.lua` also clamps the column to the line length, so an
-    -- overshoot would be harmless, but the intended value costs nothing.
-    --
-    -- Pass the line explicitly: the one-argument form reads the *cursor* line,
-    -- which is only the line we want when the highlight happens to start and
-    -- end on it. Highlighting `{2,4}` while the cursor sits on line 3 would
-    -- clip line 4 to the width of line 3 instead.
-    local llast = lend or lstart
-    local start_pos = { lstart - 1, 0 }
-    local finish_pos = { llast - 1, vim.fn.col({ llast, "$" }) }
-    vim.hl.range(0, namespace, M.GROUP, start_pos, finish_pos, { inclusive = true })
-    -- Force the screen to highlight the text immediately
-    vim.cmd("redraw")
-  end)
+  vim.hl.range(bufnr, namespace, M.GROUP, pos[1], pos[2], { inclusive = true })
+  -- Force the screen to highlight the text immediately
+  vim.cmd("redraw")
 end
 
 -- Clears the gitlinker highlights for the buffer.
-M.clear = function()
+--- @param bufnr integer Buffer to clear.
+M.clear = function(bufnr)
+  -- The timer that calls this may outlive the buffer it was started for.
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
   local namespace = vim.api.nvim_create_namespace(M.NAMESPACE)
-  vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
+  vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
   -- Force the screen to clear the highlight immediately
-  vim.schedule(function()
-    vim.cmd("redraw")
-  end)
+  vim.cmd("redraw")
 end
 
 return M
