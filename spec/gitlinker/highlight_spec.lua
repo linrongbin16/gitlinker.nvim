@@ -40,16 +40,18 @@ describe("gitlinker.highlight", function()
     end
   end
 
-  --- Build the `start_pos`/`finish_pos` pair the way `gitlinker.lua` does.
+  --- Build the `start`/`finish` tuples the way `gitlinker.lua` does.
+  ---
+  --- Two values, matching the two arguments of `show`. They have to be read
+  --- into locals at the call site: a function call that is not the last
+  --- argument is truncated to one value, which would drop `finish`.
   --- @param lstart integer
   --- @param lend integer?
-  --- @return {[1]:{integer,integer},[2]:{integer,integer}}
+  --- @return {integer,integer} start
+  --- @return {integer,integer} finish
   local function make_pos(lstart, lend)
     local llast = lend or lstart
-    return {
-      { lstart - 1, 0 },
-      { llast - 1, vim.fn.col({ llast, "$" }) },
-    }
+    return { lstart - 1, 0 }, { llast - 1, vim.fn.col({ llast, "$" }) }
   end
 
   describe("[highlight]", function()
@@ -82,11 +84,13 @@ describe("gitlinker.highlight", function()
       assert_eq(vim.fn.hlexists("ProbeSideEffect"), 0)
     end)
     it("show", function()
-      highlight.show(make_pos(1, 1), bufnr, 10000)
+      local start, finish = make_pos(1, 1)
+      highlight.show(bufnr, start, finish, 10000)
       shown_marks(bufnr)
     end)
     it("show covers the first character of the start line", function()
-      highlight.show(make_pos(1, 1), bufnr, 10000)
+      local start, finish = make_pos(1, 1)
+      highlight.show(bufnr, start, finish, 10000)
       local marks = shown_marks(bufnr)
       assert_eq(#marks, 1)
       -- Columns are 0-based: column 1 would drop the leading "a".
@@ -94,7 +98,8 @@ describe("gitlinker.highlight", function()
       assert_eq(marks[1][4].end_col, 6)
     end)
     it("show covers the whole line range", function()
-      highlight.show(make_pos(1, 2), bufnr, 10000)
+      local start, finish = make_pos(1, 2)
+      highlight.show(bufnr, start, finish, 10000)
       local marks = shown_marks(bufnr)
       assert_eq(#marks, 1)
       assert_eq(marks[1][2], 0)
@@ -110,7 +115,8 @@ describe("gitlinker.highlight", function()
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "abcdef", "ghijklmnopqrst" })
       vim.api.nvim_win_set_cursor(0, { 1, 0 })
       wipe(bufnr)
-      highlight.show(make_pos(1, 2), bufnr, 10000)
+      local start, finish = make_pos(1, 2)
+      highlight.show(bufnr, start, finish, 10000)
       local marks = shown_marks(bufnr)
       assert_eq(#marks, 1)
       assert_eq(marks[1][4].end_row, 1)
@@ -122,14 +128,14 @@ describe("gitlinker.highlight", function()
       -- a different one.
       local origin = bufnr
       vim.api.nvim_buf_set_lines(origin, 0, -1, false, { "abcdef", "ghijkl" })
-      local pos = make_pos(1, 2)
+      local start, finish = make_pos(1, 2)
 
       local other = vim.api.nvim_create_buf(false, true)
       vim.api.nvim_buf_set_lines(other, 0, -1, false, { "x", "y" })
       vim.api.nvim_set_current_buf(other)
       vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
-      highlight.show(pos, origin, 10000)
+      highlight.show(origin, start, finish, 10000)
       local marks = shown_marks(origin)
       assert_eq(#marks, 1)
       -- `ghijkl` is 6 bytes wide, so the end column must come from the origin
@@ -146,10 +152,10 @@ describe("gitlinker.highlight", function()
       vim.api.nvim_buf_set_lines(doomed, 0, -1, false, { "abcdef" })
       -- The positions are built while the buffer is still alive, so `show` only
       -- has to cope with it disappearing afterwards.
-      local pos = make_pos(1, 1)
+      local start, finish = make_pos(1, 1)
       local id = doomed
       vim.api.nvim_buf_delete(doomed, { force = true })
-      assert_true(pcall(highlight.show, pos, id, 10000))
+      assert_true(pcall(highlight.show, id, start, finish, 10000))
     end)
     describe("[link]", function()
       -- End to end: `gitlinker.lua` builds the positions and hands them over.
@@ -320,7 +326,8 @@ describe("gitlinker.highlight", function()
         vim.api.nvim_set_hl(0, highlight.GROUP, {})
         assert_false(highlight.exists(highlight.GROUP))
 
-        highlight.show(make_pos(1, 2), bufnr, 10000)
+        local start, finish = make_pos(1, 2)
+        highlight.show(bufnr, start, finish, 10000)
         assert_eq(#shown_marks(bufnr), 1)
         assert_true(highlight.exists(highlight.GROUP))
         assert_eq(vim.api.nvim_get_hl(0, { name = highlight.GROUP }).link, "Search")
@@ -328,7 +335,8 @@ describe("gitlinker.highlight", function()
 
       it("show leaves a group the user defined alone", function()
         vim.api.nvim_set_hl(0, highlight.GROUP, { fg = 0xff0000 })
-        highlight.show(make_pos(1, 2), bufnr, 10000)
+        local start, finish = make_pos(1, 2)
+        highlight.show(bufnr, start, finish, 10000)
         assert_eq(#shown_marks(bufnr), 1)
         assert_eq(vim.api.nvim_get_hl(0, { name = highlight.GROUP }).fg, 0xff0000)
       end)

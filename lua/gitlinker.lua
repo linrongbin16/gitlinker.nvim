@@ -202,7 +202,7 @@ end
 ---
 --- @param opts {lstart:integer?,lend:integer?,highlight_duration:integer?}
 --- @param confs gitlinker.Options
---- @return {bufnr:integer,pos:{[1]:{integer,integer},[2]:{integer,integer}},duration:integer}?
+--- @return {bufnr:integer,start:{integer,integer},finish:{integer,integer},duration:integer}?
 local function _highlight_target(opts, confs)
   local duration = confs.highlight_duration
   if type(opts.highlight_duration) == "number" then
@@ -220,10 +220,11 @@ local function _highlight_target(opts, confs)
   local llast = lend or lstart
   return {
     bufnr = vim.api.nvim_get_current_buf(),
+    start = { lstart - 1, 0 },
     -- `llast` is named explicitly: the one-argument form of `col()` measures
     -- whatever line the cursor happens to sit on, which is only the end line
     -- when the range is a single line.
-    pos = { { lstart - 1, 0 }, { llast - 1, vim.fn.col({ llast, "$" }) } },
+    finish = { llast - 1, vim.fn.col({ llast, "$" }) },
     duration = duration,
   }
 end
@@ -275,10 +276,11 @@ local _link = function(opts)
 
   if highlight_target then
     local bufnr = highlight_target.bufnr
-    local pos = highlight_target.pos
+    local start = highlight_target.start
+    local finish = highlight_target.finish
     local duration = highlight_target.duration
     vim.schedule(function()
-      highlight.show(pos, bufnr, duration)
+      highlight.show(bufnr, start, finish, duration)
     end)
   end
 

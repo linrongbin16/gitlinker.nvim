@@ -26,7 +26,7 @@ end
 
 -- Highlights the region between the two positions with the highlight group.
 --
--- `pos[1]` and `pos[2]` are the `start` and `finish` arguments of
+-- `start` and `finish` are the arguments of the same name of
 -- `vim.hl.range()`, and both components of a `(line, column)` tuple are
 -- 0-based. The API only says "a (line, column) tuple" and never states the
 -- base, which differs from |getpos()|: that one is 1-based and returns a
@@ -43,13 +43,14 @@ end
 -- needs no adjustment. `hl.lua` also clamps the column to the line length, so
 -- an overshoot would be harmless, but the intended value costs nothing.
 --
---- @param pos {[1]:{integer,integer},[2]:{integer,integer}}
 --- @param bufnr integer Buffer to highlight.
+--- @param start {integer,integer} 0-based `(line, column)` to start at.
+--- @param finish {integer,integer} 0-based `(line, column)` to end at.
 --- @param timeout integer How long to keep the highlight, in milliseconds.
 --- @return uv.uv_timer_t timer The timer that will clear the highlight.
 --- @return fun() clear Clears this highlight alone, leaving any other one in the
 --- buffer untouched.
-M.show = function(pos, bufnr, timeout)
+M.show = function(bufnr, start, finish, timeout)
   -- The buffer may be gone by the time a scheduled call runs.
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return
@@ -73,7 +74,7 @@ M.show = function(pos, bufnr, timeout)
   -- as soon as the earlier of the two timers fired, and would also restart the
   -- id counter: the next highlight would be handed an id that a pending timer
   -- still means to delete.
-  local timer, clear = vim.hl.range(bufnr, namespace, M.GROUP, pos[1], pos[2], {
+  local timer, clear = vim.hl.range(bufnr, namespace, M.GROUP, start, finish, {
     inclusive = true,
     timeout = timeout,
   })
