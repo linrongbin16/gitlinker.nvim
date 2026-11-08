@@ -98,11 +98,11 @@ git clone https://github.com/linrongbin16/gitlinker.nvim \
 
 `:GitLink` copies the permalink of the current line, or of the visual selection, to the clipboard:
 
-- `:GitLink`: `browse` url, copied to the clipboard.
+- `:GitLink`: `browse` url, copied to the clipboard, it is the optional default sub command.
 - `:GitLink blame`: `blame` url, copied to the clipboard.
 - `:GitLink default_branch`: url pinned to the default branch instead of a commit id.
 - `:GitLink current_branch`: url pinned to the current branch.
-- `:GitLink!`: same url as `:GitLink`, but opened in the browser instead of copied. The bang combines with a router type: `:GitLink! blame`.
+- `:GitLink!`: same url as `:GitLink`, but opened in the browser instead of copied. For example: `:GitLink! blame`.
 
 The command takes a range and completes router types on `<Tab>`:
 
@@ -111,13 +111,11 @@ The command takes a range and completes router types on `<Tab>`:
 :'<,'>GitLink
 ```
 
-> [!IMPORTANT]
->
-> The range passed to the command is merged with the cursor line. `:5,8GitLink` issued while the cursor sits on line 20 produces `#L5-L20`, because the command takes the union of the two. Move the cursor inside the range first if that is not what you want.
-
 ### Router Types
 
-A router type is a set of per-host implementations. Each type generates a different kind of url, and each host spells it differently:
+A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
+
+Each router type generates a different kind of url, and each host spells it differently:
 
 | Router type        | github.com                           | gitlab.com                   | bitbucket.org                   | codeberg.org                                      | git.samba.org                                      |
 | ------------------ | ------------------------------------ | ---------------------------- | ------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
@@ -135,10 +133,6 @@ Same file, four router types, on bitbucket.org:
 
 `default_branch` resolves the name with `git rev-parse --abbrev-ref <remote>/HEAD`, `current_branch` with `git rev-parse --abbrev-ref HEAD`. Both are best effort: when git cannot answer, the plugin logs a warning and leaves the component empty rather than failing the whole url.
 
-> [!NOTE]
->
-> A router type is a collection of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
-
 ### Parameters
 
 Three `key=value` arguments override what the current buffer would otherwise provide. They combine with any router type and with the bang:
@@ -149,9 +143,7 @@ Three `key=value` arguments override what the current buffer would otherwise pro
 
 When a parameter is omitted, `remote` is detected from the branch upstream, `file` is the current buffer's path relative to the repository root, and `rev` is the closest revision that exists in the remote: the upstream first, then `HEAD`, then `HEAD~1` through `HEAD~50`. `file` is uri-encoded before it goes into the url, so `file=some dir/a b.lua` works.
 
-> [!IMPORTANT]
->
-> With more than one git remote configured the plugin does not guess: it opens a picker (`Please select remote index:`) so you can choose one. Passing `remote=xxx` up front skips the picker, which is what you want in a key mapping.
+With more than one git remote configured the plugin does not guess: it opens a picker (`Please select remote index:`) so you can choose one. Passing `remote=xxx` up front skips the picker, which is what you want in a key mapping.
 
 ### API
 
