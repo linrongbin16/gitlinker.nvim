@@ -1,14 +1,149 @@
 local cwd = vim.fn.getcwd()
 
+--- The revision every mocked repository resolves to.
+local MOCK_REV = "c171bb5f0151963cf7aa9efa151be0182bbea848"
+
+--- The answer the fake `vim.system` gives unless a case overrides it. Every
+--- field can be replaced by a case, and an `*_err` field makes the matching
+--- command fail instead of printing its value.
+--- @return table
+local function default_git_state()
+  return {
+    root = cwd,
+    remotes = { "origin" },
+    remote = "origin",
+    remote_url = "https://github.com/acme/demo.git",
+    rev = MOCK_REV,
+    default_branch = "main",
+    current_branch = "main",
+    file_in_rev = true,
+    file_changed = false,
+    fetch_configured = true,
+  }
+end
+
+local git_state
+
+--- Build the `vim.SystemCompleted`-shaped answer for one `git`/`ssh` call.
+---
+--- `gitlinker.git` runs every command through `vim.system`, so faking that one
+--- API gives this spec a repository whose stdout/stderr it fully controls. That
+--- keeps the plugin logic under test independent of the checkout the suite runs
+--- in (CI uses a shallow merge commit with no remote-tracking refs).
+--- @param cmd string[]
+--- @return {code:integer?,stdout:string[]?,stderr:string[]?,spawn_error:string?}
+local function fake_command_result(cmd)
+  local prog = cmd[1]
+  if prog == "ssh" then
+    return { stdout = { "hostname " .. cmd[#cmd] } }
+  end
+  if prog ~= "git" then
+    return { code = 127, stderr = { "fatal: unsupported command: " .. table.concat(cmd, " ") } }
+  end
+
+  local sub = cmd[2]
+  if sub == "rev-parse" then
+    local what = cmd[3]
+    if what == "--show-toplevel" then
+      if git_state.root_err then
+        return { code = 128, stderr = { git_state.root_err } }
+      end
+      return { stdout = { git_state.root } }
+    elseif what == "--abbrev-ref" then
+      if cmd[4] == "HEAD" then
+        if git_state.current_branch_err then
+          return { code = 128, stderr = { git_state.current_branch_err } }
+        end
+        return { stdout = { git_state.current_branch } }
+      end
+      if git_state.default_branch_err then
+        return { code = 128, stderr = { git_state.default_branch_err } }
+      end
+      return { stdout = { git_state.remote .. "/" .. git_state.default_branch } }
+    end
+    -- Any other revspec: `@{u}`, `HEAD`, `HEAD~N` or the remote name.
+    if git_state.rev_err then
+      return { code = 128, stderr = { git_state.rev_err } }
+    end
+    return { stdout = { git_state.rev } }
+  elseif sub == "remote" then
+    if cmd[3] == "get-url" then
+      if git_state.remote_url_err then
+        return { code = 128, stderr = { git_state.remote_url_err } }
+      end
+      return { stdout = { git_state.remote_url } }
+    end
+    if git_state.remote_err then
+      return { code = 128, stderr = { git_state.remote_err } }
+    end
+    return { stdout = git_state.remotes }
+  elseif sub == "config" then
+    -- `git config` exits 1 for a missing key, which is not a failure here.
+    if not git_state.fetch_configured then
+      return { code = 1 }
+    end
+    return { stdout = { "+refs/heads/*:refs/remotes/" .. git_state.remote .. "/*" } }
+  elseif sub == "branch" then
+    return { stdout = { git_state.remote .. "/" .. git_state.current_branch } }
+  elseif sub == "cat-file" then
+    if not git_state.file_in_rev then
+      return { code = 128, stderr = { "fatal: path does not exist in the revision" } }
+    end
+    -- A successful probe prints nothing.
+    return {}
+  elseif sub == "diff" then
+    if git_state.file_changed then
+      return { stdout = { "@@ -1 +1 @@" } }
+    end
+    return {}
+  end
+  return { code = 128, stderr = { "fatal: unsupported git command: " .. table.concat(cmd, " ") } }
+end
+
+--- Replace `vim.system` with one that answers from `git_state`, and return a
+--- function restoring the real API. A case can also set `git_state.respond` to
+--- answer a specific command itself.
+--- @return fun()
+local function mock_vim_system()
+  local saved = vim.system
+  vim.system = function(cmd, _, on_exit)
+    local result = (git_state.respond or fake_command_result)(cmd)
+    if result.spawn_error then
+      error(result.spawn_error, 0)
+    end
+    on_exit({
+      code = result.code or 0,
+      stdout = table.concat(result.stdout or {}, "\n"),
+      stderr = table.concat(result.stderr or {}, "\n"),
+    })
+    return {}
+  end
+  return function()
+    vim.system = saved
+  end
+end
+
 describe("gitlinker", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
+  local restore_vim_system
+
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
     vim.cmd([[edit lua/gitlinker.lua]])
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+    git_state = default_git_state()
+    restore_vim_system = mock_vim_system()
+  end)
+
+  after_each(function()
+    -- Join the link tasks a case started before the real API comes back, or a
+    -- leftover step would run its git command against the actual repository.
+    vim.wait(300)
+    restore_vim_system()
   end)
 
   local gitlinker = require("gitlinker")
@@ -701,14 +836,6 @@ describe("gitlinker", function()
     local repo
     local saved_override
 
-    --- Run `args` and fail loudly when it exits non-zero: a silently broken
-    --- fixture would otherwise surface as a confusing assertion error later.
-    --- @param args string[]
-    local function sh(args)
-      local out = vim.fn.system(args)
-      assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
-    end
-
     --- Run `run`, which receives a callback to deliver the url to, and return
     --- the url it produced.
     --- @param run fun(collect: fun(url:string))
@@ -764,23 +891,11 @@ describe("gitlinker", function()
       vim.fn.mkdir(repo .. "/some dir", "p")
       vim.fn.writefile({ "spaced" }, repo .. "/some dir/a b.lua")
 
-      sh({ "git", "init", "--quiet", "-b", "main", repo })
-      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
-      sh({ "git", "-C", repo, "config", "user.name", "test" })
-      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
-      sh({ "git", "-C", repo, "add", "--all" })
-      sh({ "git", "-C", repo, "commit", "--quiet", "--message", "init" })
-      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
-      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", "HEAD" })
-      sh({
-        "git",
-        "-C",
-        repo,
-        "symbolic-ref",
-        "refs/remotes/origin/HEAD",
-        "refs/remotes/origin/main",
-      })
-      sh({ "git", "-C", repo, "branch", "--set-upstream-to=origin/main", "main" })
+      -- The git answers come from the fake `vim.system`, so the fixture only
+      -- has to provide the buffer contents and the repository root the mocked
+      -- commands report.
+      git_state.root = repo
+      git_state.remote_url = "https://github.com/acme/demo.git"
 
       vim.cmd("edit! " .. vim.fn.fnameescape(repo .. "/demo.txt"))
       saved_override = require("gitlinker.configs").get().clipboard_override
@@ -875,30 +990,25 @@ describe("gitlinker", function()
   end)
 
   describe("[link]", function()
-    -- CI checks out a shallow merge commit that has no remote-tracking refs,
-    -- so detecting the closest remote-compatible revision fails there. These
-    -- cases only smoke-test the public entry point, so they pin the revision
-    -- to `HEAD` and leave that detection to `linker_spec`.
     it("browse", function()
-      gitlinker.link({ rev = "HEAD" })
-      gitlinker.link({ rev = "HEAD" })
+      gitlinker.link()
+      gitlinker.link({})
       gitlinker.link({
-        rev = "HEAD",
         action = function(url)
           print(string.format("link-browse-1:%s\n", vim.inspect(url)))
         end,
       })
     end)
     it("blame", function()
-      gitlinker.link({ router_type = "blame", rev = "HEAD" })
+      gitlinker.link({ router_type = "blame" })
     end)
     it("default_branch", function()
-      gitlinker.link({ router_type = "default_branch", rev = "HEAD" })
+      gitlinker.link({ router_type = "default_branch" })
     end)
     it("does not mutate the options table it is handed", function()
       -- A keymap closure hands the same table to every press, so resolving the
       -- line range into it would freeze the range of the first press.
-      local opts = { router_type = "blame", rev = "HEAD" }
+      local opts = { router_type = "blame" }
       gitlinker.link(opts)
       assert_eq(opts.router_type, "blame")
       assert_eq(opts.action, nil)
@@ -937,14 +1047,14 @@ describe("gitlinker", function()
       -- A half-given range used to reach `luaeval` as `vim.NIL`, which the
       -- default templates compared with a number and raised from inside the
       -- template. The other end is now filled in from the one that was given.
-      local urls, errors = link_and_capture({ lend = 6, rev = "HEAD" })
+      local urls, errors = link_and_capture({ lend = 6 })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
     end)
 
     it("links the same single line for the other end", function()
-      local urls, errors = link_and_capture({ lstart = 6, rev = "HEAD" })
+      local urls, errors = link_and_capture({ lstart = 6 })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
@@ -953,17 +1063,44 @@ describe("gitlinker", function()
     it("sorts a reversed range instead of dropping its end", function()
       -- `LEND` used to fall back to `LSTART` here, so the url silently named a
       -- single line instead of the range the caller asked for.
-      local urls, errors = link_and_capture({ lstart = 5, lend = 3, rev = "HEAD" })
+      local urls, errors = link_and_capture({ lstart = 5, lend = 3 })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L3-L5")
     end)
 
     it("links a single line range given by the caller", function()
-      local urls, errors = link_and_capture({ lstart = 2, lend = 2, rev = "HEAD" })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L2")
+    end)
+
+    it("reports the error when the revision cannot be resolved", function()
+      git_state.rev_err = "fatal: failed to get closest revision"
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("failed to get closest revision", 1, true) ~= nil)
+    end)
+
+    it("reports the error when the file is missing from the revision", function()
+      git_state.file_in_rev = false
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+    end)
+
+    it("reports the error when git cannot be spawned", function()
+      -- `vim.system` raises instead of invoking its callback when the binary or
+      -- the directory is missing; the fake raises the same way here.
+      git_state.respond = function()
+        return { spawn_error = "ENOENT: no such file or directory" }
+      end
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("ENOENT", 1, true) ~= nil)
     end)
   end)
 end)
