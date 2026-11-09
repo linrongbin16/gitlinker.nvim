@@ -200,7 +200,10 @@ end
 --- `highlight.show()` runs, the current buffer may belong to another file and
 --- the range would be sized from whichever file the user switched to.
 ---
---- @param opts {lstart:integer?,lend:integer?,highlight_duration:integer?}
+--- The range is already checked by `_link`: both ends are numbers and `lend`
+--- is not before `lstart`, so it is used as given.
+---
+--- @param opts {lstart:integer,lend:integer,highlight_duration:integer?}
 --- @param confs gitlinker.Options
 --- @return {bufnr:integer,start:[integer,integer],finish:[integer,integer],duration:integer}?
 local function _highlight_target(opts, confs)
@@ -208,23 +211,20 @@ local function _highlight_target(opts, confs)
   if type(opts.highlight_duration) == "number" then
     duration = opts.highlight_duration
   end
-  -- A caller that names only `lend` leaves `lstart` unset, and there is no
-  -- line range to highlight then.
-  if duration <= 0 or not opts.lstart then
+  if duration <= 0 then
     return nil
   end
-  local lstart, lend = opts.lstart, opts.lend
-  if lend and lend < lstart then
-    lstart, lend = lend, lstart
-  end
-  local llast = lend or lstart
+  log.ensure(
+    opts.lstart <= opts.lend,
+    string.format("invalid lstart/lend: %s/%s", vim.inspect(opts.lstart), vim.inspect(opts.lend))
+  )
   return {
     bufnr = vim.api.nvim_get_current_buf(),
-    start = { lstart - 1, 0 },
-    -- `llast` is named explicitly: the one-argument form of `col()` measures
+    start = { opts.lstart - 1, 0 },
+    -- `lend` is named explicitly: the one-argument form of `col()` measures
     -- whatever line the cursor happens to sit on, which is only the end line
     -- when the range is a single line.
-    finish = { llast - 1, vim.fn.col({ llast, "$" }) },
+    finish = { opts.lend - 1, vim.fn.col({ opts.lend, "$" }) },
     duration = duration,
   }
 end
@@ -234,6 +234,23 @@ end
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
+
+  -- `link()` and the `:GitLink` command both normalize the range before they
+  -- reach this point, so the check only fires for a caller that hands `opts`
+  -- to `_void_link` directly. It still has to be here: without it a missing
+  -- end reaches `luaeval`, which turns it into `vim.NIL`, and the default
+  -- templates then raise "attempt to compare two nil values" from inside the
+  -- template instead of saying what was wrong.
+  if type(opts.lstart) ~= "number" or type(opts.lend) ~= "number" or opts.lstart > opts.lend then
+    log.err(
+      string.format(
+        "fatal: invalid line range: %s(lstart) - %s(lend)",
+        vim.inspect(opts.lstart),
+        vim.inspect(opts.lend)
+      )
+    )
+    return nil
+  end
 
   local highlight_target = _highlight_target(opts, confs)
 
@@ -481,14 +498,31 @@ local function link(opts)
       return _router(opts.router_type, lk)
     end
 
-  -- A caller that names a line only gives one end of the range, and a caller
-  -- that gives neither wants the lines covered by the last visual selection.
-  local has_line_numbers = types.greater_equal(opts.lstart, 0) or types.greater_equal(opts.lend, 0)
-  if not has_line_numbers then
+  -- Normalize the line range here, so `_void_link` always receives both ends
+  -- as numbers with `lstart` not after `lend`:
+  --   - both given: only the order has to be fixed, a reversed range is the
+  --     same lines as its sorted form;
+  --   - one given: it names a single line, so it is also the other end;
+  --   - none given: use the current selection, or the cursor line.
+  -- Filling this in here rather than in `_link` keeps the asynchronous part
+  -- free of the "no range at all" case: it never has to guess.
+  local lstart = type(opts.lstart) == "number" and opts.lstart or nil
+  local lend = type(opts.lend) == "number" and opts.lend or nil
+  if lstart and lend then
+    if lend < lstart then
+      lstart, lend = lend, lstart
+    end
+  elseif lstart then
+    lend = lstart
+  elseif lend then
+    lstart = lend
+  else
     local r = range.make_range()
-    opts.lstart = math.min(r.lstart, r.lend)
-    opts.lend = math.max(r.lstart, r.lend)
+    lstart = math.min(r.lstart, r.lend)
+    lend = math.max(r.lstart, r.lend)
   end
+  opts.lstart = lstart
+  opts.lend = lend
 
   _void_link({
     action = opts.action,

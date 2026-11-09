@@ -901,5 +901,63 @@ describe("gitlinker", function()
       assert_eq(opts.lstart, nil)
       assert_eq(opts.lend, nil)
     end)
+
+    --- Link with `opts` and return the urls the action received together with
+    --- the error messages logged along the way.
+    ---
+    --- `log.err()` notifies from a scheduled callback, so the loop has to run
+    --- once before the messages can be read back.
+    --- @param opts table
+    --- @return string[] urls, string[] errors
+    local function link_and_capture(opts)
+      local urls, errors = {}, {}
+      local notify = vim.notify
+      vim.notify = function(msg, level)
+        if level == vim.log.levels.ERROR then
+          table.insert(errors, msg)
+        end
+      end
+      opts.action = function(url)
+        table.insert(urls, url)
+      end
+      local ok, err = pcall(gitlinker.link, opts)
+      vim.wait(300)
+      vim.notify = notify
+      assert_true(ok, err)
+      return urls, errors
+    end
+
+    it("links a single line when the caller names only one end", function()
+      -- A half-given range used to reach `luaeval` as `vim.NIL`, which the
+      -- default templates compared with a number and raised from inside the
+      -- template. The other end is now filled in from the one that was given.
+      local urls, errors = link_and_capture({ lend = 6 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
+    end)
+
+    it("links the same single line for the other end", function()
+      local urls, errors = link_and_capture({ lstart = 6 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
+    end)
+
+    it("sorts a reversed range instead of dropping its end", function()
+      -- `LEND` used to fall back to `LSTART` here, so the url silently named a
+      -- single line instead of the range the caller asked for.
+      local urls, errors = link_and_capture({ lstart = 5, lend = 3 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L3-L5")
+    end)
+
+    it("links a single line range given by the caller", function()
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L2")
+    end)
   end)
 end)
