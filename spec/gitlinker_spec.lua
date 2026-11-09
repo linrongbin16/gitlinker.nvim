@@ -875,25 +875,30 @@ describe("gitlinker", function()
   end)
 
   describe("[link]", function()
+    -- CI checks out a shallow merge commit that has no remote-tracking refs,
+    -- so detecting the closest remote-compatible revision fails there. These
+    -- cases only smoke-test the public entry point, so they pin the revision
+    -- to `HEAD` and leave that detection to `linker_spec`.
     it("browse", function()
-      gitlinker.link()
-      gitlinker.link({})
+      gitlinker.link({ rev = "HEAD" })
+      gitlinker.link({ rev = "HEAD" })
       gitlinker.link({
+        rev = "HEAD",
         action = function(url)
           print(string.format("link-browse-1:%s\n", vim.inspect(url)))
         end,
       })
     end)
     it("blame", function()
-      gitlinker.link({ router_type = "blame" })
+      gitlinker.link({ router_type = "blame", rev = "HEAD" })
     end)
     it("default_branch", function()
-      gitlinker.link({ router_type = "default_branch" })
+      gitlinker.link({ router_type = "default_branch", rev = "HEAD" })
     end)
     it("does not mutate the options table it is handed", function()
       -- A keymap closure hands the same table to every press, so resolving the
       -- line range into it would freeze the range of the first press.
-      local opts = { router_type = "blame" }
+      local opts = { router_type = "blame", rev = "HEAD" }
       gitlinker.link(opts)
       assert_eq(opts.router_type, "blame")
       assert_eq(opts.action, nil)
@@ -907,6 +912,7 @@ describe("gitlinker", function()
     ---
     --- `log.err()` notifies from a scheduled callback, so the loop has to run
     --- once before the messages can be read back.
+    ---
     --- @param opts table
     --- @return string[] urls, string[] errors
     local function link_and_capture(opts)
@@ -931,14 +937,14 @@ describe("gitlinker", function()
       -- A half-given range used to reach `luaeval` as `vim.NIL`, which the
       -- default templates compared with a number and raised from inside the
       -- template. The other end is now filled in from the one that was given.
-      local urls, errors = link_and_capture({ lend = 6 })
+      local urls, errors = link_and_capture({ lend = 6, rev = "HEAD" })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
     end)
 
     it("links the same single line for the other end", function()
-      local urls, errors = link_and_capture({ lstart = 6 })
+      local urls, errors = link_and_capture({ lstart = 6, rev = "HEAD" })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
@@ -947,14 +953,14 @@ describe("gitlinker", function()
     it("sorts a reversed range instead of dropping its end", function()
       -- `LEND` used to fall back to `LSTART` here, so the url silently named a
       -- single line instead of the range the caller asked for.
-      local urls, errors = link_and_capture({ lstart = 5, lend = 3 })
+      local urls, errors = link_and_capture({ lstart = 5, lend = 3, rev = "HEAD" })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L3-L5")
     end)
 
     it("links a single line range given by the caller", function()
-      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2, rev = "HEAD" })
       assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
       assert_eq(#urls, 1)
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L2")
