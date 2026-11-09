@@ -192,7 +192,7 @@ require("gitlinker").link({
     - `require("gitlinker.actions").open`: open the url in the browser.
     - Any other callable receives the url as its only argument.
 
-  - `lstart`/`lend`: Line range, i.e. start and end line numbers. Defaults to the current line, or to the last visual selection when in visual mode. A range named out of order is sorted, and a range that names only one end links that single line, so `{ lend = 6 }` and `{ lstart = 6 }` both link line 6.
+  - `lstart`/`lend`: Line range, i.e. start and end line numbers. Defaults to the current line, or to the last visual selection when in visual mode.
   - `message`: Whether to print the url in the command line. Defaults to the configured value, see [Configuration](#configuration).
   - `warn_on_file_change`: Whether to print a warning message when file is changed. Defaults to the configured value, see [Configuration](#configuration).
   - `highlight_duration`: How long, in milliseconds, to highlight the linked line range. Defaults to the configured value. `0` disables the highlight.
