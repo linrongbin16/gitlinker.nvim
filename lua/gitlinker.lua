@@ -247,11 +247,6 @@ local _link = function(opts)
   lk.lstart = opts.lstart
   lk.lend = opts.lend
 
-  if not types.str_empty(opts.file) then
-    lk.file = opts.file
-    lk.file_changed = false
-  end
-
   async.await(1, vim.schedule)
 
   local ok, url = pcall(opts.router, lk, true)
@@ -323,6 +318,15 @@ local _void_link = function(opts)
   return async.run(_link, opts)
 end
 
+--- Split the command line arguments into its `key=value` parameters.
+---
+--- The arguments arrive exactly as the user typed them, quotes included, so the
+--- split cannot be a plain `vim.split(" ")`: `file=some dir/a b.lua` is one
+--- value with spaces in it, and `:GitLink file="some dir/a b.lua"` is the same
+--- value quoted. Both forms are accepted; a backslash escapes the character
+--- that follows it, inside and outside quotes, so a value may also contain a
+--- literal `"`.
+---
 --- @param args string?
 --- @return {router_type:string,remote:string?,file:string?,rev:string?}
 local function _parse_args(args)
@@ -335,8 +339,41 @@ local function _parse_args(args)
   if string.len(args) == 0 then
     return { router_type = router_type, remote = remote, file = file, rev = rev }
   end
-  local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
-  for _, a in ipairs(args_splits) do
+
+  -- A word is a run of characters split only by unescaped, unquoted blanks.
+  local words = {}
+  local word = {}
+  local quote = nil
+  local i = 1
+  local len = string.len(args)
+  while i <= len do
+    local c = string.sub(args, i, i)
+    if c == "\\" and i < len then
+      i = i + 1
+      table.insert(word, string.sub(args, i, i))
+    elseif quote then
+      if c == quote then
+        quote = nil
+      else
+        table.insert(word, c)
+      end
+    elseif c == '"' or c == "'" then
+      quote = c
+    elseif c == " " or c == "\t" then
+      if #word > 0 then
+        table.insert(words, table.concat(word))
+        word = {}
+      end
+    else
+      table.insert(word, c)
+    end
+    i = i + 1
+  end
+  if #word > 0 then
+    table.insert(words, table.concat(word))
+  end
+
+  for _, a in ipairs(words) do
     if string.len(a) > 0 then
       if vim.startswith(a, "remote=") then
         remote = a:sub(8)
@@ -428,13 +465,13 @@ local function setup(opts)
   })
 end
 
+--- Copy the options before filling in the defaults: a keymap closure hands the
+--- same table to every press, so writing the defaults into the caller's table
+--- would make the second press reuse the line range resolved by the first one.
+---
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
 local function link(opts)
-  opts = opts
-    or {
-      router_type = "browse",
-      action = require("gitlinker.actions").clipboard,
-    }
+  opts = vim.deepcopy(opts or {})
 
   opts.router_type = types.str_empty(opts.router_type) and "browse" or opts.router_type
   opts.action = vim.is_callable(opts.action) and opts.action

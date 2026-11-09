@@ -142,7 +142,7 @@ Three `key=value` arguments override what the current buffer would otherwise pro
 - `file=`: pick the relative file path. For example `:GitLink file=lua/gitlinker.lua`, `:GitLink! blame file=README.md`.
 - `rev=`: pick the revision, accepting anything `git rev-parse` understands (`HEAD`, `HEAD~3`, a branch, a tag, a short sha). For example `:GitLink rev=00b3f9a1`, `:GitLink! blame rev=v5.5.2`.
 
-When a parameter is omitted, `remote` is detected from the branch upstream, `file` is the current buffer's path relative to the repository root, and `rev` is the closest revision that exists in the remote: the upstream first, then `HEAD`, then `HEAD~1` through `HEAD~50`. `file` is uri-encoded before it goes into the url, so `file=some dir/a b.lua` works.
+When a parameter is omitted, `remote` is detected from the branch upstream, `file` is the current buffer's path relative to the repository root, and `rev` is the closest revision that exists in the remote: the upstream first, then `HEAD`, then `HEAD~1` through `HEAD~50`. `file` is uri-encoded before it goes into the url, so a path with spaces in it works: quote the value (`:GitLink file="some dir/a b.lua"`) or escape the spaces (`:GitLink file=some\ dir/a\ b.lua`).
 
 With more than one git remote configured the plugin does not guess: it opens a picker (`Please select remote index:`) so you can choose one. Passing `remote=xxx` up front skips the picker, which is what you want in a key mapping.
 

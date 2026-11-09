@@ -709,17 +709,15 @@ describe("gitlinker", function()
       assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
     end
 
-    --- Run `run` and return the line anchor of the url it copies out.
-    --- @param run fun()
+    --- Run `run`, which receives a callback to deliver the url to, and return
+    --- the url it produced.
+    --- @param run fun(collect: fun(url:string))
     --- @return string?
-    local function anchor_of(run)
+    local function url_of(run)
       local url
-      local confs = require("gitlinker.configs").get()
-      confs.clipboard_override = function(u)
+      run(function(u)
         url = u
-      end
-      run()
-      confs.clipboard_override = saved_override
+      end)
       vim.wait(5000, function()
         return url ~= nil
       end, 10)
@@ -728,6 +726,26 @@ describe("gitlinker", function()
       -- down, or the leftover step reads a buffer that no longer belongs to
       -- this repository and logs a fatal of its own.
       vim.wait(300)
+      return url
+    end
+
+    --- Run the `:GitLink` command and return the url it copies out.
+    --- @param run fun()
+    --- @return string?
+    local function command_url_of(run)
+      return url_of(function(collect)
+        local confs = require("gitlinker.configs").get()
+        confs.clipboard_override = collect
+        run()
+        confs.clipboard_override = saved_override
+      end)
+    end
+
+    --- Run the `:GitLink` command and return the line anchor of its url.
+    --- @param run fun()
+    --- @return string?
+    local function anchor_of(run)
+      local url = command_url_of(run)
       return url and url:match("#L[%dL%-]*$") or nil
     end
 
@@ -743,6 +761,8 @@ describe("gitlinker", function()
         lines[i] = "line " .. i
       end
       vim.fn.writefile(lines, repo .. "/demo.txt")
+      vim.fn.mkdir(repo .. "/some dir", "p")
+      vim.fn.writefile({ "spaced" }, repo .. "/some dir/a b.lua")
 
       sh({ "git", "init", "--quiet", "-b", "main", repo })
       sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
@@ -832,6 +852,26 @@ describe("gitlinker", function()
       end)
       assert_eq(anchor, "#L4-L6")
     end)
+
+    it("uri-encodes a quoted file path that contains spaces", function()
+      local url = command_url_of(function()
+        vim.cmd([[GitLink file="some dir/a b.lua"]])
+      end)
+      assert_true(
+        url ~= nil and url:find("some%20dir/a%20b.lua", 1, true) ~= nil,
+        string.format("url: %s", vim.inspect(url))
+      )
+    end)
+
+    it("uri-encodes an escaped file path that contains spaces", function()
+      local url = command_url_of(function()
+        vim.cmd([[GitLink file=some\ dir/a\ b.lua]])
+      end)
+      assert_true(
+        url ~= nil and url:find("some%20dir/a%20b.lua", 1, true) ~= nil,
+        string.format("url: %s", vim.inspect(url))
+      )
+    end)
   end)
 
   describe("[link]", function()
@@ -849,6 +889,17 @@ describe("gitlinker", function()
     end)
     it("default_branch", function()
       gitlinker.link({ router_type = "default_branch" })
+    end)
+    it("does not mutate the options table it is handed", function()
+      -- A keymap closure hands the same table to every press, so resolving the
+      -- line range into it would freeze the range of the first press.
+      local opts = { router_type = "blame" }
+      gitlinker.link(opts)
+      assert_eq(opts.router_type, "blame")
+      assert_eq(opts.action, nil)
+      assert_eq(opts.router, nil)
+      assert_eq(opts.lstart, nil)
+      assert_eq(opts.lend, nil)
     end)
   end)
 end)
