@@ -428,13 +428,13 @@ local function setup(opts)
   })
 end
 
+--- Copy the options before filling in the defaults: a keymap closure hands the
+--- same table to every press, so writing the defaults into the caller's table
+--- would make the second press reuse the line range resolved by the first one.
+---
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
 local function link(opts)
-  opts = opts
-    or {
-      router_type = "browse",
-      action = require("gitlinker.actions").clipboard,
-    }
+  opts = vim.deepcopy(opts or {})
 
   opts.router_type = types.str_empty(opts.router_type) and "browse" or opts.router_type
   opts.action = vim.is_callable(opts.action) and opts.action

@@ -850,5 +850,16 @@ describe("gitlinker", function()
     it("default_branch", function()
       gitlinker.link({ router_type = "default_branch" })
     end)
+    it("does not mutate the options table it is handed", function()
+      -- A keymap closure hands the same table to every press, so resolving the
+      -- line range into it would freeze the range of the first press.
+      local opts = { router_type = "blame" }
+      gitlinker.link(opts)
+      assert_eq(opts.router_type, "blame")
+      assert_eq(opts.action, nil)
+      assert_eq(opts.router, nil)
+      assert_eq(opts.lstart, nil)
+      assert_eq(opts.lend, nil)
+    end)
   end)
 end)
