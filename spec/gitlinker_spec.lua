@@ -1080,18 +1080,19 @@ describe("gitlinker", function()
       assert_eq(opts.lend, nil)
     end)
 
-    --- Link with `opts` and return the urls the action received together with
-    --- the error messages logged along the way.
+    --- Link with `opts` and return the urls the action received, the error
+    --- messages logged along the way, and every message printed to the user.
     ---
-    --- `log.err()` notifies from a scheduled callback, so the loop has to run
-    --- once before the messages can be read back.
+    --- `log.err()`/`log.info()` notify from a scheduled callback, so the loop
+    --- has to run once before the messages can be read back.
     ---
     --- @param opts table
-    --- @return string[] urls, string[] errors
+    --- @return string[] urls, string[] errors, {msg:string, level:integer}[] messages
     local function link_and_capture(opts)
-      local urls, errors = {}, {}
+      local urls, errors, messages = {}, {}, {}
       local notify = vim.notify
       vim.notify = function(msg, level)
+        table.insert(messages, { msg = msg, level = level })
         if level == vim.log.levels.ERROR then
           table.insert(errors, msg)
         end
@@ -1103,8 +1104,49 @@ describe("gitlinker", function()
       vim.wait(300)
       vim.notify = notify
       assert_true(ok, err)
-      return urls, errors
+      return urls, errors, messages
     end
+
+    it("prints the url without escaping its percent signs again", function()
+      -- `vim.uri_encode` turns a space into `%20`, and `vim.notify` renders the
+      -- string verbatim. Doubling the `%` for a printf-shaped consumer that is
+      -- no longer in the picture made the printed link disagree with the one
+      -- in the clipboard.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors, messages = link_and_capture({
+        file = "some dir/a b.lua",
+        lstart = 1,
+        lend = 1,
+      })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+
+      local info = {}
+      for _, m in ipairs(messages) do
+        if m.level == vim.log.levels.INFO then
+          table.insert(info, m.msg)
+        end
+      end
+      assert_eq(#info, 1, string.format("messages: %s", vim.inspect(messages)))
+      assert_true(
+        info[1]:find("some%20dir/a%20b.lua", 1, true) ~= nil,
+        string.format("message: %s", vim.inspect(info[1]))
+      )
+      assert_true(
+        info[1]:find("%%20", 1, true) == nil,
+        string.format("message: %s", vim.inspect(info[1]))
+      )
+    end)
 
     it("links a single line when the caller names only one end", function()
       restore_vim_system = mock_vim_system({
