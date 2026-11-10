@@ -196,13 +196,21 @@ end
 --- @param root string
 --- @return boolean?, string?
 local function _is_rev_in_remote(revspec, remote, root)
-  local args = { "git", "branch", "--remotes", "--contains", revspec }
+  -- `--format` prints bare full refnames, which the default listing does not:
+  -- that one indents every line by two spaces and renders a symbolic ref as
+  -- `origin/HEAD -> origin/main`, so neither shape can be compared verbatim.
+  local args = { "git", "branch", "--remotes", "--contains", revspec, "--format=%(refname)" }
   local result = run_cmd(args, root)
   if not result:ok() then
     return nil, result:errmsg(string.format("failed to check rev '%s' in remote", revspec))
   end
+  -- Compare whole refnames instead of matching a Lua pattern. The remote name
+  -- comes from git config and is plain data there: `.`, `+` and `-` are just
+  -- characters, and a remote called `ori` must not be satisfied by the
+  -- `refs/remotes/origin/main` line of a different remote.
+  local prefix = "refs/remotes/" .. remote .. "/"
   for _, rbranch in ipairs(result.stdout) do
-    if rbranch:match(remote) then
+    if vim.startswith(rbranch, prefix) then
       return true, nil
     end
   end
