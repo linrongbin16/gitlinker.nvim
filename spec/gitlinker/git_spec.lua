@@ -385,6 +385,37 @@ describe("gitlinker.git", function()
       end
     end
 
+    --- Create a repository with `count` commits on `main`, an `origin` remote,
+    --- and `refs/remotes/origin/main` pointing at `HEAD~distance`.
+    --- `git remote add` also writes the fetch refspec, which is what turns the
+    --- compatibility check from a pass-through into a real reachability test.
+    --- @param count integer
+    --- @param distance integer  `0` means the remote already has `HEAD`.
+    local function make_linear_repo(count, distance)
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      for i = 1, count do
+        sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "c" .. i })
+      end
+      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
+      local tracked = distance == 0 and "HEAD" or ("HEAD~" .. distance)
+      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", tracked })
+    end
+
+    --- `vim.fn.system` is off limits inside `wait_async` (fast event context),
+    --- so expected revisions have to be resolved before entering it.
+    --- @param revspec string
+    --- @return string
+    local function rev_of(revspec)
+      local out = vim.fn.system({ "git", "-C", repo, "rev-parse", revspec .. "^{commit}" })
+      assert_eq(vim.v.shell_error, 0, revspec .. " => " .. tostring(out))
+      return vim.trim(out)
+    end
+
     after_each(function()
       if repo then
         vim.fn.delete(repo, "rf")
@@ -465,6 +496,77 @@ describe("gitlinker.git", function()
         assert_true(head ~= nil, "this test needs a commit: " .. tostring(head_err))
         local actual, err = git.get_closest_remote_compatible_rev("o+", repo)
         assert_eq(actual, head)
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("walks back to the newest commit the remote has", function()
+      -- The old implementation probed `HEAD`, `HEAD~1` .. `HEAD~50` with one
+      -- `git branch --contains` each; this covers the middle of that range.
+      make_linear_repo(20, 7)
+      local expected = rev_of("HEAD~7")
+      wait_async(function()
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_eq(actual, expected)
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("finds the deepest commit still within the search window", function()
+      make_linear_repo(60, 50)
+      local expected = rev_of("HEAD~50")
+      wait_async(function()
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_eq(actual, expected)
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("gives up once the remote is further away than the search window", function()
+      make_linear_repo(60, 51)
+      wait_async(function()
+        -- No `refs/remotes/origin/main`..`HEAD~50` overlap, and there is no
+        -- `origin` ref to fall back to, so the search must report a failure
+        -- instead of linking an arbitrary revision.
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_true(actual == nil)
+        assert_true(
+          type(err) == "string" and err:find("failed to get closest revision", 1, true) ~= nil,
+          "unexpected error: " .. vim.inspect(err)
+        )
+      end)
+    end)
+
+    it("ignores a merged branch tip that the remote also has", function()
+      -- `--boundary` lists the parents of merged-in branches too, and their
+      -- order is unspecified: only the first parent of a walked commit is the
+      -- answer. Here the remote has the side branch tip but not `HEAD`'s
+      -- ancestry, so returning the merged tip would link the wrong commit.
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      for i = 1, 6 do
+        sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "c" .. i })
+      end
+      sh({ "git", "-C", repo, "checkout", "--quiet", "-b", "side", "HEAD~2" })
+      for i = 1, 2 do
+        sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "s" .. i })
+      end
+      local side_tip = rev_of("HEAD")
+      sh({ "git", "-C", repo, "checkout", "--quiet", "main" })
+      sh({ "git", "-C", repo, "merge", "--quiet", "--no-ff", "--message", "merge", "side" })
+      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
+      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/side", side_tip })
+      -- `c4`, the commit the side branch was cut from: it is the first parent
+      -- of a walked commit, unlike the merged tip which `--boundary` also
+      -- reports.
+      local expected = rev_of("HEAD~3")
+      wait_async(function()
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_eq(actual, expected)
         assert_true(err == nil)
       end)
     end)

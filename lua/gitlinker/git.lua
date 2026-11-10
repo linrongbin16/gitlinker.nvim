@@ -178,33 +178,6 @@ local function file_has_changed(file, rev, root)
 end
 
 --- @package
---- @param revspec string
---- @param remote string
---- @param root string
---- @return boolean?, string?
-local function _is_rev_in_remote(revspec, remote, root)
-  -- `--format` prints bare full refnames, which the default listing does not:
-  -- that one indents every line by two spaces and renders a symbolic ref as
-  -- `origin/HEAD -> origin/main`, so neither shape can be compared verbatim.
-  local args = { "git", "branch", "--remotes", "--contains", revspec, "--format=%(refname)" }
-  local result = run_cmd(args, root)
-  if not result:ok() then
-    return nil, result:errmsg(string.format("failed to check rev '%s' in remote", revspec))
-  end
-  -- Compare whole refnames instead of matching a Lua pattern. The remote name
-  -- comes from git config and is plain data there: `.`, `+` and `-` are just
-  -- characters, and a remote called `ori` must not be satisfied by the
-  -- `refs/remotes/origin/main` line of a different remote.
-  local prefix = "refs/remotes/" .. remote .. "/"
-  for _, rbranch in ipairs(result.stdout) do
-    if vim.startswith(rbranch, prefix) then
-      return true, nil
-    end
-  end
-  return false, nil
-end
-
---- @package
 --- @param remote string
 --- @param root string
 --- @return boolean?, string?
@@ -256,6 +229,97 @@ local function resolve_host(host, root)
   return nil, "fatal: " .. errmsg
 end
 
+-- How many first-parent commits to walk back from `HEAD` while looking for one
+-- that the remote already has.
+local MAX_REV_SEARCH_DEPTH = 50
+
+--- Find the closest commit reachable from `HEAD` that the remote already
+--- tracks, in a single `git rev-list` instead of one `git branch --contains`
+--- per candidate revision.
+---
+--- `--first-parent` walks the same chain as the old `HEAD~1` .. `HEAD~50`
+--- probing. `--not --remotes=<remote>/*` drops everything the remote has, and
+--- `--boundary` then prints the commits just outside that set with a leading
+--- `-`. The glob is required: a bare `--remotes=ori` also matches the
+--- `refs/remotes/origin/*` refs of a differently named remote, while git
+--- refuses to create remote names containing `*`, `[`, `?` or `\`, so
+--- appending `/*` stays unambiguous.
+---
+--- The answer is the first parent of a walked commit that also shows up among
+--- the boundary commits: `--boundary` also lists the tips of branches merged
+--- into the walked history, and the order commits are printed in is not
+--- something to rely on.
+---
+--- `--max-count` stops the walk, so a full window means the remote does not
+--- have any of the last `MAX_REV_SEARCH_DEPTH` commits.
+--- @package
+--- @param remote string
+--- @param root string
+--- @return string?
+local function _get_remote_compatible_rev(remote, root)
+  local args = {
+    "git",
+    "rev-list",
+    "--first-parent",
+    "--parents",
+    "--max-count=" .. (MAX_REV_SEARCH_DEPTH + 1),
+    "--boundary",
+    "HEAD",
+    "--not",
+    "--remotes=" .. remote .. "/*",
+  }
+  local result = run_cmd(args, root)
+  if not result:ok() then
+    -- The only way this fails on a real repository is an unborn `HEAD`, where
+    -- the caller's fallback reports something the user can act on.
+    log.debug(
+      string.format(
+        "|_get_remote_compatible_rev| search failed:%s",
+        vim.inspect(result:errmsg("failed to search revisions"))
+      )
+    )
+    return nil
+  end
+
+  -- `HEAD` itself is in the remote: the walk printed nothing at all.
+  if #result.stdout == 0 then
+    local head_rev = _get_rev("HEAD", root)
+    return head_rev
+  end
+
+  --- @type table<string, true>  commits whose first parent the walk cut off
+  local boundary = {}
+  --- @type string[]  first parent of every commit the walk kept
+  local first_parents = {}
+  local walked = 0
+  for _, line in ipairs(result.stdout) do
+    local fields = vim.split(vim.trim(line), " ", { plain = true, trimempty = true })
+    if line:sub(1, 1) == "-" then
+      -- `-<commit> [<parent>...]`, the dash is glued to the first field.
+      boundary[fields[1]:sub(2)] = true
+    else
+      walked = walked + 1
+      if fields[2] ~= nil then
+        -- The root commit has no parent at all.
+        table.insert(first_parents, fields[2])
+      end
+    end
+  end
+
+  if walked > MAX_REV_SEARCH_DEPTH then
+    -- The window filled up without reaching the remote, so the boundary it
+    -- printed sits at the edge and says nothing about the real distance.
+    return nil
+  end
+
+  for _, parent in ipairs(first_parents) do
+    if parent ~= nil and boundary[parent] then
+      return parent
+    end
+  end
+  return nil
+end
+
 --- @param remote string
 --- @param root string
 --- @return string?, string?
@@ -285,33 +349,16 @@ local function get_closest_remote_compatible_rev(remote, root)
 
   -- With a fetch refspec configured only revisions that really exist in the
   -- remote make valid permalink targets, otherwise the local history is good
-  -- enough. `_is_rev_in_remote` returns nil when it fails, which is falsy too.
-  --- @param revspec string
-  --- @return boolean
-  local function is_usable(revspec)
-    if not remote_fetch_configured then
-      return true
-    end
-    return _is_rev_in_remote(revspec, remote, root) == true
+  -- enough. When a step fails, the fallbacks below still get a chance to
+  -- resolve something, so no branch aborts the search outright.
+  local compatible_rev
+  if remote_fetch_configured then
+    compatible_rev = _get_remote_compatible_rev(remote, root)
+  else
+    compatible_rev = _get_rev("HEAD", root)
   end
-
-  -- try HEAD
-  if is_usable("HEAD") then
-    local head_rev = _get_rev("HEAD", root)
-    if head_rev then
-      return head_rev, nil
-    end
-  end
-
-  -- try last 50 parent commits
-  for i = 1, 50 do
-    local revspec = "HEAD~" .. i
-    if is_usable(revspec) then
-      local rev = _get_rev(revspec, root)
-      if rev then
-        return rev, nil
-      end
-    end
+  if compatible_rev then
+    return compatible_rev, nil
   end
 
   -- try remote HEAD
@@ -322,7 +369,7 @@ local function get_closest_remote_compatible_rev(remote, root)
 
   return nil,
     string.format(
-      "fatal: failed to get closest revision in that exists in remote: %s",
+      "fatal: failed to get closest revision that exists in remote: %s",
       vim.inspect(remote)
     )
 end
