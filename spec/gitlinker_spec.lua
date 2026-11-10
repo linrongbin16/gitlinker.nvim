@@ -1148,6 +1148,30 @@ describe("gitlinker", function()
       )
     end)
 
+    it("links the whole default branch name when it contains a slash", function()
+      -- `git rev-parse --abbrev-ref origin/HEAD` prints the branch as
+      -- `origin/release/v5`. Keeping only the last `/`-separated piece built a
+      -- link to a branch named `v5`, which the remote does not have.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/release/v5" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors = link_and_capture({ router_type = "default_branch" })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_true(
+        urls[1]:find("/blob/release/v5/", 1, true) ~= nil,
+        string.format("url: %s", vim.inspect(urls[1]))
+      )
+    end)
+
     it("links a single line when the caller names only one end", function()
       restore_vim_system = mock_vim_system({
         ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
