@@ -135,7 +135,7 @@ describe("gitlinker root semantics", function()
       vim.cmd("cd " .. vim.fn.fnameescape(repo))
       vim.cmd("edit " .. vim.fn.fnameescape(sub .. "/a.txt"))
 
-      local lk, lk_err = linker.make_linker() --[[@as gitlinker.Linker, string?]]
+      local lk, lk_err = linker.make_linker(vim.api.nvim_get_current_buf()) --[[@as gitlinker.Linker, string?]]
       assert_eq(lk_err, nil)
       assert_eq(lk.file, "sub/a.txt")
       assert_false(lk.file_changed)
@@ -146,7 +146,7 @@ describe("gitlinker root semantics", function()
       write(sub .. "/a.txt", "sub\nchanged\n")
       vim.cmd("edit!")
 
-      local lk_changed = linker.make_linker() --[[@as gitlinker.Linker]]
+      local lk_changed = linker.make_linker(vim.api.nvim_get_current_buf()) --[[@as gitlinker.Linker]]
       assert_eq(lk_changed.file, "sub/a.txt")
       assert_true(lk_changed.file_changed)
     end)

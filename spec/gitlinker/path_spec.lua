@@ -13,7 +13,7 @@ describe("gitlinker.path", function()
   --- @return string?
   local function relpath_of(bufpath, dir)
     vim.cmd("edit " .. vim.fn.fnameescape(bufpath))
-    return path.buffer_relpath(dir)
+    return path.buffer_relpath(vim.api.nvim_get_current_buf(), dir)
   end
 
   describe("[buffer_relpath]", function()

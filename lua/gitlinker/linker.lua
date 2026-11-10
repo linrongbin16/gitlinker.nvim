@@ -6,9 +6,9 @@ local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 
+--- @param buf_path string
 --- @return string?, string?
-local function _get_buf_dir()
-  local buf_path = vim.api.nvim_buf_get_name(0)
+local function _get_buf_dir(buf_path)
   local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
   log.debug(
     string.format(
@@ -28,12 +28,19 @@ local function _get_buf_dir()
 end
 
 --- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @param bufnr integer  the buffer to link.
 --- @param remote string?
 --- @param file string?
 --- @param rev string?
 --- @return gitlinker.Linker?, string?
-local function make_linker(remote, file, rev)
-  local buf_dir, buf_dir_err = _get_buf_dir()
+local function make_linker(bufnr, remote, file, rev)
+  -- The buffer is resolved by the caller, before the first `await` below. This
+  -- function suspends while `git` runs, and the user is free to switch files in
+  -- the meantime: reading the current buffer afterwards linked whichever file
+  -- was open when the command finished instead of the one it started from.
+  local buf_path = vim.api.nvim_buf_get_name(bufnr)
+
+  local buf_dir, buf_dir_err = _get_buf_dir(buf_path)
   if not buf_dir then
     return nil, buf_dir_err
   end
@@ -116,18 +123,18 @@ local function make_linker(remote, file, rev)
 
   local file_changed = false
 
-  -- If file parameter is not provided, detect file with current buffer
+  -- If file parameter is not provided, detect file with the linked buffer
   if types.str_empty(file) then
     -- Both the tree lookup and the diff below run in the repository root, so
     -- the path handed to them has to be root-relative. A path relative to the
     -- buffer directory matches nothing there: `git diff` then exits 0 with
     -- empty output, which reads as "the file has not changed".
-    local relpath = path.buffer_relpath(root)
+    local relpath = path.buffer_relpath(bufnr, root)
     if not relpath then
       return nil,
         string.format(
           "fatal: failed to resolve the buffer path relative to the git repository root: %s (root: %s)",
-          vim.inspect(vim.api.nvim_buf_get_name(0)),
+          vim.inspect(buf_path),
           vim.inspect(root)
         )
     end

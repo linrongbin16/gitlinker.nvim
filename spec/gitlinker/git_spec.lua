@@ -108,7 +108,7 @@ describe("gitlinker.git", function()
       -- which cannot run in the fast event context the coroutine resumes in
       -- after `git` exits. Compute it here, exactly like `linker.make_linker`
       -- does when it hops back with `async.await(1, vim.schedule)`.
-      local bufpath = path.buffer_relpath(cwd)
+      local bufpath = path.buffer_relpath(vim.api.nvim_get_current_buf(), cwd)
       wait_async(function()
         -- Fail instead of returning on a missing prerequisite: a silent
         -- `return` would report a passing test that never asserted anything,
