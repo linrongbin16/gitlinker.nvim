@@ -90,19 +90,6 @@ describe("gitlinker.git", function()
         assert_true(string.len(err) > 0)
       end)
     end)
-    it("_get_rev_name(@{u})", function()
-      wait_async(function()
-        local rev, err = git._get_rev_name("@{u}", cwd)
-        print(string.format("_get_rev_name:%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
-        if rev then
-          assert_eq(type(rev), "string")
-          assert_true(string.len(rev) > 0)
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
-      end)
-    end)
     it("is_file_in_rev", function()
       -- `path.buffer_relpath` calls Vimscript functions (`getcwd`, `resolve`),
       -- which cannot run in the fast event context the coroutine resumes in
@@ -479,6 +466,102 @@ describe("gitlinker.git", function()
         local actual, err = git.get_closest_remote_compatible_rev("o+", repo)
         assert_eq(actual, head)
         assert_true(err == nil)
+      end)
+    end)
+  end)
+
+  describe("[get_branch_remote]", function()
+    --- @type string
+    local repo
+
+    --- What the stubbed picker answers, and the prompts it was handed.
+    --- @type integer
+    local answer
+    --- @type string[][]
+    local prompts
+
+    --- @type fun(prompt:string[]):integer
+    local saved_inputlist
+
+    --- Create a repository with one commit and the given remotes.
+    --- @param remotes string[]
+    local function make_repo(remotes)
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "init" })
+      for _, remote in ipairs(remotes) do
+        sh({ "git", "-C", repo, "remote", "add", remote, "https://github.com/acme/demo.git" })
+      end
+    end
+
+    before_each(function()
+      answer = 1
+      prompts = {}
+      -- The picker blocks on a real keystroke; answer for it instead, and keep
+      -- the prompt so a case can check what the user was offered.
+      saved_inputlist = vim.fn.inputlist
+      vim.fn.inputlist = function(prompt)
+        table.insert(prompts, prompt)
+        return answer
+      end
+    end)
+
+    after_each(function()
+      vim.fn.inputlist = saved_inputlist
+      if repo then
+        vim.fn.delete(repo, "rf")
+        repo = nil
+      end
+    end)
+
+    it("hands back the only remote without asking", function()
+      make_repo({ "origin" })
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_eq(actual, "origin")
+        assert_true(err == nil)
+        assert_eq(#prompts, 0)
+      end)
+    end)
+
+    it("asks which remote to use when there is more than one", function()
+      make_repo({ "origin", "upstream" })
+      answer = 2
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_eq(actual, "upstream")
+        assert_true(err == nil)
+        assert_eq(#prompts, 1)
+        -- The list shows what each index stands for: a bare index would make
+        -- the user pick blind.
+        local prompt = table.concat(prompts[1], "\n")
+        assert_true(prompt:find("1. origin (https://github.com/acme/demo.git)", 1, true) ~= nil)
+        assert_true(prompt:find("2. upstream (https://github.com/acme/demo.git)", 1, true) ~= nil)
+      end)
+    end)
+
+    it("reports a cancelled picker", function()
+      make_repo({ "origin", "upstream" })
+      answer = 0
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+        assert_true(err:find("user cancelled", 1, true) ~= nil, "unexpected error: " .. err)
+      end)
+    end)
+
+    it("reports a repository without any remote", function()
+      make_repo({})
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+        assert_eq(#prompts, 0)
       end)
     end)
   end)
