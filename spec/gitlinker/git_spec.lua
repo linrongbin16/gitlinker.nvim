@@ -281,4 +281,94 @@ describe("gitlinker.git", function()
       end)
     end)
   end)
+
+  describe("[get_default_branch]", function()
+    --- @type string
+    local repo
+
+    --- Run `args` and fail loudly when it exits non-zero: a silently broken
+    --- fixture would otherwise surface as a confusing assertion error later.
+    --- @param args string[]
+    local function sh(args)
+      local out = vim.fn.system(args)
+      assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
+    end
+
+    --- Create a repository whose remote-tracking HEAD is a symref to
+    --- `remote`/`branch`, the shape `git clone` leaves behind.
+    --- @param remote string  the remote name, which git allows to hold a `/`.
+    --- @param branch string  the branch name, which commonly holds a `/`.
+    local function make_repo(remote, branch)
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "init" })
+      sh({ "git", "-C", repo, "remote", "add", remote, "https://github.com/acme/demo.git" })
+      local ref = string.format("refs/remotes/%s/%s", remote, branch)
+      sh({ "git", "-C", repo, "update-ref", ref, "HEAD" })
+      sh({
+        "git",
+        "-C",
+        repo,
+        "symbolic-ref",
+        string.format("refs/remotes/%s/HEAD", remote),
+        ref,
+      })
+    end
+
+    after_each(function()
+      if repo then
+        vim.fn.delete(repo, "rf")
+        repo = nil
+      end
+    end)
+
+    it("keeps a branch name that contains a slash", function()
+      make_repo("origin", "release/v5")
+      wait_async(function()
+        -- `git rev-parse --abbrev-ref origin/HEAD` prints `origin/release/v5`.
+        -- Splitting that on `/` and taking the last piece returned `v5`, which
+        -- built a link to a branch that does not exist.
+        local actual, err = git.get_default_branch("origin", repo)
+        assert_eq(actual, "release/v5")
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("keeps a remote name that contains a slash", function()
+      make_repo("team/up", "release/v5")
+      wait_async(function()
+        -- The printed ref is `team/up/release/v5`. Only stripping the whole
+        -- remote name leaves `release/v5` behind; splitting on `/` would lose
+        -- the remote as well as the first half of the branch.
+        local actual, err = git.get_default_branch("team/up", repo)
+        assert_eq(actual, "release/v5")
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("hands back the output untouched when it names no remote branch", function()
+      make_repo("origin", "release/v5")
+      sh({ "git", "-C", repo, "tag", "v1" })
+      sh({
+        "git",
+        "-C",
+        repo,
+        "symbolic-ref",
+        "refs/remotes/origin/HEAD",
+        "refs/tags/v1",
+      })
+      wait_async(function()
+        -- A symref pointing outside the remote is printed bare, as `v1`. That
+        -- is not prefixed with `origin/`, so it must not be cut to an empty
+        -- string either.
+        local actual, err = git.get_default_branch("origin", repo)
+        assert_eq(actual, "v1")
+        assert_true(err == nil)
+      end)
+    end)
+  end)
 end)

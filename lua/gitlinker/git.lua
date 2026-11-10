@@ -443,8 +443,18 @@ local function get_default_branch(remote, root)
       vim.inspect(result.stdout)
     )
   )
-  local splits = vim.split(result.stdout[1], "/", { plain = true, trimempty = true })
-  return splits[#splits], nil
+  -- The output names a remote-tracking ref: `<remote>/<branch>`. Neither part
+  -- can be split on blindly -- both may hold slashes, the remote because git
+  -- accepts `team/up` as a remote name, the branch because names such as
+  -- `release/v5` are ordinary. Take the remote off the front instead, which
+  -- leaves the branch intact whatever it is called. A symref pointing outside
+  -- the remote (at a tag, say) is printed without the prefix at all, so that
+  -- shape is handed back untouched rather than emptied.
+  local prefix = remote .. "/"
+  if vim.startswith(result.stdout[1], prefix) then
+    return string.sub(result.stdout[1], string.len(prefix) + 1), nil
+  end
+  return result.stdout[1], nil
 end
 
 --- @param root string
