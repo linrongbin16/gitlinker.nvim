@@ -193,6 +193,47 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
+--- Whether `value` is a line number a file can have, i.e. a whole number of at
+--- least 1.
+---
+--- A line number that fails this is worse than useless downstream: `#L0` and
+--- `#L1.5` name no line of any file, so the remote answers with a 404, and a
+--- float or an infinity makes `vim.fn.col()` raise `E805` while highlighting,
+--- from inside the coroutine of `_void_link`, where nothing reports it.
+---
+--- @param value any
+--- @return boolean
+local function _is_line_number(value)
+  -- A NaN fails every comparison, including `==` with itself, which the
+  -- integrality test below relies on.
+  return type(value) == "number"
+    and value == value
+    and value ~= math.huge
+    and value ~= -math.huge
+    and value >= 1
+    and value == math.floor(value)
+end
+
+--- Turn a line number handed in by the caller into one a file can have.
+---
+--- Anything that is not a finite number (`nil`, an infinity, a NaN) is not a
+--- line number at all, so it is dropped and the caller falls back to the
+--- selection or the cursor line. A finite one is moved onto the first line when
+--- it points before it, and rounded down when it holds a fraction.
+---
+--- The upper bound is deliberately left alone: the range can point at a file
+--- named by `file`/`rev`, whose length is unknown here, and clamping it to the
+--- current buffer would silently move the range to an unrelated place.
+---
+--- @param value integer?
+--- @return integer?
+local function _resolve_line_number(value)
+  if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
+    return nil
+  end
+  return math.max(1, math.floor(value))
+end
+
 --- Resolve what to highlight, before the first `await` of `_link`.
 ---
 --- `_link` yields to the event loop a few times before it draws anything, so
@@ -200,8 +241,8 @@ end
 --- `highlight.show()` runs, the current buffer may belong to another file and
 --- the range would be sized from whichever file the user switched to.
 ---
---- The range is already checked by `_link`: both ends are numbers and `lend`
---- is not before `lstart`, so it is used as given.
+--- The range is already checked by `_link`: both ends are whole line numbers
+--- and `lend` is not before `lstart`, so it is used as given.
 ---
 --- @param opts {lstart:integer,lend:integer,highlight_duration:integer?}
 --- @param confs gitlinker.Options
@@ -241,7 +282,11 @@ local _link = function(opts)
   -- end reaches `luaeval`, which turns it into `vim.NIL`, and the default
   -- templates then raise "attempt to compare two nil values" from inside the
   -- template instead of saying what was wrong.
-  if type(opts.lstart) ~= "number" or type(opts.lend) ~= "number" or opts.lstart > opts.lend then
+  if
+    not _is_line_number(opts.lstart)
+    or not _is_line_number(opts.lend)
+    or opts.lstart > opts.lend
+  then
     log.err(
       string.format(
         "fatal: invalid line range: %s(lstart) - %s(lend)",
@@ -504,15 +549,15 @@ local function link(opts)
     end
 
   -- Normalize the line range here, so `_void_link` always receives both ends
-  -- as numbers with `lstart` not after `lend`:
+  -- as usable line numbers with `lstart` not after `lend`:
   --   - both given: only the order has to be fixed, a reversed range is the
   --     same lines as its sorted form;
   --   - one given: it names a single line, so it is also the other end;
   --   - none given: use the current selection, or the cursor line.
   -- Filling this in here rather than in `_link` keeps the asynchronous part
   -- free of the "no range at all" case: it never has to guess.
-  local lstart = type(opts.lstart) == "number" and opts.lstart or nil
-  local lend = type(opts.lend) == "number" and opts.lend or nil
+  local lstart = _resolve_line_number(opts.lstart)
+  local lend = _resolve_line_number(opts.lend)
   if lstart and lend then
     if lend < lstart then
       lstart, lend = lend, lstart

@@ -1249,6 +1249,98 @@ describe("gitlinker", function()
       assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L2")
     end)
 
+    it("moves a line range that starts before the first line onto it", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- `#L0` and `#L-3-L-1` name no line of any file, so the remote answers
+      -- with a 404 that says nothing about the real problem.
+      local urls, errors = link_and_capture({ lstart = 0, lend = 0 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L1")
+
+      local neg_urls, neg_errors = link_and_capture({ lstart = -3, lend = -1 })
+      assert_eq(#neg_errors, 0, string.format("errors: %s", vim.inspect(neg_errors)))
+      assert_eq(#neg_urls, 1)
+      assert_eq(neg_urls[1]:match("#L[%dL%-]*$"), "#L1")
+    end)
+
+    it("moves an end below the first line onto it, keeping the other one", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- Line 0 does not exist, so it becomes the nearest line that does, and the
+      -- usable end is still part of the range instead of being thrown away.
+      local urls, errors = link_and_capture({ lstart = 9, lend = 0 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L1-L9")
+    end)
+
+    it("rounds a fractional line range down to whole lines", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- `#L1.5-L2.5` is not a link either, and `vim.fn.col({2.5, "$"})` raised
+      -- `E805` while computing the highlight, which the coroutine swallowed
+      -- before the url was ever made. Getting a url back proves neither
+      -- happens anymore.
+      local urls, errors = link_and_capture({ lstart = 1.5, lend = 2.5 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L1-L2")
+    end)
+
+    it("falls back to the cursor line for an infinite or NaN line number", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- Neither survives `math.floor()` as something `vim.fn.col()` takes, and
+      -- there is no line to move them onto, so they count as not given.
+      local inf_urls, inf_errors = link_and_capture({ lstart = math.huge, lend = math.huge })
+      assert_eq(#inf_errors, 0, string.format("errors: %s", vim.inspect(inf_errors)))
+      assert_eq(#inf_urls, 1)
+      assert_eq(inf_urls[1]:match("#L[%dL%-]*$"), "#L1")
+
+      local nan_urls, nan_errors = link_and_capture({ lstart = 0 / 0, lend = 0 / 0 })
+      assert_eq(#nan_errors, 0, string.format("errors: %s", vim.inspect(nan_errors)))
+      assert_eq(#nan_urls, 1)
+      assert_eq(nan_urls[1]:match("#L[%dL%-]*$"), "#L1")
+    end)
+
     it("reports the error when the revision cannot be resolved", function()
       restore_vim_system = mock_vim_system({
         ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
