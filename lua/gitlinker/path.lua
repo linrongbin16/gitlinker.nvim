@@ -73,17 +73,28 @@ local function _relative_to(p, dir)
   return result
 end
 
---- Get the current buffer path relative to `dir`.
+--- Get a buffer path relative to `dir`.
 ---
 --- Pass the directory the consumer resolves paths against, not blindly the
 --- editor cwd: `git` resolves both pathspecs and `rev:path` entries against the
 --- directory it runs in, which for this plugin is the repository root.
 ---
+--- Pass the buffer the caller means, too, instead of relying on the current
+--- one: the link is built asynchronously, so by the time the path is resolved
+--- the user may well have switched to another file, and the link would then
+--- describe that one.
+---
 --- This reads the buffer name and calls Vimscript functions, so it must run
 --- outside a fast event context.
+--- @param bufnr integer  the buffer to read the name from.
 --- @param dir string?  the directory to be relative to, defaults to `vim.fn.getcwd()`.
 --- @return string?  the relative path, or nil when the buffer is not inside `dir`.
-local function buffer_relpath(dir)
+local function buffer_relpath(bufnr, dir)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    -- The buffer can be gone by the time the asynchronous link gets here.
+    return nil
+  end
+
   dir = dir or vim.fn.getcwd()
   dir = vim.fn.resolve(dir)
   dir = _normalize(dir)
@@ -94,7 +105,7 @@ local function buffer_relpath(dir)
     return nil
   end
 
-  local bufpath = vim.api.nvim_buf_get_name(0)
+  local bufpath = vim.api.nvim_buf_get_name(bufnr)
   bufpath = vim.fn.resolve(bufpath)
   bufpath = _normalize(bufpath)
 

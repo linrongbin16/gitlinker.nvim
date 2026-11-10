@@ -1462,5 +1462,30 @@ describe("gitlinker", function()
       assert_eq(#errors, 1)
       assert_true(errors[1]:find("BOOM-HIGHLIGHT", 1, true) ~= nil)
     end)
+
+    it("links the buffer the caller started from, not the one open when git answers", function()
+      -- `_link` yields to the event loop before it reads the buffer name, so an
+      -- `:edit` that lands inside one of those waits used to move the link to
+      -- the file the user had just switched to.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = function()
+          vim.cmd([[edit README.md]])
+          return { stdout = { "https://github.com/acme/demo.git" } }
+        end,
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors = link_and_capture({ lstart = 1, lend = 1 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_true(urls[1]:find("/lua/gitlinker.lua", 1, true) ~= nil, urls[1])
+      assert_true(urls[1]:find("README", 1, true) == nil, urls[1])
+    end)
   end)
 end)

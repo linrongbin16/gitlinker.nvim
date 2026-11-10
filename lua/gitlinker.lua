@@ -237,16 +237,16 @@ end
 --- Resolve what to highlight, before the first `await` of `_link`.
 ---
 --- `_link` yields to the event loop a few times before it draws anything, so
---- the buffer and the line width have to be read up front: by the time
---- `highlight.show()` runs, the current buffer may belong to another file and
---- the range would be sized from whichever file the user switched to.
+--- the line width has to be read up front: by the time `highlight.show()` runs,
+--- the current buffer may belong to another file and the range would be sized
+--- from whichever file the user switched to.
 ---
 --- The range is already checked by `_link`: both ends are whole line numbers
 --- and `lend` is not before `lstart`, so it is used as given.
 ---
 --- @param opts {lstart:integer,lend:integer,highlight_duration:integer?}
 --- @param confs gitlinker.Options
---- @return {bufnr:integer,start:[integer,integer],finish:[integer,integer],duration:integer}?
+--- @return {start:[integer,integer],finish:[integer,integer],duration:integer}?
 local function _highlight_target(opts, confs)
   local duration = confs.highlight_duration
   if type(opts.highlight_duration) == "number" then
@@ -260,7 +260,6 @@ local function _highlight_target(opts, confs)
     string.format("invalid lstart/lend: %s/%s", vim.inspect(opts.lstart), vim.inspect(opts.lend))
   )
   return {
-    bufnr = vim.api.nvim_get_current_buf(),
     start = { opts.lstart - 1, 0 },
     -- `lend` is named explicitly: the one-argument form of `col()` measures
     -- whatever line the cursor happens to sit on, which is only the end line
@@ -309,9 +308,15 @@ local _link = function(opts)
     return nil
   end
 
+  -- Read the buffer once, here, and hand it to everything below. `_link` yields
+  -- to the event loop a few times, and the user may open another file in the
+  -- meantime: anything that goes back to "the current buffer" after the first
+  -- `await` links, highlights and measures the file the user switched to.
+  local bufnr = vim.api.nvim_get_current_buf()
+
   local highlight_target = _highlight_target(opts, confs)
 
-  local lk, lk_err = linker.make_linker(opts.remote, opts.file, opts.rev)
+  local lk, lk_err = linker.make_linker(bufnr, opts.remote, opts.file, opts.rev)
   if not lk then
     if lk_err then
       log.err(lk_err)
@@ -355,7 +360,6 @@ local _link = function(opts)
   end
 
   if highlight_target then
-    local bufnr = highlight_target.bufnr
     local start = highlight_target.start
     local finish = highlight_target.finish
     local duration = highlight_target.duration
