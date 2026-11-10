@@ -1,14 +1,79 @@
 local cwd = vim.fn.getcwd()
 
+--- The revision the mocked repository resolves to.
+local MOCK_REV = "c171bb5f0151963cf7aa9efa151be0182bbea848"
+
+--- Mock `vim.system`, the single API `gitlinker.git` runs every command
+--- through, so a case fully controls the stdout/stderr its git calls see.
+---
+--- `rules` maps a command-line prefix to the answer that command produces:
+---
+---     mock_vim_system({
+---       ["git rev-parse"] = { stdout = { "c171bb5" } },
+---       ["git diff"] = { code = 128, stderr = { "fatal: ..." } },
+---     })
+---
+--- The longest matching prefix wins, so `git rev-parse --show-toplevel` can be
+--- given its own answer next to a generic `git rev-parse` one. An answer may
+--- also be a function receiving the full command, and may carry `spawn_error`
+--- to raise the way `vim.system` does when a command cannot be started.
+--- @param rules table<string, table|fun(cmd:string[]):table>
+--- @return fun()  restores the real API.
+local function mock_vim_system(rules)
+  local saved = vim.system
+  local function answer(cmd)
+    local line = table.concat(cmd, " ")
+    local best, best_len
+    for prefix, rule in pairs(rules) do
+      if vim.startswith(line, prefix) and (best_len == nil or #prefix > best_len) then
+        best, best_len = rule, #prefix
+      end
+    end
+    if best == nil then
+      return { code = 127, stderr = { "fatal: no mock for: " .. line } }
+    end
+    return type(best) == "function" and best(cmd) or best
+  end
+
+  vim.system = function(cmd, _, on_exit)
+    local result = answer(cmd)
+    if result.spawn_error then
+      error(result.spawn_error, 0)
+    end
+    on_exit({
+      code = result.code or 0,
+      stdout = table.concat(result.stdout or {}, "\n"),
+      stderr = table.concat(result.stderr or {}, "\n"),
+    })
+    return {}
+  end
+  return function()
+    vim.system = saved
+  end
+end
+
 describe("gitlinker", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
+  local restore_vim_system
+
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
     vim.cmd([[edit lua/gitlinker.lua]])
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+  end)
+
+  after_each(function()
+    -- Join the link tasks a case started before the real API comes back, or a
+    -- leftover step would run its git command against the actual repository.
+    vim.wait(300)
+    if restore_vim_system then
+      restore_vim_system()
+      restore_vim_system = nil
+    end
   end)
 
   local gitlinker = require("gitlinker")
@@ -673,6 +738,17 @@ describe("gitlinker", function()
 
   describe("[_void_link]", function()
     it("link browse", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
@@ -683,6 +759,17 @@ describe("gitlinker", function()
       })
     end)
     it("link blame", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       gitlinker._void_link({
         action = require("gitlinker.actions").clipboard,
         router = function(lk)
@@ -698,16 +785,8 @@ describe("gitlinker", function()
     -- `:1,3GitLink` used to be unioned with the cursor line, so running it from
     -- line 15 linked lines 1 to 15. These cases capture the url through
     -- `clipboard_override` and read the line anchor back out of it.
-    local repo
+    local repo_dir
     local saved_override
-
-    --- Run `args` and fail loudly when it exits non-zero: a silently broken
-    --- fixture would otherwise surface as a confusing assertion error later.
-    --- @param args string[]
-    local function sh(args)
-      local out = vim.fn.system(args)
-      assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
-    end
 
     --- Run `run`, which receives a callback to deliver the url to, and return
     --- the url it produced.
@@ -754,35 +833,17 @@ describe("gitlinker", function()
       -- to finish before this block switches the current buffer out from under
       -- them, which would make their path lookup fail and log a fatal.
       vim.wait(300)
-      repo = vim.fn.tempname()
-      vim.fn.mkdir(repo, "p")
+      repo_dir = vim.fn.tempname()
+      vim.fn.mkdir(repo_dir, "p")
       local lines = {}
       for i = 1, 20 do
         lines[i] = "line " .. i
       end
-      vim.fn.writefile(lines, repo .. "/demo.txt")
-      vim.fn.mkdir(repo .. "/some dir", "p")
-      vim.fn.writefile({ "spaced" }, repo .. "/some dir/a b.lua")
+      vim.fn.writefile(lines, repo_dir .. "/demo.txt")
+      vim.fn.mkdir(repo_dir .. "/some dir", "p")
+      vim.fn.writefile({ "spaced" }, repo_dir .. "/some dir/a b.lua")
 
-      sh({ "git", "init", "--quiet", "-b", "main", repo })
-      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
-      sh({ "git", "-C", repo, "config", "user.name", "test" })
-      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
-      sh({ "git", "-C", repo, "add", "--all" })
-      sh({ "git", "-C", repo, "commit", "--quiet", "--message", "init" })
-      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
-      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", "HEAD" })
-      sh({
-        "git",
-        "-C",
-        repo,
-        "symbolic-ref",
-        "refs/remotes/origin/HEAD",
-        "refs/remotes/origin/main",
-      })
-      sh({ "git", "-C", repo, "branch", "--set-upstream-to=origin/main", "main" })
-
-      vim.cmd("edit! " .. vim.fn.fnameescape(repo .. "/demo.txt"))
+      vim.cmd("edit! " .. vim.fn.fnameescape(repo_dir .. "/demo.txt"))
       saved_override = require("gitlinker.configs").get().clipboard_override
     end)
 
@@ -794,10 +855,21 @@ describe("gitlinker", function()
       vim.wait(300)
       require("gitlinker.configs").get().clipboard_override = saved_override
       vim.cmd("silent! enew!")
-      vim.fn.delete(repo, "rf")
+      vim.fn.delete(repo_dir, "rf")
     end)
 
     it("links the cursor line when no range is given", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       vim.api.nvim_win_set_cursor(0, { 15, 0 })
       assert_eq(
         anchor_of(function()
@@ -808,6 +880,17 @@ describe("gitlinker", function()
     end)
 
     it("links the range given on the command line", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       vim.api.nvim_win_set_cursor(0, { 15, 0 })
       assert_eq(
         anchor_of(function()
@@ -819,6 +902,17 @@ describe("gitlinker", function()
     end)
 
     it("links a single line range given on the command line", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       vim.api.nvim_win_set_cursor(0, { 15, 0 })
       assert_eq(
         anchor_of(function()
@@ -829,6 +923,17 @@ describe("gitlinker", function()
     end)
 
     it("links the whole file given a percent range", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       vim.api.nvim_win_set_cursor(0, { 15, 0 })
       assert_eq(
         anchor_of(function()
@@ -839,6 +944,17 @@ describe("gitlinker", function()
     end)
 
     it("links the visual selection when it is mapped through <cmd>", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       -- The mapping in the readme runs `<cmd>GitLink<cr>` in visual mode, so
       -- the command gets no range: the selection has to be recovered from the
       -- marks instead.
@@ -854,6 +970,15 @@ describe("gitlinker", function()
     end)
 
     it("uri-encodes a quoted file path that contains spaces", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       local url = command_url_of(function()
         vim.cmd([[GitLink file="some dir/a b.lua"]])
       end)
@@ -864,6 +989,15 @@ describe("gitlinker", function()
     end)
 
     it("uri-encodes an escaped file path that contains spaces", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { repo_dir } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       local url = command_url_of(function()
         vim.cmd([[GitLink file=some\ dir/a\ b.lua]])
       end)
@@ -876,6 +1010,17 @@ describe("gitlinker", function()
 
   describe("[link]", function()
     it("browse", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       gitlinker.link()
       gitlinker.link({})
       gitlinker.link({
@@ -885,14 +1030,47 @@ describe("gitlinker", function()
       })
     end)
     it("blame", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       gitlinker.link({ router_type = "blame" })
     end)
     it("default_branch", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       gitlinker.link({ router_type = "default_branch" })
     end)
     it("does not mutate the options table it is handed", function()
       -- A keymap closure hands the same table to every press, so resolving the
       -- line range into it would freeze the range of the first press.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
       local opts = { router_type = "blame" }
       gitlinker.link(opts)
       assert_eq(opts.router_type, "blame")
@@ -900,6 +1078,172 @@ describe("gitlinker", function()
       assert_eq(opts.router, nil)
       assert_eq(opts.lstart, nil)
       assert_eq(opts.lend, nil)
+    end)
+
+    --- Link with `opts` and return the urls the action received together with
+    --- the error messages logged along the way.
+    ---
+    --- `log.err()` notifies from a scheduled callback, so the loop has to run
+    --- once before the messages can be read back.
+    ---
+    --- @param opts table
+    --- @return string[] urls, string[] errors
+    local function link_and_capture(opts)
+      local urls, errors = {}, {}
+      local notify = vim.notify
+      vim.notify = function(msg, level)
+        if level == vim.log.levels.ERROR then
+          table.insert(errors, msg)
+        end
+      end
+      opts.action = function(url)
+        table.insert(urls, url)
+      end
+      local ok, err = pcall(gitlinker.link, opts)
+      vim.wait(300)
+      vim.notify = notify
+      assert_true(ok, err)
+      return urls, errors
+    end
+
+    it("links a single line when the caller names only one end", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- A half-given range used to reach `luaeval` as `vim.NIL`, which the
+      -- default templates compared with a number and raised from inside the
+      -- template. The other end is now filled in from the one that was given.
+      local urls, errors = link_and_capture({ lend = 6 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
+    end)
+
+    it("links the same single line for the other end", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors = link_and_capture({ lstart = 6 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L6")
+    end)
+
+    it("sorts a reversed range instead of dropping its end", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      -- `LEND` used to fall back to `LSTART` here, so the url silently named a
+      -- single line instead of the range the caller asked for.
+      local urls, errors = link_and_capture({ lstart = 5, lend = 3 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L3-L5")
+    end)
+
+    it("links a single line range given by the caller", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_eq(#urls, 1)
+      assert_eq(urls[1]:match("#L[%dL%-]*$"), "#L2")
+    end)
+
+    it("reports the error when the revision cannot be resolved", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+        -- Every revspec fails, so the revision detection runs out of
+        -- candidates and reports its own fatal. No fetch refspec is
+        -- configured, which keeps the search on the local history.
+        ["git rev-parse"] = { code = 128, stderr = { "fatal: bad revision" } },
+        ["git config remote.origin.fetch"] = { code = 1 },
+      })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("failed to get closest revision", 1, true) ~= nil)
+    end)
+
+    it("reports the error when the file is missing from the revision", function()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+        ["git cat-file"] = { code = 128, stderr = { "fatal: path 'demo.txt' does not exist" } },
+      })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("does not exist", 1, true) ~= nil)
+    end)
+
+    it("reports the error when git cannot be spawned", function()
+      -- `vim.system` raises instead of invoking its callback when the binary or
+      -- the directory is missing; the fake raises the same way here.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+        ["git rev-parse --show-toplevel"] = { spawn_error = "ENOENT: no such file or directory" },
+      })
+      local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("ENOENT", 1, true) ~= nil)
     end)
   end)
 end)
