@@ -5,6 +5,14 @@ describe("gitlinker.git", function()
   local assert_true = assert.is_true
   local assert_false = assert.is_false
 
+  --- Run `args` and fail loudly when it exits non-zero: a silently broken
+  --- fixture would otherwise surface as a confusing assertion error later.
+  --- @param args string[]
+  local function sh(args)
+    local out = vim.fn.system(args)
+    assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
+  end
+
   before_each(function()
     vim.api.nvim_command("cd " .. cwd)
     vim.opt.swapfile = false
@@ -286,14 +294,6 @@ describe("gitlinker.git", function()
     --- @type string
     local repo
 
-    --- Run `args` and fail loudly when it exits non-zero: a silently broken
-    --- fixture would otherwise surface as a confusing assertion error later.
-    --- @param args string[]
-    local function sh(args)
-      local out = vim.fn.system(args)
-      assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
-    end
-
     --- Create a repository whose remote-tracking HEAD is a symref to
     --- `remote`/`branch`, the shape `git clone` leaves behind.
     --- @param remote string  the remote name, which git allows to hold a `/`.
@@ -367,6 +367,86 @@ describe("gitlinker.git", function()
         -- string either.
         local actual, err = git.get_default_branch("origin", repo)
         assert_eq(actual, "v1")
+        assert_true(err == nil)
+      end)
+    end)
+  end)
+
+  describe("[get_closest_remote_compatible_rev]", function()
+    --- @type string
+    local repo
+
+    --- Create a repository with one commit and the given remotes, then mark
+    --- `HEAD` as tracked by every entry of `tracked` (`"<remote>/<branch>"`).
+    --- The commits fetched from a remote are the only thing the compatibility
+    --- check looks at, so `tracked` decides which revs it may hand back.
+    --- @param remotes string[]
+    --- @param tracked string[]
+    local function make_repo(remotes, tracked)
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "init" })
+      for _, remote in ipairs(remotes) do
+        sh({ "git", "-C", repo, "remote", "add", remote, "https://github.com/acme/demo.git" })
+      end
+      for _, ref in ipairs(tracked) do
+        sh({ "git", "-C", repo, "update-ref", "refs/remotes/" .. ref, "HEAD" })
+      end
+    end
+
+    after_each(function()
+      if repo then
+        vim.fn.delete(repo, "rf")
+        repo = nil
+      end
+    end)
+
+    it("hands back a rev that the remote really tracks", function()
+      make_repo({ "origin" }, { "origin/main" })
+      wait_async(function()
+        local head, head_err = git._get_rev("HEAD", repo)
+        assert_true(head ~= nil, "this test needs a commit: " .. tostring(head_err))
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_eq(actual, head)
+        assert_true(err == nil)
+      end)
+    end)
+
+    it("does not let a remote name match the prefix of another one", function()
+      make_repo({ "ori", "origin" }, { "origin/main" })
+      wait_async(function()
+        -- `git branch --remotes` prints `refs/remotes/origin/main`, which holds
+        -- the substring `ori`. Matching the remote as an unanchored Lua pattern
+        -- treated that as "`ori` tracks this commit" and linked a rev the
+        -- remote does not have.
+        local actual, err = git.get_closest_remote_compatible_rev("ori", repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+      end)
+    end)
+
+    it("treats the pattern characters of a remote name literally", function()
+      make_repo({ "o+", "origin" }, { "origin/main" })
+      wait_async(function()
+        -- `o+` is a Lua pattern matching runs of `o`, so `origin/main` used to
+        -- satisfy it as well.
+        local actual, err = git.get_closest_remote_compatible_rev("o+", repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+      end)
+    end)
+
+    it("finds the rev of a remote whose name holds pattern characters", function()
+      make_repo({ "o+", "origin" }, { "o+/main", "origin/main" })
+      wait_async(function()
+        local head, head_err = git._get_rev("HEAD", repo)
+        assert_true(head ~= nil, "this test needs a commit: " .. tostring(head_err))
+        local actual, err = git.get_closest_remote_compatible_rev("o+", repo)
+        assert_eq(actual, head)
         assert_true(err == nil)
       end)
     end)
