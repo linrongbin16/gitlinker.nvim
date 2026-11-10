@@ -313,17 +313,22 @@ local _link = function(opts)
     warn_on_file_change = opts.warn_on_file_change
   end
   if lk.file_changed and warn_on_file_change then
-    local warning = string.format(
-      "line numbers can be wrong, %s has changed since %s",
-      lk.file,
-      string.sub(lk.rev, 1, 8)
+    -- `log.warn`/`log.info` hand the message to `vim.notify`, which renders it
+    -- verbatim. A file name that needed uri-encoding arrives here as
+    -- `some%20dir/a%20b.lua`, so escaping the `%` again printed a link that
+    -- disagreed with the one in the clipboard.
+    log.warn(
+      string.format(
+        "line numbers can be wrong, %s has changed since %s",
+        lk.file,
+        string.sub(lk.rev, 1, 8)
+      )
     )
-    log.warn(warning:gsub("%%", "%%%%"))
   end
 
   if message then
     ---@diagnostic disable-next-line: need-check-nil
-    log.info(url:gsub("%%", "%%%%") --[[@as string]])
+    log.info(url --[[@as string]])
   end
 
   return url
