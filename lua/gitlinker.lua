@@ -270,6 +270,18 @@ local function _highlight_target(opts, confs)
   }
 end
 
+--- Render a value raised by user code as the one line the logger prints.
+--- `error()` accepts any value, so a raised table or `nil` has to be turned
+--- into text before it reaches `string.format()`.
+--- @param err any
+--- @return string
+local function _error_message(err)
+  if type(err) == "string" then
+    return err
+  end
+  return vim.inspect(err)
+end
+
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
@@ -327,8 +339,19 @@ local _link = function(opts)
     )
   )
 
+  -- The action is user code: a custom clipboard, a `vim.ui.open()` wrapper, an
+  -- OSC 52 call. Raising from it is an ordinary mistake, but this function runs
+  -- inside a task that nobody waits on, so a bare call loses the error
+  -- completely -- no message, and `v:errmsg` stays empty. Catch it and report
+  -- it the same way the router is reported.
   if opts.action then
-    opts.action(url --[[@as string]])
+    local action = opts.action --[[@as fun(url:string):any]]
+    local action_ok, action_err = pcall(action, url --[[@as string]])
+    if not action_ok then
+      log.err(
+        string.format("fatal: failed to run the action on url: %s", _error_message(action_err))
+      )
+    end
   end
 
   if highlight_target then
@@ -337,7 +360,16 @@ local _link = function(opts)
     local finish = highlight_target.finish
     local duration = highlight_target.duration
     vim.schedule(function()
-      highlight.show(bufnr, start, finish, duration)
+      -- Drawing happens after the link is done, so a failure here cannot fail
+      -- the link itself. Left alone it escapes the scheduled callback, which
+      -- lands in `v:errmsg` and on stderr as a raw traceback; report it like
+      -- every other failure instead.
+      local shown, show_err = pcall(highlight.show, bufnr, start, finish, duration)
+      if not shown then
+        log.err(
+          string.format("fatal: failed to highlight the linked lines: %s", _error_message(show_err))
+        )
+      end
     end)
   end
 

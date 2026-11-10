@@ -1097,8 +1097,12 @@ describe("gitlinker", function()
           table.insert(errors, msg)
         end
       end
-      opts.action = function(url)
-        table.insert(urls, url)
+      -- A case that checks what happens when the action raises hands in its
+      -- own; only the cases that just want the url get the collector.
+      if opts.action == nil then
+        opts.action = function(url)
+          table.insert(urls, url)
+        end
       end
       local ok, err = pcall(gitlinker.link, opts)
       vim.wait(300)
@@ -1402,6 +1406,61 @@ describe("gitlinker", function()
       assert_eq(#urls, 0)
       assert_eq(#errors, 1)
       assert_true(errors[1]:find("ENOENT", 1, true) ~= nil)
+    end)
+
+    it("reports the error an action raises", function()
+      -- The action runs inside a task nobody waits on, so an error raised here
+      -- used to vanish: no message, no `v:errmsg`, nothing to report to a user
+      -- whose clipboard function is broken.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local urls, errors = link_and_capture({
+        lstart = 2,
+        lend = 2,
+        action = function()
+          error("BOOM-ACTION")
+        end,
+      })
+      assert_eq(#urls, 0)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("BOOM-ACTION", 1, true) ~= nil)
+    end)
+
+    it("reports the error a highlight raises", function()
+      -- The highlight is drawn from a scheduled callback, after the link is
+      -- done. Its failure cannot fail the link, but it should still be a
+      -- message rather than a traceback printed behind the user's back.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local highlight = require("gitlinker.highlight")
+      local show = highlight.show
+      highlight.show = function()
+        error("BOOM-HIGHLIGHT")
+      end
+      local captured_ok, urls, errors = pcall(link_and_capture, { lstart = 2, lend = 2 })
+      highlight.show = show
+      assert_true(captured_ok, vim.inspect(urls))
+      assert_eq(#urls, 1)
+      assert_eq(#errors, 1)
+      assert_true(errors[1]:find("BOOM-HIGHLIGHT", 1, true) ~= nil)
     end)
   end)
 end)
