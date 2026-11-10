@@ -125,6 +125,18 @@ local function _get_remote(root)
   return result.stdout, nil
 end
 
+--- @package
+--- @param remote string
+--- @param root string
+--- @return boolean?, string?
+local function _has_remote(remote, root)
+  local remotes, err = _get_remote(root)
+  if remotes == nil then
+    return nil, err
+  end
+  return vim.tbl_contains(remotes, remote), nil
+end
+
 --- @param remote string
 --- @param root string
 --- @return string?, string?
@@ -274,6 +286,17 @@ end
 --- @return string?, string?
 local function get_closest_remote_compatible_rev(remote, root)
   assert(remote, "remote cannot be nil")
+
+  -- A remote that does not exist has no fetch refspec either, which would make
+  -- `_has_remote_fetch_config` below answer `false` and turn the whole
+  -- compatibility check into a pass-through. Reject the name up front instead
+  -- of linking a rev that no remote is known to hold.
+  local exists, exists_err = _has_remote(remote, root)
+  if exists == nil then
+    return nil, exists_err
+  elseif not exists then
+    return nil, string.format("fatal: remote '%s' does not exist", remote)
+  end
 
   -- try upstream branch HEAD (a.k.a @{u})
   local upstream_rev = _get_rev("@{u}", root)

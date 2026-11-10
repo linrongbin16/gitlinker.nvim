@@ -440,6 +440,37 @@ describe("gitlinker.git", function()
       end)
     end)
 
+    it("refuses a remote name that does not exist", function()
+      make_repo({ "origin" }, { "origin/main" })
+      wait_async(function()
+        -- `git config remote.zzz.fetch` exits 1 whether the key is absent from
+        -- an existing remote or the remote itself is missing. Reading that as
+        -- "no fetch refspec configured" used to let every candidate through,
+        -- so the check handed back the HEAD rev for a remote it never asked.
+        local actual, err = git.get_closest_remote_compatible_rev("zzz", repo)
+        assert_true(actual == nil)
+        assert_true(
+          type(err) == "string" and err:find("does not exist", 1, true) ~= nil,
+          "unexpected error: " .. vim.inspect(err)
+        )
+      end)
+    end)
+
+    it("keeps the check strict when the commit is not in the remote yet", function()
+      -- A remote with a fetch refspec configured, but none of its branches
+      -- pointing at `HEAD`: the conservative branch must not fall back to the
+      -- local history, otherwise every commit would get a 404 permalink.
+      make_repo({ "origin" }, {})
+      wait_async(function()
+        local actual, err = git.get_closest_remote_compatible_rev("origin", repo)
+        assert_true(actual == nil)
+        assert_true(
+          type(err) == "string" and err:find("failed to get closest revision", 1, true) ~= nil,
+          "unexpected error: " .. vim.inspect(err)
+        )
+      end)
+    end)
+
     it("finds the rev of a remote whose name holds pattern characters", function()
       make_repo({ "o+", "origin" }, { "o+/main", "origin/main" })
       wait_async(function()
