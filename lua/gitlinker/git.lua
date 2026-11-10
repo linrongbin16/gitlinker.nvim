@@ -151,19 +151,6 @@ local function _get_rev(revspec, root)
   return result.stdout[1], nil
 end
 
---- @package
---- @param revspec string
---- @param root string
---- @return string?, string?
-local function _get_rev_name(revspec, root)
-  local args = { "git", "rev-parse", "--abbrev-ref", revspec }
-  local result = run_cmd(args, root)
-  if result:silent_failed() then
-    return nil, result:errmsg("git branch has no remote")
-  end
-  return result.stdout[1], nil
-end
-
 --- @param file string
 --- @param revspec string
 --- @param root string
@@ -412,38 +399,10 @@ local function get_branch_remote(root)
     return remotes[1], nil
   end
 
-  if #remotes > 1 then
-    return _select_remotes(remotes, root)
-  end
-
-  -- origin/linrongbin16/add-rule2
-  local upstream_branch, upstream_err = _get_rev_name("@{u}", root)
-  if not upstream_branch then
-    return nil, upstream_err
-  end
-
-  local upstream_branch_allowed_chars = "[_%-%w%.]+"
-
-  -- origin
-  local remote_from_upstream_branch =
-    upstream_branch:match("^(" .. upstream_branch_allowed_chars .. ")%/")
-
-  if not remote_from_upstream_branch then
-    return nil, "fatal: cannot parse remote name from remote branch: " .. upstream_branch
-  end
-
-  for _, remote in ipairs(remotes) do
-    if remote_from_upstream_branch == remote then
-      return remote, nil
-    end
-  end
-
-  return nil,
-    string.format(
-      "fatal: parsed remote '%s' from remote branch '%s' is not a valid remote",
-      remote_from_upstream_branch,
-      upstream_branch
-    )
+  -- `_get_remote` never hands back an empty list -- `git remote` printing
+  -- nothing counts as a failure -- so anything not caught above holds more than
+  -- one remote, and the user picks one.
+  return _select_remotes(remotes, root)
 end
 
 --- @param remote string
@@ -498,7 +457,6 @@ local M = {
   GitResult = GitResult,
   _get_remote = _get_remote,
   _get_rev = _get_rev,
-  _get_rev_name = _get_rev_name,
   get_root = get_root,
   get_remote_url = get_remote_url,
   is_file_in_rev = is_file_in_rev,
