@@ -27,7 +27,7 @@ local function _get_buf_dir(buf_path)
   return buf_dir, nil
 end
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
 --- @param bufnr integer  the buffer to link.
 --- @param remote string?
 --- @param file string?
@@ -186,8 +186,6 @@ local function make_linker(bufnr, remote, file, rev)
     password = parsed_url.password,
     host = resolved_host,
     port = parsed_url.port,
-    --- @deprecated please use 'org'
-    user = parsed_url.org,
     org = parsed_url.org,
     repo = parsed_url.repo,
     rev = rev,

@@ -89,7 +89,7 @@ describe("gitlinker", function()
     router = {
       browse = {
         ["^git%.xyz%.com"] = "https://git.xyz.com/"
-          .. "{_A.USER}/"
+          .. "{_A.ORG}/"
           .. "{_A.REPO}/blob/"
           .. "{_A.REV}/"
           .. "{_A.FILE}?plain=1"
@@ -98,7 +98,7 @@ describe("gitlinker", function()
       },
       blame = {
         ["^git%.xyz%.com"] = "https://git.xyz.com/"
-          .. "{_A.USER}/"
+          .. "{_A.ORG}/"
           .. "{_A.REPO}/blame/"
           .. "{_A.REV}/"
           .. "{_A.FILE}?plain=1"
@@ -456,7 +456,6 @@ describe("gitlinker", function()
         protocol = "ssh",
         username = "git",
         host = "git.xyz.com",
-        user = "linrongbin16",
         org = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
@@ -478,7 +477,6 @@ describe("gitlinker", function()
         username = "git",
         host = "git.xyz.com",
         org = "linrongbin16",
-        user = "linrongbin16",
         repo = "gitlinker.nvim.git",
         rev = "399b1d05473c711fc5592a6ffc724e231c403486",
         file = "lua/gitlinker/logger.lua",

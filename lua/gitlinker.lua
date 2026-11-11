@@ -67,7 +67,6 @@ local function _url_template_engine(lk, template)
         PASSWORD = lk.password or "",
         HOST = lk.host or "",
         PORT = lk.port or "",
-        USER = lk.user or "",
         ORG = lk.org or "",
         REPO = types.str_strip_suffix(lk.repo, ".git"),
         REV = lk.rev,
