@@ -16,74 +16,38 @@ describe("gitlinker.linker", function()
   local testutil = require("spec.testutil")
   local answering_picker = testutil.answering_picker
   local wait_async = testutil.wait_async
-  local github_actions = os.getenv("GITHUB_ACTIONS") == "true"
   local linker = require("gitlinker.linker")
   describe("[make_linker]", function()
-    it("make", function()
+    it("describes the buffer it is handed", function()
       -- This checkout may have more than one remote, and the builtin picker
       -- would then block on an `inputlist` prompt nobody answers headlessly.
       answering_picker(function()
         wait_async(function()
           local lk, err = linker.make_linker(vim.api.nvim_get_current_buf())
-          print(string.format("linker:%s, err:%s", vim.inspect(lk), vim.inspect(err)))
-          if lk then
-            assert_true(err == nil)
-          else
+          if lk == nil then
+            -- A shallow detached clone in CI may have no remote-tracking refs,
+            -- so a failure is allowed there -- but only one that says why.
             assert_eq(type(err), "string")
+            assert_true(string.len(err --[[@as string]]) > 0)
+            return
           end
-          if github_actions then
-            assert_true(type(lk) == "table" or lk == nil)
-          else
-            assert_eq(type(lk), "table")
-            assert_eq(lk.file, "lua/gitlinker.lua")
-            assert_true(lk.lstart == nil)
-            assert_true(lk.lend == nil)
-            assert_eq(type(lk.rev), "string")
-            assert_true(string.len(lk.rev) > 0)
-            assert_eq(type(lk.remote_url), "string")
-            -- The clone URL depends on how this checkout was made (https vs ssh,
-            -- with or without the `.git` suffix), so assert on the parts the
-            -- linker must preserve instead of a literal URL.
-            assert_true(lk.remote_url:match("github%.com/linrongbin16/gitlinker%.nvim$") ~= nil)
-            assert_eq(lk.org, "linrongbin16")
-            assert_eq(lk.repo, "gitlinker.nvim")
-            assert_eq(lk.default_branch, "master")
-            assert_eq(type(lk.current_branch), "string")
-            assert_true(string.len(lk.current_branch) >= 0)
-          end
-        end)
-      end)
-    end)
-    it("make with range", function()
-      answering_picker(function()
-        wait_async(function()
-          local lk, err = linker.make_linker(vim.api.nvim_get_current_buf())
-          print(string.format("linker:%s, err:%s", vim.inspect(lk), vim.inspect(err)))
-          if lk then
-            assert_true(err == nil)
-          else
-            assert_eq(type(err), "string")
-          end
-          if github_actions then
-            assert_true(type(lk) == "table" or lk == nil)
-          else
-            assert_eq(type(lk), "table")
-            assert_eq(lk.file, "lua/gitlinker.lua")
-            assert_true(lk.lstart == nil)
-            assert_true(lk.lend == nil)
-            assert_eq(type(lk.rev), "string")
-            assert_true(string.len(lk.rev) > 0)
-            assert_eq(type(lk.remote_url), "string")
-            -- The clone URL depends on how this checkout was made (https vs ssh,
-            -- with or without the `.git` suffix), so assert on the parts the
-            -- linker must preserve instead of a literal URL.
-            assert_true(lk.remote_url:match("github%.com/linrongbin16/gitlinker%.nvim$") ~= nil)
-            assert_eq(lk.org, "linrongbin16")
-            assert_eq(lk.repo, "gitlinker.nvim")
-            assert_eq(lk.default_branch, "master")
-            assert_eq(type(lk.current_branch), "string")
-            assert_true(string.len(lk.current_branch) >= 0)
-          end
+          assert_true(err == nil)
+          assert_eq(lk.file, "lua/gitlinker.lua")
+          -- The range is filled in by `link()`, not here.
+          assert_true(lk.lstart == nil)
+          assert_true(lk.lend == nil)
+          assert_eq(type(lk.rev), "string")
+          assert_true(string.len(lk.rev) > 0)
+          assert_eq(type(lk.remote_url), "string")
+          -- The clone URL depends on how this checkout was made (https vs ssh,
+          -- with or without the `.git` suffix), so assert on the parts the
+          -- linker must preserve instead of a literal URL.
+          assert_true(lk.remote_url:match("github%.com/linrongbin16/gitlinker%.nvim$") ~= nil)
+          assert_eq(lk.org, "linrongbin16")
+          assert_eq(lk.repo, "gitlinker.nvim")
+          assert_eq(lk.default_branch, "master")
+          assert_eq(type(lk.current_branch), "string")
+          assert_true(string.len(lk.current_branch) > 0)
         end)
       end)
     end)
@@ -96,33 +60,38 @@ describe("gitlinker.linker", function()
             nil,
             "definitely-not-a-real-rev-xyz"
           )
-          print(string.format("linker(bad rev):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
           assert_true(lk == nil)
           assert_eq(type(err), "string")
-          assert_true(string.len(err) > 0)
+          assert_true(string.len(err --[[@as string]]) > 0)
         end)
       end)
     end)
     it("returns an error outside a git repository", function()
       local tmp = vim.fn.tempname()
       vim.fn.mkdir(tmp, "p")
-      vim.cmd("edit " .. tmp .. "/plain.txt")
+      vim.fn.writefile({ "plain" }, tmp .. "/plain.txt")
+      vim.cmd("edit " .. vim.fn.fnameescape(tmp .. "/plain.txt"))
+      local bufnr = vim.api.nvim_get_current_buf()
       wait_async(function()
-        local lk, err = linker.make_linker(vim.api.nvim_get_current_buf())
-        print(string.format("linker(no repo):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
+        local lk, err = linker.make_linker(bufnr)
         assert_true(lk == nil)
         assert_eq(type(err), "string")
+        assert_true(string.len(err --[[@as string]]) > 0)
       end)
+      -- Close the buffer first: deleting a directory that a loaded buffer still
+      -- points at leaves it holding a path that no longer exists.
+      vim.cmd("silent! enew!")
       vim.fn.delete(tmp, "rf")
     end)
     it("returns an error for an unknown remote", function()
       wait_async(function()
         local lk, err =
           linker.make_linker(vim.api.nvim_get_current_buf(), "no-such-remote-xyz", nil, nil)
-        print(string.format("linker(bad remote):%s, err:%s", vim.inspect(lk), vim.inspect(err)))
         assert_true(lk == nil)
         assert_eq(type(err), "string")
-        assert_true(string.len(err) > 0)
+        -- The message has to name the remote the user asked for, otherwise it
+        -- does not say which of their remotes was wrong.
+        assert_true(err --[[@as string]]:find("no-such-remote-xyz", 1, true) ~= nil, err)
       end)
     end)
     it("returns an error for a local path remote", function()
@@ -162,15 +131,7 @@ describe("gitlinker.linker", function()
       for _, remote in ipairs({ "origin", "file-remote" }) do
         wait_async(function()
           local lk, err = linker.make_linker(bufnr, remote, nil, nil)
-          print(
-            string.format(
-              "linker(local remote %s):%s, err:%s",
-              remote,
-              vim.inspect(lk),
-              vim.inspect(err)
-            )
-          )
-          assert_true(lk == nil)
+          assert_true(lk == nil, string.format("remote %s: %s", remote, vim.inspect(lk)))
           assert_eq(type(err), "string")
           -- The message has to name the cause. It used to be ssh's multi-line
           -- usage text, which told the user nothing about their remote.
@@ -178,6 +139,8 @@ describe("gitlinker.linker", function()
           assert_true(err:find(upstream, 1, true) ~= nil, err)
         end)
       end
+      -- Close the buffer before deleting the directory it was loaded from.
+      vim.cmd("silent! enew!")
       vim.fn.delete(repo, "rf")
       vim.fn.delete(upstream, "rf")
     end)

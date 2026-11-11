@@ -10,6 +10,9 @@
 -- relative `.` runtimepath entry from `spec_init.lua`. Pin the plugin root as
 -- an absolute path so the lazy `require` calls keep resolving.
 vim.opt.rtp:append(vim.fn.getcwd())
+--- The repository this spec file lives in, resolved once before anything `cd`s
+--- away from it.
+local plugin_root = vim.fn.resolve(vim.fn.getcwd())
 
 describe("gitlinker root semantics", function()
   local assert_eq = assert.is_equal
@@ -94,26 +97,34 @@ describe("gitlinker root semantics", function()
     wait_async(function()
       -- `git rev-parse --show-toplevel` reports the real path, so normalize
       -- before comparing: the temp directory may itself sit behind a symlink.
-      local root = git.get_root(sub) --[[@as string]]
-      assert_eq(vim.fn.resolve(root), vim.fn.resolve(repo))
+      local root, root_err = git.get_root(sub)
+      assert_true(root ~= nil, "this test needs the repository root: " .. tostring(root_err))
+      assert_eq(vim.fn.resolve(root --[[@as string]]), vim.fn.resolve(repo))
 
-      local nested, nested_err = git.is_file_in_rev("sub/a.txt", "HEAD", root)
+      local nested, nested_err = git.is_file_in_rev("sub/a.txt", "HEAD", root --[[@as string]])
       assert_eq(nested_err, nil)
       assert_true(nested)
 
       -- The same file name without the `sub/` prefix does not exist in the
       -- tree: `cat-file` always resolves `rev:path` from the repository root.
-      local shallow, shallow_err = git.is_file_in_rev("a.txt", "HEAD", root)
+      local shallow, shallow_err = git.is_file_in_rev("a.txt", "HEAD", root --[[@as string]])
       assert_true(shallow == nil)
       assert_eq(type(shallow_err), "string")
+      -- The message has to name the path that was looked for, otherwise the
+      -- user cannot tell which file the link points at.
+      assert_true(
+        shallow_err --[[@as string]]:find("a.txt", 1, true) ~= nil,
+        "unexpected error: " .. tostring(shallow_err)
+      )
     end)
   end)
 
   it("detects a change to a file nested one level down", function()
     wait_async(function()
-      local root = git.get_root(sub) --[[@as string]]
+      local root, root_err = git.get_root(sub)
+      assert_true(root ~= nil, "this test needs the repository root: " .. tostring(root_err))
 
-      local clean, clean_err = git.file_has_changed("sub/a.txt", "HEAD", root)
+      local clean, clean_err = git.file_has_changed("sub/a.txt", "HEAD", root --[[@as string]])
       assert_eq(clean_err, nil)
       assert_false(clean)
 
@@ -121,7 +132,7 @@ describe("gitlinker root semantics", function()
 
       -- A pathspec that matches nothing exits 0 with empty output, so this
       -- used to come back as `false` no matter what the working tree held.
-      local dirty, dirty_err = git.file_has_changed("sub/a.txt", "HEAD", root)
+      local dirty, dirty_err = git.file_has_changed("sub/a.txt", "HEAD", root --[[@as string]])
       assert_eq(dirty_err, nil)
       assert_true(dirty)
     end)
@@ -136,7 +147,7 @@ describe("gitlinker root semantics", function()
       vim.cmd("edit " .. vim.fn.fnameescape(sub .. "/a.txt"))
 
       local lk, lk_err = linker.make_linker(vim.api.nvim_get_current_buf()) --[[@as gitlinker.Linker, string?]]
-      assert_eq(lk_err, nil)
+      assert_true(lk ~= nil, "this test needs a link: " .. tostring(lk_err))
       assert_eq(lk.file, "sub/a.txt")
       assert_false(lk.file_changed)
 
@@ -146,9 +157,38 @@ describe("gitlinker root semantics", function()
       write(sub .. "/a.txt", "sub\nchanged\n")
       vim.cmd("edit!")
 
-      local lk_changed = linker.make_linker(vim.api.nvim_get_current_buf()) --[[@as gitlinker.Linker]]
+      local lk_changed, changed_err = linker.make_linker(vim.api.nvim_get_current_buf()) --[[@as gitlinker.Linker, string?]]
+      assert_true(lk_changed ~= nil, "this test needs a link: " .. tostring(changed_err))
       assert_eq(lk_changed.file, "sub/a.txt")
       assert_true(lk_changed.file_changed)
     end)
+  end)
+
+  it("reports a missing repository instead of guessing a root", function()
+    -- A directory outside any repository has no root. `get_root` must say so
+    -- rather than hand back the directory it was given, which would make every
+    -- later `cat-file` run against an unrelated working tree.
+    local outside = vim.fn.tempname()
+    vim.fn.mkdir(outside, "p")
+    wait_async(function()
+      local root, err = git.get_root(outside)
+      assert_true(root == nil, "unexpected root: " .. vim.inspect(root))
+      assert_eq(type(err), "string")
+      assert_true(string.len(err --[[@as string]]) > 0)
+    end)
+    vim.fn.delete(outside, "rf")
+  end)
+
+  it("pins the plugin root independently of the editor cwd", function()
+    -- The suite `cd`s into throwaway repositories, so the runtimepath entry
+    -- this spec added has to be absolute: a relative `.` would stop resolving
+    -- `require("gitlinker...")` the moment the cwd moves.
+    assert_true(
+      vim.fn.isdirectory(plugin_root .. "/lua/gitlinker") == 1,
+      "plugin root is not a directory: " .. plugin_root
+    )
+    vim.cmd("cd " .. vim.fn.fnameescape(repo))
+    assert_eq(vim.fn.getcwd(), repo)
+    assert_eq(require("gitlinker.range") ~= nil, true)
   end)
 end)
