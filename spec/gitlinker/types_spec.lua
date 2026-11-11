@@ -60,6 +60,12 @@ describe("gitlinker.types", function()
       assert_false(types.str_blank("a"))
       assert_false(types.str_blank("  a  "))
     end)
+
+    it("accepts a zero-width string as blank, not as missing", function()
+      -- `\0` is not whitespace: a string holding it is content.
+      assert_false(types.str_blank("\0"))
+      assert_true(types.str_blank("\r\n\t"))
+    end)
   end)
 
   describe("[str_search]", function()
@@ -76,6 +82,12 @@ describe("gitlinker.types", function()
     it("starts from the given index", function()
       assert_eq(types.str_search("a{b}c", "{", 1), 2)
       assert_eq(types.str_search("a{b}c", "{", 3), nil)
+      assert_eq(types.str_search("{a}{b}", "{", 2), 4)
+    end)
+
+    it("returns the 1-based index, matching `string.find`", function()
+      assert_eq(types.str_search("x{", "{"), 2)
+      assert_eq(types.str_search("{x", "{"), 1)
     end)
 
     it("returns nil when the needle is absent", function()
@@ -107,6 +119,35 @@ describe("gitlinker.types", function()
 
     it("leaves the string alone for an empty suffix", function()
       assert_eq(types.str_strip_suffix("abc", ""), "abc")
+    end)
+
+    it("strips a suffix that is the whole string", function()
+      assert_eq(types.str_strip_suffix(".git", ".git"), "")
+    end)
+
+    it("leaves a string shorter than the suffix alone", function()
+      assert_eq(types.str_strip_suffix("git", ".git"), "git")
+      assert_eq(types.str_strip_suffix("", ".git"), "")
+    end)
+
+    it("only matches at the end, not in the middle", function()
+      assert_eq(types.str_strip_suffix(".git/HEAD", ".git"), ".git/HEAD")
+      assert_eq(types.str_strip_suffix("a.git.b", ".git"), "a.git.b")
+    end)
+
+    it("is case sensitive", function()
+      assert_eq(types.str_strip_suffix("repo.GIT", ".git"), "repo.GIT")
+    end)
+
+    it("strips a multi-byte suffix by characters, not bytes", function()
+      -- `string.len` counts bytes, so a byte-wise implementation would cut
+      -- the string in the middle of a character.
+      assert_eq(types.str_strip_suffix("仓库.git", ".git"), "仓库")
+    end)
+
+    it("returns the same string value, not a copy that lost bytes", function()
+      local name = "gitlinker.nvim"
+      assert_eq(types.str_strip_suffix(name, ".git"), name)
     end)
   end)
 

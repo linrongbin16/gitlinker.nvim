@@ -56,6 +56,10 @@ describe("gitlinker", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
+  local assert_same = assert.same
+
+  local testutil = require("spec.testutil")
+  local wait_for_tasks = testutil.wait_for_tasks
 
   local restore_vim_system
 
@@ -69,7 +73,7 @@ describe("gitlinker", function()
   after_each(function()
     -- Join the link tasks a case started before the real API comes back, or a
     -- leftover step would run its git command against the actual repository.
-    vim.wait(300)
+    assert_true(wait_for_tasks(), "a link task did not finish")
     if restore_vim_system then
       restore_vim_system()
       restore_vim_system = nil
@@ -77,7 +81,9 @@ describe("gitlinker", function()
   end)
 
   local gitlinker = require("gitlinker")
-  pcall(gitlinker.setup, {
+  -- `setup()` writes the module config, so a failure here would leave every
+  -- case below running against a half-built configuration.
+  local setup_ok, setup_err = pcall(gitlinker.setup, {
     debug = true,
     file_log = true,
     router = {
@@ -119,6 +125,143 @@ describe("gitlinker", function()
       },
     },
   })
+  assert_true(setup_ok, setup_err)
+
+  describe("[_parse_args]", function()
+    -- The command line arrives as one string, so these cases pin the split:
+    -- which words become `key=value` fields and which one names the router.
+    local parse = function(args)
+      return gitlinker._parse_args(args)
+    end
+
+    it("defaults to browse when there is nothing to parse", function()
+      assert_same(parse(nil), { router_type = "browse" })
+      assert_same(parse(""), { router_type = "browse" })
+      assert_same(parse("   "), { router_type = "browse" })
+    end)
+
+    it("reads every key and the router name in any order", function()
+      local expected = {
+        router_type = "blame",
+        remote = "upstream",
+        file = "lua/gitlinker.lua",
+        rev = "HEAD~1",
+      }
+      assert_same(parse("blame remote=upstream file=lua/gitlinker.lua rev=HEAD~1"), expected)
+      assert_same(parse("remote=upstream file=lua/gitlinker.lua rev=HEAD~1 blame"), expected)
+      assert_same(parse("  file=lua/gitlinker.lua  blame  rev=HEAD~1 remote=upstream  "), expected)
+    end)
+
+    it("keeps blanks inside a quoted value", function()
+      -- `:GitLink file="some dir/a b.lua"` is one argument, not three.
+      assert_same(parse([[file="some dir/a b.lua"]]), {
+        router_type = "browse",
+        file = "some dir/a b.lua",
+      })
+      assert_same(parse([[file='some dir/a b.lua']]), {
+        router_type = "browse",
+        file = "some dir/a b.lua",
+      })
+    end)
+
+    it("unescapes a quote and a backslash", function()
+      assert_same(parse([[file="a\"b.lua"]]), { router_type = "browse", file = 'a"b.lua' })
+      assert_same(parse([[file=a\\b.lua]]), { router_type = "browse", file = [[a\b.lua]] })
+    end)
+
+    it("lets a backslash escape a blank outside quotes", function()
+      -- The two ways to write a value with a space have to agree, or the same
+      -- path would resolve differently depending on how it was typed.
+      assert_same(parse([[file=some\ dir/a\ b.lua]]), {
+        router_type = "browse",
+        file = "some dir/a b.lua",
+      })
+    end)
+
+    it("splits on tabs as well as spaces", function()
+      assert_same(parse("blame\tremote=up"), { router_type = "blame", remote = "up" })
+    end)
+
+    it("takes the last value of a repeated key", function()
+      assert_same(parse("file=a.lua file=b.lua"), { router_type = "browse", file = "b.lua" })
+      assert_same(parse("remote=origin remote=up"), { router_type = "browse", remote = "up" })
+    end)
+
+    it("takes the last bare word as the router name", function()
+      -- A bare word is what names the router, so a typo earlier on the line is
+      -- overridden rather than reported.
+      assert_same(parse("blame browse"), { router_type = "browse" })
+      assert_same(parse("browse blame"), { router_type = "blame" })
+    end)
+
+    it("accepts an empty value and keeps an unknown word whole", function()
+      assert_same(parse("file="), { router_type = "browse", file = "" })
+      assert_same(parse("=x"), { router_type = "=x" })
+      assert_same(parse("extra=1"), { router_type = "extra=1" })
+      assert_same(parse("router=blame"), { router_type = "router=blame" })
+    end)
+
+    it("matches the key names case-sensitively", function()
+      assert_same(parse("FILE=a.lua"), { router_type = "FILE=a.lua" })
+      assert_same(parse("Remote=up"), { router_type = "Remote=up" })
+    end)
+  end)
+
+  describe("[_normalize_range]", function()
+    -- `link()` hands the result straight to the url template, so the two ends
+    -- have to be usable line numbers in order even when the caller passed
+    -- nothing, one end, or a reversed pair.
+    local normalize = function(lstart, lend)
+      return { gitlinker._normalize_range(lstart, lend) }
+    end
+
+    it("keeps a range that is already in order", function()
+      assert_same(normalize(3, 7), { 3, 7 })
+      assert_same(normalize(4, 4), { 4, 4 })
+    end)
+
+    it("sorts a reversed range", function()
+      assert_same(normalize(7, 3), { 3, 7 })
+    end)
+
+    it("makes a single end into a one-line range", function()
+      assert_same(normalize(5, nil), { 5, 5 })
+      assert_same(normalize(nil, 5), { 5, 5 })
+    end)
+
+    it("clamps a range to the first line and floors it", function()
+      assert_same(normalize(0, 0), { 1, 1 })
+      assert_same(normalize(-3, -1), { 1, 1 })
+      assert_same(normalize(2.7, 3.2), { 2, 3 })
+    end)
+
+    it("drops an end that is not a line number", function()
+      -- Infinity and NaN survive `type() == "number"`, so they are filtered on
+      -- their own, and the remaining end becomes the whole range.
+      assert_same(normalize(math.huge, 4), { 4, 4 })
+      assert_same(normalize(4, -math.huge), { 4, 4 })
+      assert_same(normalize(0 / 0, 4), { 4, 4 })
+      assert_same(normalize("4", 4), { 4, 4 })
+    end)
+
+    it("falls back to the cursor line", function()
+      vim.api.nvim_win_set_cursor(0, { 7, 0 })
+      assert_same(normalize(nil, nil), { 7, 7 })
+    end)
+
+    it("falls back to the visual selection", function()
+      -- The selection is read before `link()` leaves the current buffer, so a
+      -- `V`/`v`/`<C-v>` range has to survive the trip.
+      vim.cmd("normal! 2GVj")
+      assert_same(normalize(nil, nil), { 2, 3 })
+
+      vim.cmd("normal! 5GVk")
+      assert_same(normalize(nil, nil), { 4, 5 })
+
+      vim.cmd("normal! 2G\22jj")
+      assert_same(normalize(nil, nil), { 2, 4 })
+    end)
+  end)
 
   describe("[_url_template_engine]", function()
     it("test nil parameters", function()
@@ -142,7 +285,6 @@ describe("gitlinker", function()
         lend = 13,
       } --[[@as gitlinker.Linker]]
       local actual = gitlinker._url_template_engine(lk, "https://{_A.HOST}")
-      print(string.format("_url_template_engine-1:%s\n", vim.inspect(actual)))
       assert_eq(actual, "https://git.samba.org")
     end)
     it("test-2", function()
@@ -161,7 +303,6 @@ describe("gitlinker", function()
         lend = 13,
       } --[[@as gitlinker.Linker]]
       local actual = gitlinker._url_template_engine(lk, "https://samba.git")
-      print(string.format("_url_template_engine-2:%s\n", vim.inspect(actual)))
       assert_eq(actual, "https://samba.git")
     end)
   end)
@@ -737,7 +878,33 @@ describe("gitlinker", function()
   end)
 
   describe("[_void_link]", function()
-    it("link browse", function()
+    -- `_void_link` starts a task nobody waits on, so the url is only observable
+    -- through the action it runs. Capture it there instead of writing the real
+    -- `+` register, which made these cases depend on the clipboard provider.
+    --- @param router_type string
+    --- @return string?
+    local function link_url_of(router_type)
+      local url
+      gitlinker._void_link({
+        action = function(u)
+          url = u
+        end,
+        router = function(lk)
+          return gitlinker._router(router_type, lk)
+        end,
+        lstart = 1,
+        lend = 1,
+      })
+      vim.wait(5000, function()
+        return url ~= nil
+      end, 10)
+      -- The task keeps running for a few scheduled steps after the url is
+      -- handed over; let it finish before `after_each` restores `vim.system`.
+      assert_true(wait_for_tasks(), "the link task did not finish")
+      return url
+    end
+
+    it("links browse", function()
       restore_vim_system = mock_vim_system({
         ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
         ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
@@ -749,16 +916,13 @@ describe("gitlinker", function()
         ["git diff"] = {},
         ["ssh -ttG"] = { stdout = { "hostname github.com" } },
       })
-      gitlinker._void_link({
-        action = require("gitlinker.actions").clipboard,
-        router = function(lk)
-          return require("gitlinker")._router("browse", lk)
-        end,
-        lstart = 1,
-        lend = 1,
-      })
+      assert_eq(
+        link_url_of("browse"),
+        "https://github.com/acme/demo/blob/" .. MOCK_REV .. "/lua/gitlinker.lua?plain=1#L1"
+      )
     end)
-    it("link blame", function()
+
+    it("links blame", function()
       restore_vim_system = mock_vim_system({
         ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
         ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
@@ -770,14 +934,10 @@ describe("gitlinker", function()
         ["git diff"] = {},
         ["ssh -ttG"] = { stdout = { "hostname github.com" } },
       })
-      gitlinker._void_link({
-        action = require("gitlinker.actions").clipboard,
-        router = function(lk)
-          return require("gitlinker")._router("blame", lk)
-        end,
-        lstart = 1,
-        lend = 1,
-      })
+      assert_eq(
+        link_url_of("blame"),
+        "https://github.com/acme/demo/blame/" .. MOCK_REV .. "/lua/gitlinker.lua?plain=1#L1"
+      )
     end)
   end)
 
@@ -804,7 +964,7 @@ describe("gitlinker", function()
       -- few more scheduled steps. Let it finish before the fixture is torn
       -- down, or the leftover step reads a buffer that no longer belongs to
       -- this repository and logs a fatal of its own.
-      vim.wait(300)
+      assert_true(wait_for_tasks(), "the link task did not finish")
       return url
     end
 
@@ -832,7 +992,7 @@ describe("gitlinker", function()
       -- Earlier describes start tasks they never join. Give them a few turns
       -- to finish before this block switches the current buffer out from under
       -- them, which would make their path lookup fail and log a fatal.
-      vim.wait(300)
+      assert_true(wait_for_tasks(), "a link task from an earlier case did not finish")
       repo_dir = vim.fn.tempname()
       vim.fn.mkdir(repo_dir, "p")
       local lines = {}
@@ -852,7 +1012,7 @@ describe("gitlinker", function()
       -- still around: it only reaches its last steps after a few scheduled
       -- turns, and tearing the fixture down early makes those steps read a
       -- buffer that belongs to no repository any more.
-      vim.wait(300)
+      assert_true(wait_for_tasks(), "the link task did not finish")
       require("gitlinker.configs").get().clipboard_override = saved_override
       vim.cmd("silent! enew!")
       vim.fn.delete(repo_dir, "rf")
@@ -1009,77 +1169,6 @@ describe("gitlinker", function()
   end)
 
   describe("[link]", function()
-    it("browse", function()
-      restore_vim_system = mock_vim_system({
-        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
-        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
-        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
-        ["git rev-parse"] = { stdout = { MOCK_REV } },
-        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
-        ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
-        ["git diff"] = {},
-        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
-      })
-      gitlinker.link()
-      gitlinker.link({})
-      gitlinker.link({
-        action = function(url)
-          print(string.format("link-browse-1:%s\n", vim.inspect(url)))
-        end,
-      })
-    end)
-    it("blame", function()
-      restore_vim_system = mock_vim_system({
-        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
-        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
-        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
-        ["git rev-parse"] = { stdout = { MOCK_REV } },
-        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
-        ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
-        ["git diff"] = {},
-        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
-      })
-      gitlinker.link({ router_type = "blame" })
-    end)
-    it("default_branch", function()
-      restore_vim_system = mock_vim_system({
-        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
-        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
-        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
-        ["git rev-parse"] = { stdout = { MOCK_REV } },
-        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
-        ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
-        ["git diff"] = {},
-        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
-      })
-      gitlinker.link({ router_type = "default_branch" })
-    end)
-    it("does not mutate the options table it is handed", function()
-      -- A keymap closure hands the same table to every press, so resolving the
-      -- line range into it would freeze the range of the first press.
-      restore_vim_system = mock_vim_system({
-        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
-        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
-        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
-        ["git rev-parse"] = { stdout = { MOCK_REV } },
-        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
-        ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
-        ["git diff"] = {},
-        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
-      })
-      local opts = { router_type = "blame" }
-      gitlinker.link(opts)
-      assert_eq(opts.router_type, "blame")
-      assert_eq(opts.action, nil)
-      assert_eq(opts.router, nil)
-      assert_eq(opts.lstart, nil)
-      assert_eq(opts.lend, nil)
-    end)
-
     --- Link with `opts` and return the urls the action received, the error
     --- messages logged along the way, and every message printed to the user.
     ---
@@ -1105,11 +1194,100 @@ describe("gitlinker", function()
         end
       end
       local ok, err = pcall(gitlinker.link, opts)
-      vim.wait(300)
+      -- Keep the collector installed until the task ends: the last steps are
+      -- the ones that report a failure, and a fixed sleep would drop the slow
+      -- ones on a loaded machine.
+      local drained = wait_for_tasks()
       vim.notify = notify
       assert_true(ok, err)
+      assert_true(drained, "the link task did not finish")
       return urls, errors, messages
     end
+
+    --- The repository every case in this block links from.
+    local function mock_demo_repo()
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+    end
+
+    it("browse", function()
+      mock_demo_repo()
+      local expected = "https://github.com/acme/demo/blob/"
+        .. MOCK_REV
+        .. "/lua/gitlinker.lua?plain=1#L1"
+
+      -- With no options at all the router is browse and the action is the
+      -- default clipboard one, which writes the `+` register. Stub it rather
+      -- than depending on the clipboard provider of the machine running the
+      -- suite.
+      local actions = require("gitlinker.actions")
+      local saved_clipboard = actions.clipboard
+      local copied
+      actions.clipboard = function(url)
+        copied = url
+      end
+      local ok, err = pcall(gitlinker.link)
+      vim.wait(5000, function()
+        return copied ~= nil
+      end, 10)
+      actions.clipboard = saved_clipboard
+      assert_true(ok, err)
+      assert_eq(copied, expected)
+
+      -- An empty table resolves to the same thing.
+      local urls, errors = link_and_capture({})
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_same(urls, { expected })
+    end)
+
+    it("blame", function()
+      mock_demo_repo()
+      local urls, errors = link_and_capture({ router_type = "blame" })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_same(urls, {
+        "https://github.com/acme/demo/blame/" .. MOCK_REV .. "/lua/gitlinker.lua?plain=1#L1",
+      })
+    end)
+
+    it("default_branch", function()
+      mock_demo_repo()
+      local urls, errors = link_and_capture({ router_type = "default_branch" })
+      assert_eq(#errors, 0, string.format("errors: %s", vim.inspect(errors)))
+      assert_same(urls, {
+        "https://github.com/acme/demo/blob/main/lua/gitlinker.lua?plain=1#L1",
+      })
+    end)
+    it("does not mutate the options table it is handed", function()
+      -- A keymap closure hands the same table to every press, so resolving the
+      -- line range into it would freeze the range of the first press.
+      restore_vim_system = mock_vim_system({
+        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
+        ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
+        ["git rev-parse"] = { stdout = { MOCK_REV } },
+        ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
+        ["git remote"] = { stdout = { "origin" } },
+        ["git cat-file"] = {}, -- a successful probe prints nothing
+        ["git diff"] = {},
+        ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+      })
+      local opts = { router_type = "blame" }
+      gitlinker.link(opts)
+      assert_eq(opts.router_type, "blame")
+      assert_eq(opts.action, nil)
+      assert_eq(opts.router, nil)
+      assert_eq(opts.lstart, nil)
+      assert_eq(opts.lend, nil)
+    end)
 
     it("prints the url without escaping its percent signs again", function()
       -- `vim.uri_encode` turns a space into `%20`, and `vim.notify` renders the
@@ -1350,15 +1528,14 @@ describe("gitlinker", function()
         ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
         ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
         ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
-        ["git rev-parse"] = { stdout = { MOCK_REV } },
         ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
         ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
         ["git diff"] = {},
         ["ssh -ttG"] = { stdout = { "hostname github.com" } },
         -- Every revspec fails, so the revision detection runs out of
         -- candidates and reports its own fatal. No fetch refspec is
-        -- configured, which keeps the search on the local history.
+        -- configured, which keeps the search on the local history. A
+        -- successful `git rev-parse` here would shadow this failure.
         ["git rev-parse"] = { code = 128, stderr = { "fatal: bad revision" } },
         ["git config remote.origin.fetch"] = { code = 1 },
       })
@@ -1376,9 +1553,10 @@ describe("gitlinker", function()
         ["git rev-parse"] = { stdout = { MOCK_REV } },
         ["git remote get-url origin"] = { stdout = { "https://github.com/acme/demo.git" } },
         ["git remote"] = { stdout = { "origin" } },
-        ["git cat-file"] = {}, -- a successful probe prints nothing
         ["git diff"] = {},
         ["ssh -ttG"] = { stdout = { "hostname github.com" } },
+        -- The probe fails, so the file is reported missing from the revision
+        -- rather than linked. A successful `git cat-file` would shadow it.
         ["git cat-file"] = { code = 128, stderr = { "fatal: path 'demo.txt' does not exist" } },
       })
       local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
@@ -1391,7 +1569,9 @@ describe("gitlinker", function()
       -- `vim.system` raises instead of invoking its callback when the binary or
       -- the directory is missing; the fake raises the same way here.
       restore_vim_system = mock_vim_system({
-        ["git rev-parse --show-toplevel"] = { stdout = { cwd } },
+        -- The fake raises before any other command can run, so the root probe
+        -- carries the spawn failure and the rest never gets a chance to answer.
+        ["git rev-parse --show-toplevel"] = { spawn_error = "ENOENT: no such file or directory" },
         ["git rev-parse --abbrev-ref origin/HEAD"] = { stdout = { "origin/main" } },
         ["git rev-parse --abbrev-ref HEAD"] = { stdout = { "main" } },
         ["git rev-parse"] = { stdout = { MOCK_REV } },
@@ -1400,7 +1580,6 @@ describe("gitlinker", function()
         ["git cat-file"] = {}, -- a successful probe prints nothing
         ["git diff"] = {},
         ["ssh -ttG"] = { stdout = { "hostname github.com" } },
-        ["git rev-parse --show-toplevel"] = { spawn_error = "ENOENT: no such file or directory" },
       })
       local urls, errors = link_and_capture({ lstart = 2, lend = 2 })
       assert_eq(#urls, 0)

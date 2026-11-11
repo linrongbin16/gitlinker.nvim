@@ -13,5 +13,17 @@ any = true
 [before_each]
 any = true
 
+[after_each]
+any = true
+
+[before_all]
+any = true
+
+[after_all]
+any = true
+
+[pending]
+any = true
+
 [assert]
 any = true

@@ -9,7 +9,13 @@ describe("gitlinker.highlight", function()
     vim.api.nvim_command("cd " .. cwd)
   end)
 
-  require("gitlinker").setup()
+  do
+    -- A failure here would abort collection with no message at all, so report
+    -- it the way the other specs do. Scoped so the names do not shadow the
+    -- `ok` that the cases below bind from their own `pcall` calls.
+    local ok, err = pcall(require("gitlinker").setup)
+    assert_true(ok, tostring(err))
+  end
   local highlight = require("gitlinker.highlight")
   local ns = vim.api.nvim_create_namespace(highlight.NAMESPACE)
 
@@ -56,11 +62,19 @@ describe("gitlinker.highlight", function()
 
   describe("[highlight]", function()
     local bufnr
+    -- Two cases below redefine the group the module uses, and a definition
+    -- outlives the case that made it: restore the one the suite started with so
+    -- the next case, and the next spec file, do not inherit a colour.
+    local saved_group
     before_each(function()
+      saved_group = vim.api.nvim_get_hl(0, { name = highlight.GROUP, create = false })
       bufnr = vim.api.nvim_get_current_buf()
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "abcdef", "ghijkl" })
       vim.api.nvim_win_set_cursor(0, { 1, 0 })
       wipe(bufnr)
+    end)
+    after_each(function()
+      vim.api.nvim_set_hl(0, highlight.GROUP, saved_group)
     end)
     it("exists sees a defined group", function()
       vim.api.nvim_set_hl(0, "ProbeDefined", { link = "Search" })
@@ -83,11 +97,6 @@ describe("gitlinker.highlight", function()
       highlight.exists("ProbeSideEffect")
       assert_eq(vim.fn.hlexists("ProbeSideEffect"), 0)
     end)
-    it("show", function()
-      local start, finish = make_pos(1, 1)
-      highlight.show(bufnr, start, finish, 10000)
-      shown_marks(bufnr)
-    end)
     it("show covers the first character of the start line", function()
       local start, finish = make_pos(1, 1)
       highlight.show(bufnr, start, finish, 10000)
@@ -96,6 +105,16 @@ describe("gitlinker.highlight", function()
       -- Columns are 0-based: column 1 would drop the leading "a".
       assert_eq(marks[1][3], 0)
       assert_eq(marks[1][4].end_col, 6)
+    end)
+    it("show includes the end column it is given", function()
+      -- `make_pos` ends every range one past the last character, and
+      -- `vim.hl.range()` clamps that to the line, so a `finish` that stops
+      -- short of the end is the only way to observe `inclusive`: dropping it
+      -- would end the mark at column 3 and leave "d" unhighlighted.
+      highlight.show(bufnr, { 0, 0 }, { 0, 3 }, 10000)
+      local marks = shown_marks(bufnr)
+      assert_eq(#marks, 1)
+      assert_eq(marks[1][4].end_col, 4)
     end)
     it("show covers the whole line range", function()
       local start, finish = make_pos(1, 2)
@@ -282,7 +301,7 @@ describe("gitlinker.highlight", function()
 
         assert_eq(#vim.api.nvim_buf_get_extmarks(other, ns, 0, -1, {}), 0)
         wipe(origin)
-        vim.cmd("silent! enew!")
+        vim.api.nvim_buf_delete(other, { force = true })
       end)
 
       it("defines the group when a call asks for a highlight that setup skipped", function()

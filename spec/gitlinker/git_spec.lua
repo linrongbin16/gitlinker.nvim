@@ -4,6 +4,7 @@ describe("gitlinker.git", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
+  local assert_same = assert.same
 
   --- Run `args` and fail loudly when it exits non-zero: a silently broken
   --- fixture would otherwise surface as a confusing assertion error later.
@@ -20,221 +21,245 @@ describe("gitlinker.git", function()
   end)
 
   local testutil = require("spec.testutil")
-  local answering_picker = testutil.answering_picker
   local wait_async = testutil.wait_async
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
   local gitlinker = require("gitlinker")
-  pcall(gitlinker.setup, {})
+  do
+    local setup_ok, setup_err = pcall(gitlinker.setup, {})
+    assert_true(setup_ok, setup_err)
+  end
 
   describe("[git]", function()
-    it("_get_remote", function()
+    --- @type string
+    local repo
+
+    --- @param p string
+    --- @param lines string
+    local function write(p, lines)
+      local fd = assert(io.open(p, "w"))
+      fd:write(lines)
+      fd:close()
+    end
+
+    --- A throwaway repository with one commit, one remote and an upstream
+    --- branch. The cases used to read the repository this plugin lives in,
+    --- which made every assertion depend on the machine: no remote on a CI
+    --- checkout, no upstream for a local branch, and `origin` pointing wherever
+    --- the developer's fork points.
+    local function make_repo()
+      repo = vim.fn.tempname()
+      vim.fn.mkdir(repo .. "/lua", "p")
+      write(repo .. "/lua/demo.lua", "return {}\n")
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "add", "--all" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--message", "init" })
+      sh({ "git", "-C", repo, "remote", "add", "origin", "https://github.com/acme/demo.git" })
+      sh({ "git", "-C", repo, "update-ref", "refs/remotes/origin/main", "HEAD" })
+      sh({
+        "git",
+        "-C",
+        repo,
+        "symbolic-ref",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/main",
+      })
+      sh({ "git", "-C", repo, "branch", "--set-upstream-to=origin/main", "main" })
+    end
+
+    --- Resolve `revspec` in `repo`. `vim.fn.system` cannot run inside
+    --- `wait_async`, so expected revisions are computed before entering it.
+    --- @param revspec string
+    --- @return string
+    local function rev_of(revspec)
+      local out = vim.fn.system({ "git", "-C", repo, "rev-parse", revspec })
+      assert_eq(vim.v.shell_error, 0, revspec .. " => " .. tostring(out))
+      return vim.trim(out)
+    end
+
+    before_each(function()
+      make_repo()
+    end)
+
+    after_each(function()
+      if repo then
+        vim.fn.delete(repo, "rf")
+        repo = nil
+      end
+    end)
+
+    it("lists the remotes of the repository", function()
       wait_async(function()
-        local r, err = git._get_remote(cwd)
-        print(string.format("_get_remote:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
-        if r then
-          assert_eq(type(r), "table")
-          assert_true(#r > 0)
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+        local remotes, err = git._get_remote(repo)
+        assert_eq(err, nil)
+        assert_same(remotes, { "origin" })
       end)
     end)
-    it("get_remote_url", function()
-      answering_picker(function()
-        wait_async(function()
-          local remote, remote_err = git.get_branch_remote(cwd)
-          print(
-            string.format(
-              "get_branch_remote:%s, err:%s\n",
-              vim.inspect(remote),
-              vim.inspect(remote_err)
-            )
-          )
-          if remote then
-            assert_eq(type(remote), "string")
-            assert_true(string.len(remote) > 0)
-            local r, err = git.get_remote_url(remote, cwd)
-            print(string.format("get_remote_url:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
-            if r then
-              assert_eq(type(r), "string")
-              assert_true(string.len(r) > 0)
-              assert_true(err == nil)
-            else
-              assert_eq(type(err), "string")
-            end
-          else
-            assert_eq(type(remote_err), "string")
-          end
-        end)
-      end)
-    end)
-    it("_get_rev(@{u})", function()
+
+    it("reports a repository without any remote", function()
+      sh({ "git", "-C", repo, "remote", "remove", "origin" })
       wait_async(function()
-        local rev, err = git._get_rev("@{u}", cwd)
-        print(string.format("_get_rev:%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
-        if rev then
-          assert_eq(type(rev), "string")
-          assert_true(string.len(rev) > 0)
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+        local remotes, err = git._get_remote(repo)
+        assert_eq(remotes, nil)
+        assert_true(err ~= nil)
+        assert_true(err --[[@as string]]:find("no remote", 1, true) ~= nil, tostring(err))
       end)
     end)
+
+    it("reads the url of a remote", function()
+      wait_async(function()
+        local url, err = git.get_remote_url("origin", repo)
+        assert_eq(url, "https://github.com/acme/demo.git")
+        assert_eq(err, nil)
+      end)
+    end)
+
+    it("reports an unknown remote by name", function()
+      wait_async(function()
+        local url, err = git.get_remote_url("no-such-remote", repo)
+        assert_eq(url, nil)
+        assert_true(err ~= nil)
+        assert_true(err --[[@as string]]:find("no-such-remote", 1, true) ~= nil, tostring(err))
+      end)
+    end)
+
+    it("resolves a revision to a commit id", function()
+      local expected = rev_of("HEAD")
+      wait_async(function()
+        local rev, err = git._get_rev("HEAD", repo)
+        assert_eq(rev, expected)
+        assert_eq(err, nil)
+      end)
+    end)
+
+    it("resolves the upstream revision configured for the branch", function()
+      -- The fixture sets `branch.main.merge`, so `@{u}` has an answer here. A
+      -- checkout without an upstream used to turn this case into a no-op that
+      -- asserted nothing.
+      local expected = rev_of("@{u}")
+      wait_async(function()
+        local rev, err = git._get_rev("@{u}", repo)
+        assert_eq(rev, expected)
+        assert_eq(err, nil)
+      end)
+    end)
+
     it("_get_rev with an unknown revspec reports an error", function()
       wait_async(function()
-        local rev, err = git._get_rev("definitely-not-a-real-rev-xyz", cwd)
-        print(string.format("_get_rev(bad):%s, err:%s\n", vim.inspect(rev), vim.inspect(err)))
+        local rev, err = git._get_rev("definitely-not-a-real-rev-xyz", repo)
         -- `git rev-parse` exits non-zero but still echoes the argument on
         -- stdout, so this must rely on the exit code rather than stdout.
-        assert_true(rev == nil)
-        assert_eq(type(err), "string")
-        assert_true(string.len(err) > 0)
+        assert_eq(rev, nil)
+        assert_true(err ~= nil)
+        assert_true(
+          err --[[@as string]]:find("definitely-not-a-real-rev-xyz", 1, true) ~= nil,
+          "the error must name the revision: " .. tostring(err)
+        )
       end)
     end)
-    it("is_file_in_rev", function()
-      -- `path.buffer_relpath` calls Vimscript functions (`getcwd`, `resolve`),
-      -- which cannot run in the fast event context the coroutine resumes in
-      -- after `git` exits. Compute it here, exactly like `linker.make_linker`
-      -- does when it hops back with `async.await(1, vim.schedule)`.
-      local bufpath = path.buffer_relpath(vim.api.nvim_get_current_buf(), cwd)
-      answering_picker(function()
-        wait_async(function()
-          -- Fail instead of returning on a missing prerequisite: a silent
-          -- `return` would report a passing test that never asserted anything,
-          -- which is how this whole suite used to go green.
-          local remote, remote_err = git.get_branch_remote(cwd)
-          assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
-          local remote_name = remote --[[@as string]]
 
-          local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
-          assert_true(
-            remote_url ~= nil,
-            "this test needs a git remote url: " .. tostring(remote_url_err)
-          )
-
-          -- Prefer the revision `linker.make_linker` would use, but a shallow
-          -- detached clone (CI) has no remote-tracking refs at all. Any commit
-          -- works here: `is_file_in_rev` only needs a revision naming a tree.
-          local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
-          if rev == nil then
-            rev, rev_err = git._get_rev("HEAD", cwd)
-          end
-          assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
-          local rev_name = rev --[[@as string]]
-
-          assert_true(
-            bufpath ~= nil,
-            "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
-          )
-          local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
-          print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-          if actual then
-            assert_true(actual)
-            assert_true(err == nil)
-          else
-            assert_eq(type(err), "string")
-          end
-        end)
+    it("is_file_in_rev finds a committed file", function()
+      wait_async(function()
+        local actual, err = git.is_file_in_rev("lua/demo.lua", "HEAD", repo)
+        assert_eq(actual, true)
+        assert_eq(err, nil)
       end)
     end)
+
     it("is_file_in_rev reports an error for a missing file", function()
       wait_async(function()
-        local rev, rev_err = git._get_rev("HEAD", cwd)
-        assert_true(rev ~= nil, "this test needs a git repository at HEAD: " .. tostring(rev_err))
-        local actual, err = git.is_file_in_rev("no/such/file-xyz.lua", rev --[[@as string]], cwd)
-        print(
-          string.format(
-            "is_file_in_rev(missing):%s, err:%s\n",
-            vim.inspect(actual),
-            vim.inspect(err)
-          )
+        local actual, err = git.is_file_in_rev("no/such/file-xyz.lua", "HEAD", repo)
+        assert_eq(actual, nil)
+        assert_true(err ~= nil)
+        -- The message has to name the file, otherwise the user cannot tell
+        -- which link was refused.
+        assert_true(
+          err --[[@as string]]:find("no/such/file-xyz.lua", 1, true) ~= nil,
+          "the error must name the file: " .. tostring(err)
         )
-        assert_true(actual == nil)
-        assert_eq(type(err), "string")
       end)
     end)
-    it("resolve_host", function()
+
+    it("resolve_host keeps a host that needs no rewriting", function()
       wait_async(function()
-        local actual, err = git.resolve_host("github.com", cwd)
-        print(string.format("resolve_host:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
+        local actual, err = git.resolve_host("github.com", repo)
         assert_eq(actual, "github.com")
-        assert_true(err == nil)
+        assert_eq(err, nil)
       end)
     end)
+
     it("resolve_host reports a missing host instead of running ssh", function()
       wait_async(function()
         -- A local path remote (`/tmp/repo`, `../other`) parses without a host.
         -- Handing that `nil` to `ssh -ttG` used to surface ssh's usage text as
         -- the error message, so the guard has to answer before ssh runs.
-        local actual, err = git.resolve_host(nil, cwd)
-        print(
-          string.format("resolve_host(nil):%s, err:%s\n", vim.inspect(actual), vim.inspect(err))
-        )
-        assert_true(actual == nil)
-        assert_eq(type(err), "string")
-        assert_true(err:find("no host", 1, true) ~= nil, "unexpected error: " .. err)
+        local actual, err = git.resolve_host(nil, repo)
+        assert_eq(actual, nil)
+        assert_true(err ~= nil)
+        assert_true(err --[[@as string]]:find("no host", 1, true) ~= nil, tostring(err))
         -- An empty host means the same thing as a missing one.
-        local empty_actual, empty_err = git.resolve_host("", cwd)
-        assert_true(empty_actual == nil)
+        local empty_actual, empty_err = git.resolve_host("", repo)
+        assert_eq(empty_actual, nil)
         assert_eq(empty_err, err)
       end)
     end)
-    it("get_default_branch", function()
+
+    it("get_default_branch follows the remote HEAD", function()
       wait_async(function()
-        local actual, err = git.get_default_branch("origin", cwd)
-        print(string.format("default branch:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-        if actual then
-          assert_eq(type(actual), "string")
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+        local actual, err = git.get_default_branch("origin", repo)
+        assert_eq(actual, "main")
+        assert_eq(err, nil)
       end)
     end)
-    it("get_current_branch", function()
+
+    it("get_current_branch reports the checked out branch", function()
       wait_async(function()
-        local actual, err = git.get_current_branch(cwd)
-        print(string.format("current branch:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-        if actual then
-          assert_eq(type(actual), "string")
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+        local actual, err = git.get_current_branch(repo)
+        assert_eq(actual, "main")
+        assert_eq(err, nil)
       end)
     end)
-    it("get_root", function()
+
+    it("get_current_branch reports a repository without commits", function()
+      local empty = vim.fn.tempname()
+      vim.fn.mkdir(empty, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", empty })
       wait_async(function()
-        local actual, err = git.get_root(cwd)
-        print(string.format("get_root:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-        if actual then
-          assert_eq(type(actual), "string")
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+        local actual, err = git.get_current_branch(empty)
+        assert_eq(actual, nil)
+        assert_true(err ~= nil)
+        assert_true(string.len(err --[[@as string]]) > 0)
+      end)
+      vim.fn.delete(empty, "rf")
+    end)
+
+    it("get_root resolves the repository root", function()
+      wait_async(function()
+        local actual, err = git.get_root(repo .. "/lua")
+        assert_eq(err, nil)
+        assert_eq(vim.fn.resolve(actual --[[@as string]]), vim.fn.resolve(repo))
       end)
     end)
+
     it("returns an error instead of raising when cwd does not exist", function()
       wait_async(function()
         local actual, err = git.get_root("/definitely-not-a-real-dir-xyz")
-        print(
-          string.format("get_root(bad cwd):%s, err:%s\n", vim.inspect(actual), vim.inspect(err))
-        )
-        assert_true(actual == nil)
-        assert_eq(type(err), "string")
+        assert_eq(actual, nil)
+        assert_true(err ~= nil)
+        assert_true(string.len(err --[[@as string]]) > 0)
       end)
     end)
+
     it("distinguishes a spawn failure from a failing command", function()
       wait_async(function()
         -- A missing cwd makes vim.system raise before the command ever runs.
         local root, spawn_err = git.get_root("/definitely-not-a-real-dir-xyz")
-        assert_true(root == nil)
-        assert_eq(type(spawn_err), "string")
-        assert_true(string.find(spawn_err, "ENOENT", 1, true) ~= nil)
+        assert_eq(root, nil)
+        assert_true(spawn_err ~= nil)
+        assert_true(spawn_err --[[@as string]]:find("ENOENT", 1, true) ~= nil, tostring(spawn_err))
 
         local result = git.GitResult:new()
         assert_eq(result.code, 0)
@@ -264,6 +289,7 @@ describe("gitlinker.git", function()
         assert_eq(tonumber(string.format("%d", git.GitResult.SPAWN_FAILED)), -2147483648)
       end)
     end)
+
     it("silent_failed covers a failing command and an empty success", function()
       wait_async(function()
         -- Succeeded, but printed nothing: there is no value to hand back.
@@ -293,10 +319,9 @@ describe("gitlinker.git", function()
         local probe = git.GitResult:new()
         assert_true(probe:ok())
         assert_true(probe:silent_failed())
-        local exists, probe_err =
-          git.is_file_in_rev("lua/gitlinker/git.lua", "HEAD", vim.fn.getcwd())
-        assert_true(exists)
-        assert_true(probe_err == nil)
+        local exists, probe_err = git.is_file_in_rev("lua/demo.lua", "HEAD", repo)
+        assert_eq(exists, true)
+        assert_eq(probe_err, nil)
       end)
     end)
   end)
