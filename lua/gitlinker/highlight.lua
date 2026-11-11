@@ -47,10 +47,6 @@ end
 --- @param start [integer,integer] 0-based `(line, column)` to start at.
 --- @param finish [integer,integer] 0-based `(line, column)` to end at.
 --- @param timeout integer How long to keep the highlight, in milliseconds.
---- @return uv.uv_timer_t? timer The timer that will clear the highlight, if one
---- was started. `vim.hl.range()` returns no timer when the buffer is gone.
---- @return fun()? clear Clears this highlight alone, leaving any other one in the
---- buffer untouched.
 M.show = function(bufnr, start, finish, timeout)
   -- The buffer may be gone by the time a scheduled call runs.
   if not vim.api.nvim_buf_is_valid(bufnr) then
@@ -75,13 +71,16 @@ M.show = function(bufnr, start, finish, timeout)
   -- as soon as the earlier of the two timers fired, and would also restart the
   -- id counter: the next highlight would be handed an id that a pending timer
   -- still means to delete.
-  local timer, clear = vim.hl.range(bufnr, namespace, M.GROUP, start, finish, {
+  --
+  -- The timer and the per-highlight `clear` it returns are dropped on purpose:
+  -- the only caller lets the highlight expire on its own, and keeping them
+  -- around would be an API nobody asks for.
+  vim.hl.range(bufnr, namespace, M.GROUP, start, finish, {
     inclusive = true,
     timeout = timeout,
   })
   -- Force the screen to highlight the text immediately
   vim.cmd("redraw")
-  return timer, clear
 end
 
 return M
