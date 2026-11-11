@@ -56,8 +56,6 @@ describe("gitlinker", function()
   local assert_eq = assert.is_equal
   local assert_true = assert.is_true
   local assert_false = assert.is_false
-  -- `assert.is_equal` compares by identity, so two tables with the same fields
-  -- are not equal to it. Use `assert.same` wherever a table is the expectation.
   local assert_same = assert.same
 
   local testutil = require("spec.testutil")
