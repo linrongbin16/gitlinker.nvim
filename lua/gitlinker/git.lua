@@ -431,15 +431,28 @@ end
 --- @param root string
 --- @return string?, string?
 local function _select_remotes(remotes, root)
+  log.debug(
+    string.format("|_select_remotes| remotes:%s, root:%s", vim.inspect(remotes), vim.inspect(root))
+  )
+
   --- @type gitlinker.RemoteChoice[]
   local choices = {}
   for _, remote in ipairs(remotes) do
     local remote_url, url_err = get_remote_url(remote, root)
+    log.debug(
+      string.format(
+        "|_select_remotes| resolve remote '%s': url:%s, err:%s",
+        remote,
+        vim.inspect(remote_url),
+        vim.inspect(url_err)
+      )
+    )
     if not remote_url then
       return nil, url_err
     end
     table.insert(choices, { remote = remote, url = remote_url })
   end
+  log.debug(string.format("|_select_remotes| choices:%s", vim.inspect(choices)))
 
   -- Let any pending redraw/echo finish before the picker takes over the UI.
   async.await(1, vim.schedule)
@@ -454,12 +467,18 @@ local function _select_remotes(remotes, root)
       return string.format("%s (%s)", item.remote, item.url)
     end,
   })
+  -- Log what the picker actually answered, before it is validated: a picker
+  -- that hands back an index or a bare string is otherwise invisible here.
+  log.debug(
+    string.format("|_select_remotes| picked type:%s, value:%s", type(choice), vim.inspect(choice))
+  )
 
   local picked = _as_remote_choice(choice)
   if not picked then
     return nil, "fatal: user cancelled multiple git remotes"
   end
 
+  log.debug(string.format("|_select_remotes| selected remote:%s", picked.remote))
   return picked.remote, nil
 end
 
