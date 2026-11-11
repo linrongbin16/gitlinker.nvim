@@ -618,11 +618,6 @@ local function link(opts)
     or function(lk)
       return _router(opts.router_type, lk)
     end
-
-  -- Normalize the line range here, so `_void_link` always receives both ends
-  -- as usable line numbers with `lstart` not after `lend`. Filling this in here
-  -- rather than in `_link` keeps the asynchronous part free of the "no range at
-  -- all" case: it never has to guess.
   opts.lstart, opts.lend = _normalize_range(opts.lstart, opts.lend)
 
   _void_link({
@@ -646,10 +641,6 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
-
-  -- Exported for the specs only: they are pure functions of their arguments,
-  -- so a unit test can pin their behaviour without a repository, a buffer or a
-  -- picker.
   _parse_args = _parse_args,
   _normalize_range = _normalize_range,
 
