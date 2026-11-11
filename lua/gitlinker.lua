@@ -234,6 +234,41 @@ local function _resolve_line_number(value)
   return math.max(1, math.floor(value))
 end
 
+--- Normalize the two ends of a line range into one a file can have.
+---
+--- The result always has both ends, with `lstart` not after `lend`:
+---   - both given: only the order has to be fixed, a reversed range is the
+---     same lines as its sorted form;
+---   - one given: it names a single line, so it is also the other end;
+---   - none given: use the current selection, or the cursor line.
+---
+--- An end that is not a line number at all (`nil`, an infinity, a NaN) is
+--- dropped first, so a caller that only got one usable end still falls into
+--- the "one given" case.
+---
+--- @param lstart integer?
+--- @param lend integer?
+--- @return integer lstart
+--- @return integer lend
+local function _normalize_range(lstart, lend)
+  lstart = _resolve_line_number(lstart)
+  lend = _resolve_line_number(lend)
+  if lstart and lend then
+    if lend < lstart then
+      lstart, lend = lend, lstart
+    end
+  elseif lstart then
+    lend = lstart
+  elseif lend then
+    lstart = lend
+  else
+    local r = range.make_range()
+    lstart = math.min(r.lstart, r.lend)
+    lend = math.max(r.lstart, r.lend)
+  end
+  return lstart, lend
+end
+
 --- Resolve what to highlight, before the first `await` of `_link`.
 ---
 --- `_link` yields to the event loop a few times before it draws anything, so
@@ -585,30 +620,10 @@ local function link(opts)
     end
 
   -- Normalize the line range here, so `_void_link` always receives both ends
-  -- as usable line numbers with `lstart` not after `lend`:
-  --   - both given: only the order has to be fixed, a reversed range is the
-  --     same lines as its sorted form;
-  --   - one given: it names a single line, so it is also the other end;
-  --   - none given: use the current selection, or the cursor line.
-  -- Filling this in here rather than in `_link` keeps the asynchronous part
-  -- free of the "no range at all" case: it never has to guess.
-  local lstart = _resolve_line_number(opts.lstart)
-  local lend = _resolve_line_number(opts.lend)
-  if lstart and lend then
-    if lend < lstart then
-      lstart, lend = lend, lstart
-    end
-  elseif lstart then
-    lend = lstart
-  elseif lend then
-    lstart = lend
-  else
-    local r = range.make_range()
-    lstart = math.min(r.lstart, r.lend)
-    lend = math.max(r.lstart, r.lend)
-  end
-  opts.lstart = lstart
-  opts.lend = lend
+  -- as usable line numbers with `lstart` not after `lend`. Filling this in here
+  -- rather than in `_link` keeps the asynchronous part free of the "no range at
+  -- all" case: it never has to guess.
+  opts.lstart, opts.lend = _normalize_range(opts.lstart, opts.lend)
 
   _void_link({
     action = opts.action,
@@ -631,6 +646,12 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
+
+  -- Exported for the specs only: they are pure functions of their arguments,
+  -- so a unit test can pin their behaviour without a repository, a buffer or a
+  -- picker.
+  _parse_args = _parse_args,
+  _normalize_range = _normalize_range,
 
   setup = setup,
   link = link,
