@@ -181,7 +181,7 @@ With more than one git remote configured the plugin does not guess: it opens a p
 > Reading [Customize Urls](#customize-urls) first helps, it explains the router design this API is built on.
 
 ```lua
---- @alias gitlinker.Linker {remote_url:string, protocol:string?, username:string?, password:string?, host:string, port:string?, org:string?, user:string?, repo:string, rev:string, file:string, lstart:integer, lend:integer, file_changed:boolean, default_branch:string?, current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string, protocol:string?, username:string?, password:string?, host:string, port:string?, org:string?, repo:string, rev:string, file:string, lstart:integer, lend:integer, file_changed:boolean, default_branch:string?, current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
 --- @param opts {router_type:string?, router:gitlinker.Router?, action:gitlinker.Action?, lstart:integer?, lend:integer?, message:boolean?, warn_on_file_change:boolean?, highlight_duration:integer?, remote:string?, file:string?, rev:string?}?
@@ -389,7 +389,6 @@ To create customized urls for other git hosts, bind the target git host to an im
 | `_A.LEND`           | End line number, never smaller than `_A.LSTART`.                                                                                                                                                                                                                                                                                                                  | `13`                                                                           |
 | `_A.DEFAULT_BRANCH` | Default branch, from `git rev-parse --abbrev-ref <remote>/HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                      | `master`, `main`                                                               |
 | `_A.CURRENT_BRANCH` | Current branch, from `git rev-parse --abbrev-ref HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                               | `refactor-readme`                                                              |
-| `_A.USER`           | Deprecated alias of `_A.ORG`, kept for compatibility.                                                                                                                                                                                                                                                                                                             | same as `_A.ORG`                                                               |
 
 With these components you can, for example, rewrite the line range into the `?&lines=1&lines-count=2` form:
 
@@ -433,7 +432,6 @@ You can also implement a router as a lua function. It receives one table, with t
 | `file_changed`   | `boolean` | Whether the file changed since `rev`, i.e. the line numbers may be stale. |
 | `default_branch` | `string?` | Default branch.                                                           |
 | `current_branch` | `string?` | Current branch.                                                           |
-| `user`           | `string?` | Deprecated alias of `org`, kept for compatibility.                        |
 
 The previous example, implemented as a function:
 
