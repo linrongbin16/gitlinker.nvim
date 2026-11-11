@@ -161,10 +161,10 @@ Each router type generates a different kind of url, and each host spells it diff
 
 Same file, four router types, on bitbucket.org:
 
-- `browse`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
-- `blame`: https://bitbucket.org/osrf/gazebo/annotate/master/README.md#lines-1:5
-- `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
-- `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
+- `browse`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+- `blame`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+- `default_branch`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
+- `current_branch`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14
 
 #### Parameters
 
