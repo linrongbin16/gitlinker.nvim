@@ -26,8 +26,28 @@ local function wait_async(fn, timeout)
   end
 end
 
+--- Answer the builtin picker with its first item while `fn` runs.
+---
+--- Some cases run against this checkout, which may have more than one remote.
+--- The builtin `vim.ui.select` then parks the editor in an `inputlist` prompt,
+--- and nothing answers it in a headless run: the suite hangs instead of
+--- failing. Answer it, and put the real picker back afterwards.
+--- @param fn fun()
+local function answering_picker(fn)
+  local saved = vim.ui.select
+  vim.ui.select = function(items, _, on_choice)
+    on_choice(items[1], 1)
+  end
+  local ok, err = pcall(fn)
+  vim.ui.select = saved
+  if not ok then
+    error(err, 0)
+  end
+end
+
 local M = {
   wait_async = wait_async,
+  answering_picker = answering_picker,
 }
 
 return M

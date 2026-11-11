@@ -393,51 +393,111 @@ local function get_root(dir)
   return result.stdout[1], nil
 end
 
--- --- NOTE: async functions for `vim.ui.select`.
--- local _run_select = async.wrap(function(remotes, callback)
---   vim.ui.select(remotes, {
---     prompt = "Detect multiple git remotes:",
---     format_item = function(item)
---       return item
---     end,
---   }, function(choice)
---     callback(choice)
---   end)
--- end, 2)
---
--- -- wrap the select function.
--- --- @package
--- --- @type fun(remotes:string[]):string?
--- local function run_select(remotes)
---   return _run_select(remotes)
--- end
+--- @class gitlinker.RemoteChoice
+--- @field remote string
+--- @field url string
 
+--- Whether a picker answer is one of the choices we handed it.
+---
+--- `vim.ui.select` is replaceable, and a third-party picker may answer with
+--- something else entirely -- a bare string, an index, an item from a different
+--- list. The callback is typed `any` for that reason, so the answer is checked
+--- here instead of being trusted as a remote name.
+---
+--- @param item any
+--- @return gitlinker.RemoteChoice?
+local function _as_remote_choice(item)
+  if type(item) ~= "table" then
+    return nil
+  end
+  --- @cast item gitlinker.RemoteChoice
+
+  if types.str_empty(item.remote) then
+    return nil
+  end
+  return item
+end
+
+--- Open a `vim.ui.select` picker and drop whatever it returns.
+---
+--- `vim.ui.select` implementations are free to return their picker object --
+--- snacks.picker does, so a caller can close it -- and the async runtime treats
+--- any table with a `close` field as a `vim.async.Closable`: once the await
+--- settles it calls `close(callback)` and waits for that callback before
+--- resuming the coroutine. A picker's `close()` takes no callback and never
+--- calls one, so handing its return value back to `async.await` suspends the
+--- task forever: the picker closes, and no link is ever generated. Swallow it.
+---
+--- @param items any[]
+--- @param opts vim.ui.select.Opts
+--- @param on_choice fun(item:any, idx:integer?)
+local function _open_picker(items, opts, on_choice)
+  vim.ui.select(items, opts, on_choice)
+end
+
+--- Ask the user to pick one of the configured remotes.
+---
+--- This goes through `vim.ui.select` rather than `vim.fn.inputlist` for two
+--- reasons: the picker is replaceable (telescope, fzf-lua, ...), and it reports
+--- the choice through a callback, so awaiting it suspends the coroutine instead
+--- of parking the editor in a blocking prompt. The builtin implementation still
+--- prompts with `inputlist` -- that is Neovim's own fallback, not ours.
+---
 --- @package
 --- @param remotes string[]
 --- @param root string
 --- @return string?, string?
 local function _select_remotes(remotes, root)
-  local formatted_remotes = { "Please select remote index:" }
-  for i, remote in ipairs(remotes) do
-    local remote_url = get_remote_url(remote, root)
-    table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
-  end
+  log.debug(
+    string.format("|_select_remotes| remotes:%s, root:%s", vim.inspect(remotes), vim.inspect(root))
+  )
 
+  --- @type gitlinker.RemoteChoice[]
+  local choices = {}
+  for _, remote in ipairs(remotes) do
+    local remote_url, url_err = get_remote_url(remote, root)
+    log.debug(
+      string.format(
+        "|_select_remotes| resolve remote '%s': url:%s, err:%s",
+        remote,
+        vim.inspect(remote_url),
+        vim.inspect(url_err)
+      )
+    )
+    if not remote_url then
+      return nil, url_err
+    end
+    table.insert(choices, { remote = remote, url = remote_url })
+  end
+  log.debug(string.format("|_select_remotes| choices:%s", vim.inspect(choices)))
+
+  -- Let any pending redraw/echo finish before the picker takes over the UI.
   async.await(1, vim.schedule)
 
-  local result = vim.fn.inputlist(formatted_remotes)
+  -- `vim.ui.select` hands the choice to its third argument, hence `argc = 3`:
+  -- the callback lands after `items` and `opts`. It answers `(item, idx)`, and
+  -- `(nil, nil)` when the user cancels. It goes through `_open_picker` so the
+  -- picker object some implementations return never reaches the runtime.
+  local choice = async.await(3, _open_picker, choices, {
+    prompt = "Please select remote index:",
+    --- @param item gitlinker.RemoteChoice
+    format_item = function(item)
+      return string.format("%s (%s)", item.remote, item.url)
+    end,
+  })
+  -- Log what the picker actually answered, before it is validated: a picker
+  -- that hands back an index or a bare string is otherwise invisible here.
+  log.debug(
+    string.format("|_select_remotes| picked type:%s, value:%s", type(choice), vim.inspect(choice))
+  )
 
-  if type(result) ~= "number" or result < 1 or result > #remotes then
+  local picked = _as_remote_choice(choice)
+  if not picked then
     return nil, "fatal: user cancelled multiple git remotes"
   end
 
-  for i, remote in ipairs(remotes) do
-    if result == i then
-      return remote, nil
-    end
-  end
-
-  return nil, "fatal: user cancelled multiple git remotes, please select an index"
+  log.debug(string.format("|_select_remotes| selected remote:%s", picked.remote))
+  return picked.remote, nil
 end
 
 --- @param root string

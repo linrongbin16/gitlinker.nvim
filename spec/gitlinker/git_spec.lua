@@ -19,7 +19,9 @@ describe("gitlinker.git", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local wait_async = require("spec.testutil").wait_async
+  local testutil = require("spec.testutil")
+  local answering_picker = testutil.answering_picker
+  local wait_async = testutil.wait_async
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
   local gitlinker = require("gitlinker")
@@ -40,30 +42,32 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_remote_url", function()
-      wait_async(function()
-        local remote, remote_err = git.get_branch_remote(cwd)
-        print(
-          string.format(
-            "get_branch_remote:%s, err:%s\n",
-            vim.inspect(remote),
-            vim.inspect(remote_err)
+      answering_picker(function()
+        wait_async(function()
+          local remote, remote_err = git.get_branch_remote(cwd)
+          print(
+            string.format(
+              "get_branch_remote:%s, err:%s\n",
+              vim.inspect(remote),
+              vim.inspect(remote_err)
+            )
           )
-        )
-        if remote then
-          assert_eq(type(remote), "string")
-          assert_true(string.len(remote) > 0)
-          local r, err = git.get_remote_url(remote, cwd)
-          print(string.format("get_remote_url:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
-          if r then
-            assert_eq(type(r), "string")
-            assert_true(string.len(r) > 0)
-            assert_true(err == nil)
+          if remote then
+            assert_eq(type(remote), "string")
+            assert_true(string.len(remote) > 0)
+            local r, err = git.get_remote_url(remote, cwd)
+            print(string.format("get_remote_url:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
+            if r then
+              assert_eq(type(r), "string")
+              assert_true(string.len(r) > 0)
+              assert_true(err == nil)
+            else
+              assert_eq(type(err), "string")
+            end
           else
-            assert_eq(type(err), "string")
+            assert_eq(type(remote_err), "string")
           end
-        else
-          assert_eq(type(remote_err), "string")
-        end
+        end)
       end)
     end)
     it("_get_rev(@{u})", function()
@@ -96,42 +100,44 @@ describe("gitlinker.git", function()
       -- after `git` exits. Compute it here, exactly like `linker.make_linker`
       -- does when it hops back with `async.await(1, vim.schedule)`.
       local bufpath = path.buffer_relpath(vim.api.nvim_get_current_buf(), cwd)
-      wait_async(function()
-        -- Fail instead of returning on a missing prerequisite: a silent
-        -- `return` would report a passing test that never asserted anything,
-        -- which is how this whole suite used to go green.
-        local remote, remote_err = git.get_branch_remote(cwd)
-        assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
-        local remote_name = remote --[[@as string]]
+      answering_picker(function()
+        wait_async(function()
+          -- Fail instead of returning on a missing prerequisite: a silent
+          -- `return` would report a passing test that never asserted anything,
+          -- which is how this whole suite used to go green.
+          local remote, remote_err = git.get_branch_remote(cwd)
+          assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
+          local remote_name = remote --[[@as string]]
 
-        local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
-        assert_true(
-          remote_url ~= nil,
-          "this test needs a git remote url: " .. tostring(remote_url_err)
-        )
+          local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
+          assert_true(
+            remote_url ~= nil,
+            "this test needs a git remote url: " .. tostring(remote_url_err)
+          )
 
-        -- Prefer the revision `linker.make_linker` would use, but a shallow
-        -- detached clone (CI) has no remote-tracking refs at all. Any commit
-        -- works here: `is_file_in_rev` only needs a revision naming a tree.
-        local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
-        if rev == nil then
-          rev, rev_err = git._get_rev("HEAD", cwd)
-        end
-        assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
-        local rev_name = rev --[[@as string]]
+          -- Prefer the revision `linker.make_linker` would use, but a shallow
+          -- detached clone (CI) has no remote-tracking refs at all. Any commit
+          -- works here: `is_file_in_rev` only needs a revision naming a tree.
+          local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
+          if rev == nil then
+            rev, rev_err = git._get_rev("HEAD", cwd)
+          end
+          assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
+          local rev_name = rev --[[@as string]]
 
-        assert_true(
-          bufpath ~= nil,
-          "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
-        )
-        local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
-        print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-        if actual then
-          assert_true(actual)
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+          assert_true(
+            bufpath ~= nil,
+            "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
+          )
+          local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
+          print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
+          if actual then
+            assert_true(actual)
+            assert_true(err == nil)
+          else
+            assert_eq(type(err), "string")
+          end
+        end)
       end)
     end)
     it("is_file_in_rev reports an error for a missing file", function()
@@ -594,14 +600,15 @@ describe("gitlinker.git", function()
     --- @type string
     local repo
 
-    --- What the stubbed picker answers, and the prompts it was handed.
-    --- @type integer
+    --- Which index the stubbed picker answers (`nil` cancels), and what it was
+    --- offered.
+    --- @type integer?
     local answer
-    --- @type string[][]
+    --- @type {items:table[], opts:table}[]
     local prompts
 
-    --- @type fun(prompt:string[]):integer
-    local saved_inputlist
+    --- @type fun(items:table[], opts:table, on_choice:fun(item:any, idx:integer?))
+    local saved_select
 
     --- Create a repository with one commit and the given remotes.
     --- @param remotes string[]
@@ -621,17 +628,21 @@ describe("gitlinker.git", function()
     before_each(function()
       answer = 1
       prompts = {}
-      -- The picker blocks on a real keystroke; answer for it instead, and keep
-      -- the prompt so a case can check what the user was offered.
-      saved_inputlist = vim.fn.inputlist
-      vim.fn.inputlist = function(prompt)
-        table.insert(prompts, prompt)
-        return answer
+      -- The real picker waits for a keystroke; answer for it instead, and keep
+      -- the items so a case can check what the user was offered.
+      saved_select = vim.ui.select
+      vim.ui.select = function(items, opts, on_choice)
+        table.insert(prompts, { items = items, opts = opts })
+        if answer == nil then
+          on_choice(nil, nil)
+        else
+          on_choice(items[answer], answer)
+        end
       end
     end)
 
     after_each(function()
-      vim.fn.inputlist = saved_inputlist
+      vim.ui.select = saved_select
       if repo then
         vim.fn.delete(repo, "rf")
         repo = nil
@@ -656,23 +667,73 @@ describe("gitlinker.git", function()
         assert_eq(actual, "upstream")
         assert_true(err == nil)
         assert_eq(#prompts, 1)
-        -- The list shows what each index stands for: a bare index would make
-        -- the user pick blind.
-        local prompt = table.concat(prompts[1], "\n")
-        assert_true(prompt:find("1. origin (https://github.com/acme/demo.git)", 1, true) ~= nil)
-        assert_true(prompt:find("2. upstream (https://github.com/acme/demo.git)", 1, true) ~= nil)
+        -- The picker is handed the remotes themselves, plus a formatter that
+        -- spells out what each one stands for: a bare index would make the user
+        -- pick blind.
+        local prompt = prompts[1]
+        assert_eq(prompt.opts.prompt, "Please select remote index:")
+        assert_eq(#prompt.items, 2)
+        assert_eq(prompt.items[1].remote, "origin")
+        assert_eq(prompt.items[1].url, "https://github.com/acme/demo.git")
+        assert_eq(prompt.items[2].remote, "upstream")
+        assert_eq(
+          prompt.opts.format_item(prompt.items[2]),
+          "upstream (https://github.com/acme/demo.git)"
+        )
       end)
     end)
 
     it("reports a cancelled picker", function()
       make_repo({ "origin", "upstream" })
-      answer = 0
+      answer = nil
       wait_async(function()
         local actual, err = git.get_branch_remote(repo)
         assert_true(actual == nil)
         assert_eq(type(err), "string")
         assert_true(err:find("user cancelled", 1, true) ~= nil, "unexpected error: " .. err)
       end)
+    end)
+
+    it("reports a picker that answers something else", function()
+      make_repo({ "origin", "upstream" })
+      -- A third-party picker may answer with a string, a number or nothing at
+      -- all; none of those are a remote name from the list.
+      vim.ui.select = function(items, _, on_choice)
+        on_choice("not-a-remote", nil)
+      end
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+        assert_true(err:find("user cancelled", 1, true) ~= nil, "unexpected error: " .. err)
+      end)
+    end)
+
+    it("does not await the picker object a select implementation returns", function()
+      make_repo({ "origin", "upstream" })
+      -- snacks.picker returns its picker, so the caller can close it. That
+      -- object has a `close` field, which the async runtime mistakes for a
+      -- closable and waits on: `close()` takes no callback and calls none, so
+      -- passing the return value through would hang the link forever.
+      local closed = false
+      local picker = {
+        close = function()
+          closed = true
+        end,
+      }
+      vim.ui.select = function(items, _, on_choice)
+        vim.schedule(function()
+          on_choice(items[1], 1)
+        end)
+        return picker
+      end
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_eq(actual, "origin")
+        assert_true(err == nil)
+      end, 5000)
+      -- The picker belongs to the implementation: closing it is not our job.
+      assert_false(closed)
     end)
 
     it("reports a repository without any remote", function()
