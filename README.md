@@ -19,7 +19,7 @@ For now supported platforms are:
 
 - https://github.com/
 - https://gitlab.com/
-- https://bitbucket.org/
+- https://bitbucket.org/ (and its ssh hosts `ssh.bitbucket.org`/`altssh.bitbucket.org`)
 - https://codeberg.org/
 - https://git.samba.org/
 
@@ -146,6 +146,10 @@ The command takes a range and completes router types on `<Tab>`:
 
 A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
 
+> [!NOTE]
+>
+> Bitbucket Cloud serves its git-over-ssh traffic on `ssh.bitbucket.org` (and `altssh.bitbucket.org` for the port 443 alternative), which is also bound to the same website, so `git@ssh.bitbucket.org:<workspace>/<repo>.git` remotes generate `https://bitbucket.org/` urls as well.
+
 Each router type generates a different kind of url, and each host spells it differently:
 
 | Router type        | github.com                           | gitlab.com                   | bitbucket.org                   | codeberg.org                                      | git.samba.org                                      |
@@ -157,10 +161,10 @@ Each router type generates a different kind of url, and each host spells it diff
 
 Same file, four router types, on bitbucket.org:
 
-- `browse`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
-- `blame`: https://bitbucket.org/osrf/gazebo/annotate/master/README.md#lines-1:5
-- `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
-- `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
+- `browse`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+- `blame`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14
+- `default_branch`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14
+- `current_branch`: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14
 
 #### Parameters
 

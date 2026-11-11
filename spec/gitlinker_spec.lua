@@ -566,6 +566,46 @@ describe("gitlinker", function()
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-27:51"
       )
     end)
+    it("bitbucket with ssh.bitbucket.org host", function()
+      local lk = {
+        remote_url = "git@ssh.bitbucket.org:linrongbin16/gitlinker.nvim.git",
+        username = "git",
+        host = "ssh.bitbucket.org",
+        org = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 27,
+        lend = 51,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      -- The ssh host is a transport detail: the website is still bitbucket.org.
+      assert_eq(
+        actual,
+        "https://bitbucket.org/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-27:51"
+      )
+    end)
+    it("bitbucket with altssh.bitbucket.org host", function()
+      local lk = {
+        remote_url = "ssh://git@altssh.bitbucket.org/linrongbin16/gitlinker.nvim.git",
+        protocol = "ssh",
+        username = "git",
+        host = "altssh.bitbucket.org",
+        org = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        lstart = 1,
+        lend = 1,
+        file_changed = false,
+      }--[[@as gitlinker.Linker]]
+      local actual = gitlinker._browse(lk)
+      assert_eq(
+        actual,
+        "https://bitbucket.org/linrongbin16/gitlinker.nvim/src/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1"
+      )
+    end)
     it("codeberg with same line start and line end", function()
       local lk = {
         remote_url = "git@codeberg.org:linrongbin16/gitlinker.nvim.git",
@@ -718,6 +758,25 @@ describe("gitlinker", function()
       assert_eq(
         actual,
         "https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-1:2"
+      )
+    end)
+    it("bitbucket with ssh.bitbucket.org host", function()
+      local lk = {
+        remote_url = "git@ssh.bitbucket.org:linrongbin16/gitlinker.nvim.git",
+        username = "git",
+        host = "ssh.bitbucket.org",
+        org = "linrongbin16",
+        repo = "gitlinker.nvim.git",
+        rev = "399b1d05473c711fc5592a6ffc724e231c403486",
+        file = "lua/gitlinker/logger.lua",
+        file_changed = false,
+        lstart = 13,
+        lend = 13,
+      } --[[@as gitlinker.Linker]]
+      local actual = gitlinker._blame(lk)
+      assert_eq(
+        actual,
+        "https://bitbucket.org/linrongbin16/gitlinker.nvim/annotate/399b1d05473c711fc5592a6ffc724e231c403486/lua/gitlinker/logger.lua#lines-13"
       )
     end)
     it("codeberg with same lstart/lend", function()
