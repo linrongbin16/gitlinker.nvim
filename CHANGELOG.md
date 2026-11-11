@@ -1,5 +1,54 @@
 # Changelog
 
+## [6.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v6.0.0) (2026-11-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* `lk.user` is gone from the linker table and `_A.USER` no longer resolves in url templates; use `lk.org` and `_A.ORG` instead.
+* **router:** remove legacy routers.lua ([#328](https://github.com/linrongbin16/gitlinker.nvim/issues/328))
+
+### Features
+
+* **git:** open the remote picker with vim.ui.select ([#355](https://github.com/linrongbin16/gitlinker.nvim/issues/355)) ([b7a417a](https://github.com/linrongbin16/gitlinker.nvim/commit/b7a417ade1243aff28b5d7aab6278af72189e225))
+* **giturlparser:** sync upstream parser with IPv6 support ([#332](https://github.com/linrongbin16/gitlinker.nvim/issues/332)) ([dcc266d](https://github.com/linrongbin16/gitlinker.nvim/commit/dcc266db8420aa32c68b18abbb2dd265e8380377))
+
+
+### Bug Fixes
+
+* **async:** stop losing errors while tasks settle ([#321](https://github.com/linrongbin16/gitlinker.nvim/issues/321)) ([bc40939](https://github.com/linrongbin16/gitlinker.nvim/commit/bc409398e630dd81d37fab13cde426dd85b74c84))
+* **git:** always run git commands in the buffer directory ([#315](https://github.com/linrongbin16/gitlinker.nvim/issues/315)) ([eb939a4](https://github.com/linrongbin16/gitlinker.nvim/commit/eb939a4041597391dbaf47fd504545cd92103459))
+* **git:** keep the whole default branch name when it contains a slash ([#346](https://github.com/linrongbin16/gitlinker.nvim/issues/346)) ([86f9c90](https://github.com/linrongbin16/gitlinker.nvim/commit/86f9c90b7fdcb7ca8aa30235238353435be495c4))
+* **gitlinker:** link the line range given on the command line ([#342](https://github.com/linrongbin16/gitlinker.nvim/issues/342)) ([39af93f](https://github.com/linrongbin16/gitlinker.nvim/commit/39af93f5d8c359e62e355c65459eeef0f10e6a24))
+* **git:** match the remote name verbatim, not as a Lua pattern ([#347](https://github.com/linrongbin16/gitlinker.nvim/issues/347)) ([fea35e5](https://github.com/linrongbin16/gitlinker.nvim/commit/fea35e557a0a652626c034f101d4096877a73e1d))
+* **git:** reject a remote name that does not exist ([#348](https://github.com/linrongbin16/gitlinker.nvim/issues/348)) ([cd009c8](https://github.com/linrongbin16/gitlinker.nvim/commit/cd009c893de104716e2021611994b88c2051dc74))
+* **git:** run git commands in the repository root ([#318](https://github.com/linrongbin16/gitlinker.nvim/issues/318)) ([61b54a6](https://github.com/linrongbin16/gitlinker.nvim/commit/61b54a60504eeac6077744e76f1df9d0d7f036d8))
+* **highlight:** define the group when the highlight is drawn ([#340](https://github.com/linrongbin16/gitlinker.nvim/issues/340)) ([617ca52](https://github.com/linrongbin16/gitlinker.nvim/commit/617ca52c60a30ed75cb46406d1ac018d9d7ca57c))
+* **highlight:** highlight the buffer the link was started in ([#337](https://github.com/linrongbin16/gitlinker.nvim/issues/337)) ([8e5734c](https://github.com/linrongbin16/gitlinker.nvim/commit/8e5734c31cec327df5ace0a766f73f80aa0733f8))
+* **highlight:** honour the per-call highlight duration ([#338](https://github.com/linrongbin16/gitlinker.nvim/issues/338)) ([349c323](https://github.com/linrongbin16/gitlinker.nvim/commit/349c3237c5427bab84cfed7581c0a7735fcd7134))
+* **highlight:** keep the first character of the start line highlighted ([#336](https://github.com/linrongbin16/gitlinker.nvim/issues/336)) ([d4b5a00](https://github.com/linrongbin16/gitlinker.nvim/commit/d4b5a0057f0cce3bf47c635b7be8b555d74bc1d7))
+* **highlight:** let vim.hl.range() run the timer ([#339](https://github.com/linrongbin16/gitlinker.nvim/issues/339)) ([2d58aca](https://github.com/linrongbin16/gitlinker.nvim/commit/2d58aca23d84d554dca7edf29d0d0ddc6141d410))
+* **highlight:** resolve the highlight target before the first await ([#341](https://github.com/linrongbin16/gitlinker.nvim/issues/341)) ([91e0581](https://github.com/linrongbin16/gitlinker.nvim/commit/91e05812e860dca12100422104f6e2df3ea66b82))
+* keep the caller's options table intact and uri-encode the file argument ([#343](https://github.com/linrongbin16/gitlinker.nvim/issues/343)) ([20fe9ca](https://github.com/linrongbin16/gitlinker.nvim/commit/20fe9ca7df0bb29666d4021ccf8f7aad26afb1a1))
+* **link:** clamp the line numbers into the range a file can have ([#349](https://github.com/linrongbin16/gitlinker.nvim/issues/349)) ([c34b6c4](https://github.com/linrongbin16/gitlinker.nvim/commit/c34b6c4cb5ace262c28f11fa7cc790958c6132b2))
+* **link:** normalize the line range before the asynchronous link ([#344](https://github.com/linrongbin16/gitlinker.nvim/issues/344)) ([bd69431](https://github.com/linrongbin16/gitlinker.nvim/commit/bd6943197e9a05d27ded36ba08c94a0ca77a19d2))
+* **link:** print the url without escaping its percent signs again ([#345](https://github.com/linrongbin16/gitlinker.nvim/issues/345)) ([d884e0d](https://github.com/linrongbin16/gitlinker.nvim/commit/d884e0dabbc0c3065d687aee84d07a83bb6b2fe6))
+* **link:** report a local path remote instead of ssh usage text ([#354](https://github.com/linrongbin16/gitlinker.nvim/issues/354)) ([7362a76](https://github.com/linrongbin16/gitlinker.nvim/commit/7362a760ef64fcdc617246c2d0d0344f96a4a9c8))
+* **link:** report the errors raised by the action and the highlight ([#350](https://github.com/linrongbin16/gitlinker.nvim/issues/350)) ([2392c1c](https://github.com/linrongbin16/gitlinker.nvim/commit/2392c1c175b2941b4e3de42669fed9069d07012c))
+* **link:** resolve the linked buffer before the first await ([#351](https://github.com/linrongbin16/gitlinker.nvim/issues/351)) ([492c99e](https://github.com/linrongbin16/gitlinker.nvim/commit/492c99e682893e70c7c80502c46b0e98491bb554))
+* support `ssh.bitbucket.org` (bitbucket ssh host change) ([#313](https://github.com/linrongbin16/gitlinker.nvim/issues/313)) ([a03ae18](https://github.com/linrongbin16/gitlinker.nvim/commit/a03ae18cd54edff0a0448c2e1c6426cd259a680f))
+
+
+### Performance Improvements
+
+* **git:** walk the remote history in a single git rev-list ([#353](https://github.com/linrongbin16/gitlinker.nvim/issues/353)) ([42df394](https://github.com/linrongbin16/gitlinker.nvim/commit/42df3944a572ee42ec656d93ee48075a384b2f88))
+
+
+### Code Refactoring
+
+* remove the deprecated `user` field and `_A.USER` alias ([#358](https://github.com/linrongbin16/gitlinker.nvim/issues/358)) ([4a594e0](https://github.com/linrongbin16/gitlinker.nvim/commit/4a594e0040ebafff741bafaba3e965f84bacd282))
+* **router:** remove legacy routers.lua ([#328](https://github.com/linrongbin16/gitlinker.nvim/issues/328)) ([b583e2c](https://github.com/linrongbin16/gitlinker.nvim/commit/b583e2cbd83f2f58557d43818d932304f85d45ff))
+
 ## [5.5.2](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v5.5.2) (2026-11-07)
 
 
