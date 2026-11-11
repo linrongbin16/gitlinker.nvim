@@ -255,18 +255,16 @@ local function _normalize_range(lstart, lend)
   lend = _resolve_line_number(lend)
   if lstart and lend then
     if lend < lstart then
-      lstart, lend = lend, lstart
+      return lend, lstart
     end
+    return lstart, lend
   elseif lstart then
-    lend = lstart
+    return lstart, lstart
   elseif lend then
-    lstart = lend
-  else
-    local r = range.make_range()
-    lstart = math.min(r.lstart, r.lend)
-    lend = math.max(r.lstart, r.lend)
+    return lend, lend
   end
-  return lstart, lend
+  local r = range.make_range()
+  return math.min(r.lstart, r.lend), math.max(r.lstart, r.lend)
 end
 
 --- Resolve what to highlight, before the first `await` of `_link`.
