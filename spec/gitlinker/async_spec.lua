@@ -80,9 +80,14 @@ describe("gitlinker.async", function()
     settle(task)
 
     -- A strong table keeps the task alive until cleanup finishes; once the
-    -- discarded await fails, the entry must go away again.
+    -- discarded await fails, the entry must go away again. Ask for this task
+    -- by its call site: the tree also lists every other detached task, and
+    -- asserting that all of them are gone would make this case depend on
+    -- whether the earlier ones cleaned up.
+    local caller = task._caller
+    assert_eq(type(caller), "string")
     assert_true(wait_until(function()
-      return async._inspect_tree() == ""
+      return async._inspect_tree():find(caller --[[@as string]], 1, true) == nil
     end))
   end)
 
@@ -168,7 +173,10 @@ describe("gitlinker.async", function()
       local ok, err = settle(task)
       assert_false(ok)
       assert_true(tostring(err):find("CHILD-BOOM", 1, true) ~= nil)
-      assert_true(#caught >= 1)
+      -- Exactly one: the observer raised once, and the child's own failure
+      -- travels to the parent instead of being scheduled a second time.
+      assert_eq(#caught, 1)
+      assert_true(tostring(caught[1]):find("OBSERVER-BOOM", 1, true) ~= nil)
     end)
   end)
 
@@ -191,5 +199,99 @@ describe("gitlinker.async", function()
     local ok, err = settle(task)
     assert_false(ok)
     assert_eq(err, "child error: <unprintable error>")
+  end)
+
+  it("waits for an asynchronous close callback before resuming", function()
+    local log = {}
+    local task = async.run(function()
+      async.await(1, function(cb)
+        cb("value")
+        return {
+          close = function(_, done)
+            log[#log + 1] = "close"
+            -- Resolving the awaitable is not enough: the task must stay
+            -- suspended until the resources the awaitable owns are released.
+            vim.defer_fn(function()
+              log[#log + 1] = "closed"
+              done()
+            end, 20)
+          end,
+        }
+      end)
+      log[#log + 1] = "resumed"
+    end)
+
+    assert_true(settle(task))
+    assert_true(vim.deep_equal(log, { "close", "closed", "resumed" }), vim.inspect(log))
+  end)
+
+  it("skips close when the awaitable reports it is already closing", function()
+    local closed = false
+    local task = async.run(function()
+      async.await(1, function(cb)
+        cb()
+        return {
+          is_closing = function()
+            return true
+          end,
+          close = function(_, done)
+            closed = true
+            done()
+          end,
+        }
+      end)
+    end)
+
+    assert_true(settle(task))
+    -- Closing it again would run the cleanup of an awaitable that is already
+    -- releasing its resources.
+    assert_false(closed)
+  end)
+
+  it("fails the task when close raises", function()
+    local task = async.run(function()
+      async.await(1, function(cb)
+        cb()
+        return {
+          close = function()
+            error("CLOSE-BOOM")
+          end,
+        }
+      end)
+    end)
+
+    local ok, err = settle(task)
+    assert_false(ok)
+    -- The failure has to reach the caller: swallowing it leaves the task
+    -- reporting success while its resources were never released.
+    assert_true(tostring(err):find("CLOSE-BOOM", 1, true) ~= nil, tostring(err))
+  end)
+
+  it("re-throws a cancellation from pcall instead of returning it", function()
+    local reached_past_pcall = false
+
+    local task = async.run(function()
+      async.pcall(function()
+        -- Nothing settles this wait except the close below, so the task
+        -- cannot get past the pcall on its own.
+        async.await(1, function(cb)
+          vim.defer_fn(cb, 10000)
+        end)
+      end)
+      reached_past_pcall = true
+    end)
+
+    task:close()
+
+    local ok, err = settle(task)
+    assert_false(ok)
+    -- `pcall` returns regular errors but re-throws this one, so the code after
+    -- it must not run: a cancelled task that carries on would keep working
+    -- with resources the close already released. The re-thrown copy keeps its
+    -- traceback, so compare the first line.
+    assert_eq(type(err), "string")
+    assert_eq((err --[[@as string]]):match("^[^\n]*"), "closed")
+    assert_true((err --[[@as string]]):find("stack traceback", 1, true) ~= nil)
+    assert_false(reached_past_pcall)
   end)
 end)
