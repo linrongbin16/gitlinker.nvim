@@ -32,6 +32,7 @@ end
 --- The builtin `vim.ui.select` then parks the editor in an `inputlist` prompt,
 --- and nothing answers it in a headless run: the suite hangs instead of
 --- failing. Answer it, and put the real picker back afterwards.
+---
 --- @param fn fun()
 local function answering_picker(fn)
   local saved = vim.ui.select
@@ -45,9 +46,44 @@ local function answering_picker(fn)
   end
 end
 
+--- Wait until no async task is left running.
+---
+--- `link()` and `:GitLink` start a task nobody waits on. The url reaches the
+--- action a few scheduled steps before the task ends, and the steps after that
+--- still run git commands -- through whatever `vim.system` is installed at the
+--- time. A fixed sleep guesses how many steps are left: too short and a
+--- leftover step runs against the real API, too long and a fast machine idles.
+--- Ask the async tree instead, which empties exactly when the last task ends.
+---
+--- `Task:wait()` cannot be used here: the callers do not keep the task, and
+--- joining one fails on `highlight_duration` being nil (`_highlight_target`
+--- compares it to 0).
+--- @param timeout integer? milliseconds to wait, defaults to 5s.
+--- @return boolean drained
+local function wait_for_tasks(timeout)
+  local tasks = require("gitlinker.async")
+  local function drained()
+    return tasks._inspect_tree() == ""
+  end
+  if not vim.wait(timeout or 5000, drained, 10) then
+    return false
+  end
+  -- The logger hands its message to `vim.schedule()` before the task returns,
+  -- so the tree can be empty while those notifications are still queued. Wait
+  -- for a callback queued after them: `vim.schedule` runs callbacks in order.
+  local flushed = false
+  vim.schedule(function()
+    flushed = true
+  end)
+  return vim.wait(1000, function()
+    return flushed
+  end, 1) and drained()
+end
+
 local M = {
   wait_async = wait_async,
   answering_picker = answering_picker,
+  wait_for_tasks = wait_for_tasks,
 }
 
 return M
