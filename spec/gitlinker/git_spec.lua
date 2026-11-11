@@ -19,7 +19,9 @@ describe("gitlinker.git", function()
     vim.cmd([[ edit lua/gitlinker.lua ]])
   end)
 
-  local wait_async = require("spec.testutil").wait_async
+  local testutil = require("spec.testutil")
+  local answering_picker = testutil.answering_picker
+  local wait_async = testutil.wait_async
   local git = require("gitlinker.git")
   local path = require("gitlinker.path")
   local gitlinker = require("gitlinker")
@@ -40,30 +42,32 @@ describe("gitlinker.git", function()
       end)
     end)
     it("get_remote_url", function()
-      wait_async(function()
-        local remote, remote_err = git.get_branch_remote(cwd)
-        print(
-          string.format(
-            "get_branch_remote:%s, err:%s\n",
-            vim.inspect(remote),
-            vim.inspect(remote_err)
+      answering_picker(function()
+        wait_async(function()
+          local remote, remote_err = git.get_branch_remote(cwd)
+          print(
+            string.format(
+              "get_branch_remote:%s, err:%s\n",
+              vim.inspect(remote),
+              vim.inspect(remote_err)
+            )
           )
-        )
-        if remote then
-          assert_eq(type(remote), "string")
-          assert_true(string.len(remote) > 0)
-          local r, err = git.get_remote_url(remote, cwd)
-          print(string.format("get_remote_url:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
-          if r then
-            assert_eq(type(r), "string")
-            assert_true(string.len(r) > 0)
-            assert_true(err == nil)
+          if remote then
+            assert_eq(type(remote), "string")
+            assert_true(string.len(remote) > 0)
+            local r, err = git.get_remote_url(remote, cwd)
+            print(string.format("get_remote_url:%s, err:%s\n", vim.inspect(r), vim.inspect(err)))
+            if r then
+              assert_eq(type(r), "string")
+              assert_true(string.len(r) > 0)
+              assert_true(err == nil)
+            else
+              assert_eq(type(err), "string")
+            end
           else
-            assert_eq(type(err), "string")
+            assert_eq(type(remote_err), "string")
           end
-        else
-          assert_eq(type(remote_err), "string")
-        end
+        end)
       end)
     end)
     it("_get_rev(@{u})", function()
@@ -96,42 +100,44 @@ describe("gitlinker.git", function()
       -- after `git` exits. Compute it here, exactly like `linker.make_linker`
       -- does when it hops back with `async.await(1, vim.schedule)`.
       local bufpath = path.buffer_relpath(vim.api.nvim_get_current_buf(), cwd)
-      wait_async(function()
-        -- Fail instead of returning on a missing prerequisite: a silent
-        -- `return` would report a passing test that never asserted anything,
-        -- which is how this whole suite used to go green.
-        local remote, remote_err = git.get_branch_remote(cwd)
-        assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
-        local remote_name = remote --[[@as string]]
+      answering_picker(function()
+        wait_async(function()
+          -- Fail instead of returning on a missing prerequisite: a silent
+          -- `return` would report a passing test that never asserted anything,
+          -- which is how this whole suite used to go green.
+          local remote, remote_err = git.get_branch_remote(cwd)
+          assert_true(remote ~= nil, "this test needs a git remote: " .. tostring(remote_err))
+          local remote_name = remote --[[@as string]]
 
-        local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
-        assert_true(
-          remote_url ~= nil,
-          "this test needs a git remote url: " .. tostring(remote_url_err)
-        )
+          local remote_url, remote_url_err = git.get_remote_url(remote_name, cwd)
+          assert_true(
+            remote_url ~= nil,
+            "this test needs a git remote url: " .. tostring(remote_url_err)
+          )
 
-        -- Prefer the revision `linker.make_linker` would use, but a shallow
-        -- detached clone (CI) has no remote-tracking refs at all. Any commit
-        -- works here: `is_file_in_rev` only needs a revision naming a tree.
-        local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
-        if rev == nil then
-          rev, rev_err = git._get_rev("HEAD", cwd)
-        end
-        assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
-        local rev_name = rev --[[@as string]]
+          -- Prefer the revision `linker.make_linker` would use, but a shallow
+          -- detached clone (CI) has no remote-tracking refs at all. Any commit
+          -- works here: `is_file_in_rev` only needs a revision naming a tree.
+          local rev, rev_err = git.get_closest_remote_compatible_rev(remote_name, cwd)
+          if rev == nil then
+            rev, rev_err = git._get_rev("HEAD", cwd)
+          end
+          assert_true(rev ~= nil, "this test needs a git revision: " .. tostring(rev_err))
+          local rev_name = rev --[[@as string]]
 
-        assert_true(
-          bufpath ~= nil,
-          "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
-        )
-        local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
-        print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
-        if actual then
-          assert_true(actual)
-          assert_true(err == nil)
-        else
-          assert_eq(type(err), "string")
-        end
+          assert_true(
+            bufpath ~= nil,
+            "this test needs the buffer to live inside the git repository: " .. vim.inspect(cwd)
+          )
+          local actual, err = git.is_file_in_rev(bufpath --[[@as string]], rev_name, cwd)
+          print(string.format("is_file_in_rev:%s, err:%s\n", vim.inspect(actual), vim.inspect(err)))
+          if actual then
+            assert_true(actual)
+            assert_true(err == nil)
+          else
+            assert_eq(type(err), "string")
+          end
+        end)
       end)
     end)
     it("is_file_in_rev reports an error for a missing file", function()
