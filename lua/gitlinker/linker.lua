@@ -89,6 +89,16 @@ local function make_linker(bufnr, remote, file, rev)
         vim.inspect(parsed_url_err)
       )
   end
+  -- A remote that points at a directory on this machine (`/tmp/repo`,
+  -- `../other/repo`, `file:///tmp/repo`) parses without a host, or with the
+  -- `file` protocol. No web host means no permalink to build, so say that
+  -- plainly: the host resolution below used to hand the `nil` host to `ssh
+  -- -ttG`, and ssh's multi-line usage text ended up as the error message.
+  if types.str_empty(parsed_url.host) or parsed_url.protocol == "file" then
+    return nil,
+      string.format("fatal: local path remotes are not supported: %s", vim.inspect(remote_url))
+  end
+
   local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, root)
   if not resolved_host then
     return nil, resolved_host_err

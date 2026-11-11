@@ -115,5 +115,61 @@ describe("gitlinker.linker", function()
         assert_true(string.len(err) > 0)
       end)
     end)
+    it("returns an error for a local path remote", function()
+      --- Run `args` and fail loudly when it exits non-zero: a silently broken
+      --- fixture would otherwise surface as a confusing assertion error later.
+      --- @param args string[]
+      local function sh(args)
+        local out = vim.fn.system(args)
+        assert_eq(vim.v.shell_error, 0, string.format("%s => %s", table.concat(args, " "), out))
+      end
+
+      local upstream = vim.fn.tempname()
+      local repo = vim.fn.tempname()
+      vim.fn.mkdir(upstream, "p")
+      vim.fn.mkdir(repo, "p")
+      sh({ "git", "init", "--quiet", "-b", "main", upstream })
+      sh({ "git", "-C", upstream, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", upstream, "config", "user.name", "test" })
+      sh({ "git", "-C", upstream, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", upstream, "commit", "--quiet", "--allow-empty", "--message", "init" })
+      sh({ "git", "init", "--quiet", "-b", "main", repo })
+      sh({ "git", "-C", repo, "config", "user.email", "test@example.com" })
+      sh({ "git", "-C", repo, "config", "user.name", "test" })
+      sh({ "git", "-C", repo, "config", "commit.gpgsign", "false" })
+      sh({ "git", "-C", repo, "commit", "--quiet", "--allow-empty", "--message", "init" })
+      -- A remote that points at a directory on this machine. It is a valid git
+      -- remote, but it has no web host, so there is no permalink to build.
+      sh({ "git", "-C", repo, "remote", "add", "origin", upstream })
+      sh({ "git", "-C", repo, "remote", "add", "file-remote", "file://" .. upstream })
+      vim.cmd("edit " .. repo .. "/plain.txt")
+      -- Read the buffer number before suspending: `nvim_get_current_buf` is not
+      -- allowed from the fast event context `wait_async` runs the body in.
+      local bufnr = vim.api.nvim_get_current_buf()
+      -- One `wait_async` per remote: `make_linker` reads the buffer before its
+      -- first `await`, and a second call in the same resumed body would run in
+      -- a fast event context, where that read is rejected.
+      for _, remote in ipairs({ "origin", "file-remote" }) do
+        wait_async(function()
+          local lk, err = linker.make_linker(bufnr, remote, nil, nil)
+          print(
+            string.format(
+              "linker(local remote %s):%s, err:%s",
+              remote,
+              vim.inspect(lk),
+              vim.inspect(err)
+            )
+          )
+          assert_true(lk == nil)
+          assert_eq(type(err), "string")
+          -- The message has to name the cause. It used to be ssh's multi-line
+          -- usage text, which told the user nothing about their remote.
+          assert_true(err:find("local path remotes are not supported", 1, true) ~= nil, err)
+          assert_true(err:find(upstream, 1, true) ~= nil, err)
+        end)
+      end
+      vim.fn.delete(repo, "rf")
+      vim.fn.delete(upstream, "rf")
+    end)
   end)
 end)

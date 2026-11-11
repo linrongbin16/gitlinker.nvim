@@ -158,6 +158,24 @@ describe("gitlinker.git", function()
         assert_true(err == nil)
       end)
     end)
+    it("resolve_host reports a missing host instead of running ssh", function()
+      wait_async(function()
+        -- A local path remote (`/tmp/repo`, `../other`) parses without a host.
+        -- Handing that `nil` to `ssh -ttG` used to surface ssh's usage text as
+        -- the error message, so the guard has to answer before ssh runs.
+        local actual, err = git.resolve_host(nil, cwd)
+        print(
+          string.format("resolve_host(nil):%s, err:%s\n", vim.inspect(actual), vim.inspect(err))
+        )
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+        assert_true(err:find("no host", 1, true) ~= nil, "unexpected error: " .. err)
+        -- An empty host means the same thing as a missing one.
+        local empty_actual, empty_err = git.resolve_host("", cwd)
+        assert_true(empty_actual == nil)
+        assert_eq(empty_err, err)
+      end)
+    end)
     it("get_default_branch", function()
       wait_async(function()
         local actual, err = git.get_default_branch("origin", cwd)
