@@ -393,51 +393,74 @@ local function get_root(dir)
   return result.stdout[1], nil
 end
 
--- --- NOTE: async functions for `vim.ui.select`.
--- local _run_select = async.wrap(function(remotes, callback)
---   vim.ui.select(remotes, {
---     prompt = "Detect multiple git remotes:",
---     format_item = function(item)
---       return item
---     end,
---   }, function(choice)
---     callback(choice)
---   end)
--- end, 2)
---
--- -- wrap the select function.
--- --- @package
--- --- @type fun(remotes:string[]):string?
--- local function run_select(remotes)
---   return _run_select(remotes)
--- end
+--- @class gitlinker.RemoteChoice
+--- @field remote string
+--- @field url string
 
+--- Whether a picker answer is one of the choices we handed it.
+---
+--- `vim.ui.select` is replaceable, and a third-party picker may answer with
+--- something else entirely -- a bare string, an index, an item from a different
+--- list. The callback is typed `any` for that reason, so the answer is checked
+--- here instead of being trusted as a remote name.
+---
+--- @param item any
+--- @return gitlinker.RemoteChoice?
+local function _as_remote_choice(item)
+  if type(item) ~= "table" then
+    return nil
+  end
+  --- @cast item gitlinker.RemoteChoice
+
+  if types.str_empty(item.remote) then
+    return nil
+  end
+  return item
+end
+
+--- Ask the user to pick one of the configured remotes.
+---
+--- This goes through `vim.ui.select` rather than `vim.fn.inputlist` for two
+--- reasons: the picker is replaceable (telescope, fzf-lua, ...), and it reports
+--- the choice through a callback, so awaiting it suspends the coroutine instead
+--- of parking the editor in a blocking prompt. The builtin implementation still
+--- prompts with `inputlist` -- that is Neovim's own fallback, not ours.
+---
 --- @package
 --- @param remotes string[]
 --- @param root string
 --- @return string?, string?
 local function _select_remotes(remotes, root)
-  local formatted_remotes = { "Please select remote index:" }
-  for i, remote in ipairs(remotes) do
-    local remote_url = get_remote_url(remote, root)
-    table.insert(formatted_remotes, string.format("%d. %s (%s)", i, remote, remote_url))
+  --- @type gitlinker.RemoteChoice[]
+  local choices = {}
+  for _, remote in ipairs(remotes) do
+    local remote_url, url_err = get_remote_url(remote, root)
+    if not remote_url then
+      return nil, url_err
+    end
+    table.insert(choices, { remote = remote, url = remote_url })
   end
 
+  -- Let any pending redraw/echo finish before the picker takes over the UI.
   async.await(1, vim.schedule)
 
-  local result = vim.fn.inputlist(formatted_remotes)
+  -- `vim.ui.select` hands the choice to its third argument, hence `argc = 3`:
+  -- the callback lands after `items` and `opts`. It answers `(item, idx)`, and
+  -- `(nil, nil)` when the user cancels.
+  local choice = async.await(3, vim.ui.select, choices, {
+    prompt = "Please select remote index:",
+    --- @param item gitlinker.RemoteChoice
+    format_item = function(item)
+      return string.format("%s (%s)", item.remote, item.url)
+    end,
+  })
 
-  if type(result) ~= "number" or result < 1 or result > #remotes then
+  local picked = _as_remote_choice(choice)
+  if not picked then
     return nil, "fatal: user cancelled multiple git remotes"
   end
 
-  for i, remote in ipairs(remotes) do
-    if result == i then
-      return remote, nil
-    end
-  end
-
-  return nil, "fatal: user cancelled multiple git remotes, please select an index"
+  return picked.remote, nil
 end
 
 --- @param root string

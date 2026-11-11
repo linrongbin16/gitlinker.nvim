@@ -594,14 +594,15 @@ describe("gitlinker.git", function()
     --- @type string
     local repo
 
-    --- What the stubbed picker answers, and the prompts it was handed.
-    --- @type integer
+    --- Which index the stubbed picker answers (`nil` cancels), and what it was
+    --- offered.
+    --- @type integer?
     local answer
-    --- @type string[][]
+    --- @type {items:table[], opts:table}[]
     local prompts
 
-    --- @type fun(prompt:string[]):integer
-    local saved_inputlist
+    --- @type fun(items:table[], opts:table, on_choice:fun(item:any, idx:integer?))
+    local saved_select
 
     --- Create a repository with one commit and the given remotes.
     --- @param remotes string[]
@@ -621,17 +622,21 @@ describe("gitlinker.git", function()
     before_each(function()
       answer = 1
       prompts = {}
-      -- The picker blocks on a real keystroke; answer for it instead, and keep
-      -- the prompt so a case can check what the user was offered.
-      saved_inputlist = vim.fn.inputlist
-      vim.fn.inputlist = function(prompt)
-        table.insert(prompts, prompt)
-        return answer
+      -- The real picker waits for a keystroke; answer for it instead, and keep
+      -- the items so a case can check what the user was offered.
+      saved_select = vim.ui.select
+      vim.ui.select = function(items, opts, on_choice)
+        table.insert(prompts, { items = items, opts = opts })
+        if answer == nil then
+          on_choice(nil, nil)
+        else
+          on_choice(items[answer], answer)
+        end
       end
     end)
 
     after_each(function()
-      vim.fn.inputlist = saved_inputlist
+      vim.ui.select = saved_select
       if repo then
         vim.fn.delete(repo, "rf")
         repo = nil
@@ -656,17 +661,40 @@ describe("gitlinker.git", function()
         assert_eq(actual, "upstream")
         assert_true(err == nil)
         assert_eq(#prompts, 1)
-        -- The list shows what each index stands for: a bare index would make
-        -- the user pick blind.
-        local prompt = table.concat(prompts[1], "\n")
-        assert_true(prompt:find("1. origin (https://github.com/acme/demo.git)", 1, true) ~= nil)
-        assert_true(prompt:find("2. upstream (https://github.com/acme/demo.git)", 1, true) ~= nil)
+        -- The picker is handed the remotes themselves, plus a formatter that
+        -- spells out what each one stands for: a bare index would make the user
+        -- pick blind.
+        local prompt = prompts[1]
+        assert_eq(prompt.opts.prompt, "Please select remote index:")
+        assert_eq(#prompt.items, 2)
+        assert_eq(prompt.items[1].remote, "origin")
+        assert_eq(prompt.items[1].url, "https://github.com/acme/demo.git")
+        assert_eq(prompt.items[2].remote, "upstream")
+        assert_eq(
+          prompt.opts.format_item(prompt.items[2]),
+          "upstream (https://github.com/acme/demo.git)"
+        )
       end)
     end)
 
     it("reports a cancelled picker", function()
       make_repo({ "origin", "upstream" })
-      answer = 0
+      answer = nil
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_true(actual == nil)
+        assert_eq(type(err), "string")
+        assert_true(err:find("user cancelled", 1, true) ~= nil, "unexpected error: " .. err)
+      end)
+    end)
+
+    it("reports a picker that answers something else", function()
+      make_repo({ "origin", "upstream" })
+      -- A third-party picker may answer with a string, a number or nothing at
+      -- all; none of those are a remote name from the list.
+      vim.ui.select = function(items, _, on_choice)
+        on_choice("not-a-remote", nil)
+      end
       wait_async(function()
         local actual, err = git.get_branch_remote(repo)
         assert_true(actual == nil)
