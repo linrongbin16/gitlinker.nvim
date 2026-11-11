@@ -25,6 +25,34 @@ For now supported platforms are:
 
 PRs are welcomed for other git host websites!
 
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [lazy.nvim](#lazynvim)
+  - [pckr.nvim](#pckrnvim)
+  - [vim.pack](#vimpack)
+  - [Manual](#manual)
+- [Usage](#usage)
+  - [Command](#command)
+    - [Router Types](#router-types)
+    - [Parameters](#parameters)
+  - [API](#api)
+    - [`gitlinker.Router`](#gitlinkerrouter)
+    - [`gitlinker.Action`](#gitlinkeraction)
+  - [Recommended Key Mappings](#recommended-key-mappings)
+- [Configuration](#configuration)
+  - [Customize Urls](#customize-urls)
+    - [String Template](#string-template)
+    - [Lua Function](#lua-function)
+  - [Create Your Own Router](#create-your-own-router)
+  - [Alternative Clipboard](#alternative-clipboard)
+  - [Highlight Group](#highlight-group)
+- [Development](#development)
+- [Contribute](#contribute)
+- [License](#license)
+
 ## Features
 
 - Provide `GitLink` command, not default key mappings.
@@ -114,7 +142,7 @@ The command takes a range and completes router types on `<Tab>`:
 :'<,'>GitLink
 ```
 
-### Router Types
+#### Router Types
 
 A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
 
@@ -134,7 +162,7 @@ Same file, four router types, on bitbucket.org:
 - `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
 - `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
 
-### Parameters
+#### Parameters
 
 Three `key=value` arguments override what the current buffer would otherwise provide. They combine with any router type and with the bang:
 
@@ -172,33 +200,24 @@ require("gitlinker").link({
 })
 ```
 
-**Parameters:**
+`opts` is an optional lua table with below fields:
 
-- `opts`: (Optional) lua table that contains below fields:
-  - `router_type`: Which router type to use. Defaults to `browse`. It has below options:
-    - `browse`
-    - `blame`
-    - `default_branch`
-    - `current_branch`
+| Field                 | Type                | Default                                                            | Description                                                                                                                                                                                                                                                                    |
+| --------------------- | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `router_type`         | `string?`           | `browse`                                                           | Which router type to use: `browse`, `blame`, `default_branch`, `current_branch`.                                                                                                                                                                                               |
+| `router`              | `gitlinker.Router?` | the implementations registered by `setup()`                        | Which router implementation to use, see [Configuration](#configuration). Passing your own function overrides them for this call, see [`gitlinker.Router`](#gitlinkerrouter).                                                                                                   |
+| `action`              | `gitlinker.Action?` | `require("gitlinker.actions").clipboard`                           | What to do with the url, see [`gitlinker.Action`](#gitlinkeraction). `require("gitlinker.actions").clipboard` copies the url to the clipboard, `require("gitlinker.actions").open` opens the url in the browser, and any other callable receives the url as its only argument. |
+| `lstart`/`lend`       | `integer?`          | the current line, or the last visual selection when in visual mode | Line range, i.e. start and end line numbers.                                                                                                                                                                                                                                   |
+| `message`             | `boolean?`          | the configured value                                               | Whether to print the url in the command line, see [Configuration](#configuration).                                                                                                                                                                                             |
+| `warn_on_file_change` | `boolean?`          | the configured value                                               | Whether to print a warning message when file is changed, see [Configuration](#configuration).                                                                                                                                                                                  |
+| `highlight_duration`  | `integer?`          | the configured value                                               | How long, in milliseconds, to highlight the linked line range. `0` disables the highlight.                                                                                                                                                                                     |
+| `remote`              | `string?`           | the remote detected from the branch upstream                       | Specify the git remote.                                                                                                                                                                                                                                                        |
+| `file`                | `string?`           | the current buffer's name                                          | Specify the relative file path.                                                                                                                                                                                                                                                |
+| `rev`                 | `string?`           | the closest revision that exists in the remote                     | Specify the revision.                                                                                                                                                                                                                                                          |
 
-  - `router`: Which router implementation to use. Defaults to the implementations registered by `setup()` (see [Configuration](#configuration)). Passing your own function overrides them for this call, see [`gitlinker.Router`](#gitlinkerrouter).
-
-    > [!WARNING]
-    >
-    > Once this field is set, you have full control over url generation and `router_type` no longer takes effect.
-
-  - `action`: What to do with the url. Defaults to `require("gitlinker.actions").clipboard`, see [`gitlinker.Action`](#gitlinkeraction).
-    - `require("gitlinker.actions").clipboard`: copy the url to the clipboard.
-    - `require("gitlinker.actions").open`: open the url in the browser.
-    - Any other callable receives the url as its only argument.
-
-  - `lstart`/`lend`: Line range, i.e. start and end line numbers. Defaults to the current line, or to the last visual selection when in visual mode.
-  - `message`: Whether to print the url in the command line. Defaults to the configured value, see [Configuration](#configuration).
-  - `warn_on_file_change`: Whether to print a warning message when file is changed. Defaults to the configured value, see [Configuration](#configuration).
-  - `highlight_duration`: How long, in milliseconds, to highlight the linked line range. Defaults to the configured value. `0` disables the highlight.
-  - `remote`: Specify the git remote. Defaults to the remote detected from the branch upstream.
-  - `file`: Specify the relative file path. Defaults to the current buffer's name.
-  - `rev`: Specify the revision. Defaults to the closest revision that exists in the remote.
+> [!WARNING]
+>
+> Once `router` is set, you have full control over url generation and `router_type` no longer takes effect.
 
 #### `gitlinker.Router`
 
@@ -210,7 +229,9 @@ function(lk:gitlinker.Linker):string?
 
 **Parameters:**
 
-- `lk`: A `gitlinker.Linker` table holding everything needed to build the url: `remote_url`, `protocol`, `host`, `org`, `repo`, `rev`, `file`, `lstart`, `lend`, `file_changed`, and so on. See [Lua Function](#lua-function) for the full field list.
+| Field | Type               | Description                                                                                                                                                                                                                 |
+| ----- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lk`  | `gitlinker.Linker` | A table holding everything needed to build the url: `remote_url`, `protocol`, `host`, `org`, `repo`, `rev`, `file`, `lstart`, `lend`, `file_changed`, and so on. See [Lua Function](#lua-function) for the full field list. |
 
 **Returns:**
 
@@ -227,7 +248,9 @@ function(url:string):any
 
 **Parameters:**
 
-- `url`: The generated url, for example https://codeberg.org/forgejo/forgejo/src/commit/d191d25cb3b5082607780bdff89fc2353a92161b/README.md?display=source#L1-L5.
+| Field | Type     | Description                                                                                                                                             |
+| ----- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url` | `string` | The generated url, for example https://codeberg.org/forgejo/forgejo/src/commit/d191d25cb3b5082607780bdff89fc2353a92161b/README.md?display=source#L1-L5. |
 
 Two builtin actions are available:
 
@@ -570,9 +593,9 @@ The group is created only when `highlight_duration` is greater than `0`, and onl
 
 To develop the project and make a PR, please set up:
 
-- [lua_ls](https://github.com/LuaLS/lua-language-server).
-- [stylua](https://github.com/JohnnyMorganz/StyLua).
-- [selene](https://github.com/Kampfkarren/selene).
+- [lua_ls](https://github.com/LuaLS/lua-language-server)
+- [stylua](https://github.com/JohnnyMorganz/StyLua)
+- [selene](https://github.com/Kampfkarren/selene)
 
 To run unit tests, please use `make test`.
 
