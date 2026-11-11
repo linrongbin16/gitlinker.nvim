@@ -593,9 +593,9 @@ The group is created only when `highlight_duration` is greater than `0`, and onl
 
 To develop the project and make a PR, please set up:
 
-- [lua_ls](https://github.com/LuaLS/lua-language-server).
-- [stylua](https://github.com/JohnnyMorganz/StyLua).
-- [selene](https://github.com/Kampfkarren/selene).
+- [lua_ls](https://github.com/LuaLS/lua-language-server)
+- [stylua](https://github.com/JohnnyMorganz/StyLua)
+- [selene](https://github.com/Kampfkarren/selene)
 
 To run unit tests, please use `make test`.
 
