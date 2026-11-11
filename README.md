@@ -25,6 +25,34 @@ For now supported platforms are:
 
 PRs are welcomed for other git host websites!
 
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [lazy.nvim](#lazynvim)
+  - [pckr.nvim](#pckrnvim)
+  - [vim.pack](#vimpack)
+  - [Manual](#manual)
+- [Usage](#usage)
+  - [Command](#command)
+  - [Router Types](#router-types)
+  - [Parameters](#parameters)
+  - [API](#api)
+    - [`gitlinker.Router`](#gitlinkerrouter)
+    - [`gitlinker.Action`](#gitlinkeraction)
+  - [Recommended Key Mappings](#recommended-key-mappings)
+- [Configuration](#configuration)
+  - [Customize Urls](#customize-urls)
+    - [String Template](#string-template)
+    - [Lua Function](#lua-function)
+  - [Create Your Own Router](#create-your-own-router)
+  - [Alternative Clipboard](#alternative-clipboard)
+  - [Highlight Group](#highlight-group)
+- [Development](#development)
+- [Contribute](#contribute)
+- [License](#license)
+
 ## Features
 
 - Provide `GitLink` command, not default key mappings.
@@ -114,7 +142,7 @@ The command takes a range and completes router types on `<Tab>`:
 :'<,'>GitLink
 ```
 
-### Router Types
+#### Router Types
 
 A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
 
@@ -134,7 +162,7 @@ Same file, four router types, on bitbucket.org:
 - `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
 - `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
 
-### Parameters
+#### Parameters
 
 Three `key=value` arguments override what the current buffer would otherwise provide. They combine with any router type and with the bang:
 
