@@ -709,6 +709,33 @@ describe("gitlinker.git", function()
       end)
     end)
 
+    it("does not await the picker object a select implementation returns", function()
+      make_repo({ "origin", "upstream" })
+      -- snacks.picker returns its picker, so the caller can close it. That
+      -- object has a `close` field, which the async runtime mistakes for a
+      -- closable and waits on: `close()` takes no callback and calls none, so
+      -- passing the return value through would hang the link forever.
+      local closed = false
+      local picker = {
+        close = function()
+          closed = true
+        end,
+      }
+      vim.ui.select = function(items, _, on_choice)
+        vim.schedule(function()
+          on_choice(items[1], 1)
+        end)
+        return picker
+      end
+      wait_async(function()
+        local actual, err = git.get_branch_remote(repo)
+        assert_eq(actual, "origin")
+        assert_true(err == nil)
+      end, 5000)
+      -- The picker belongs to the implementation: closing it is not our job.
+      assert_false(closed)
+    end)
+
     it("reports a repository without any remote", function()
       make_repo({})
       wait_async(function()

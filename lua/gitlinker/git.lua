@@ -418,6 +418,23 @@ local function _as_remote_choice(item)
   return item
 end
 
+--- Open a `vim.ui.select` picker and drop whatever it returns.
+---
+--- `vim.ui.select` implementations are free to return their picker object --
+--- snacks.picker does, so a caller can close it -- and the async runtime treats
+--- any table with a `close` field as a `vim.async.Closable`: once the await
+--- settles it calls `close(callback)` and waits for that callback before
+--- resuming the coroutine. A picker's `close()` takes no callback and never
+--- calls one, so handing its return value back to `async.await` suspends the
+--- task forever: the picker closes, and no link is ever generated. Swallow it.
+---
+--- @param items any[]
+--- @param opts vim.ui.select.Opts
+--- @param on_choice fun(item:any, idx:integer?)
+local function _open_picker(items, opts, on_choice)
+  vim.ui.select(items, opts, on_choice)
+end
+
 --- Ask the user to pick one of the configured remotes.
 ---
 --- This goes through `vim.ui.select` rather than `vim.fn.inputlist` for two
@@ -459,8 +476,9 @@ local function _select_remotes(remotes, root)
 
   -- `vim.ui.select` hands the choice to its third argument, hence `argc = 3`:
   -- the callback lands after `items` and `opts`. It answers `(item, idx)`, and
-  -- `(nil, nil)` when the user cancels.
-  local choice = async.await(3, vim.ui.select, choices, {
+  -- `(nil, nil)` when the user cancels. It goes through `_open_picker` so the
+  -- picker object some implementations return never reaches the runtime.
+  local choice = async.await(3, _open_picker, choices, {
     prompt = "Please select remote index:",
     --- @param item gitlinker.RemoteChoice
     format_item = function(item)
