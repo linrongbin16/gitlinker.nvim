@@ -197,10 +197,18 @@ local function _has_remote_fetch_config(remote, root)
   return false, nil
 end
 
---- @param host string
+--- @param host string?
 --- @param root string
 --- @return string?, string?
 local function resolve_host(host, root)
+  -- A local path remote (`/tmp/repo`, `../other`, `file:///tmp/repo`) parses
+  -- without a host. Passing that `nil` to `ssh -ttG` spawned ssh with a missing
+  -- destination, and the usage text it printed on stderr became the error the
+  -- user saw. Refuse up front instead: there is no host to resolve.
+  if types.str_empty(host) then
+    return nil,
+      "fatal: the remote url has no host to resolve, which usually means it is a local path remote"
+  end
   if vim.fn.executable("ssh") <= 0 then
     return host, nil
   end
