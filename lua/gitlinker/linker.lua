@@ -1,14 +1,14 @@
-local log = require("gitlinker.commons.log")
-local str = require("gitlinker.commons.str")
-local async = require("gitlinker.commons.async")
+local log = require("gitlinker.log")
+local types = require("gitlinker.types")
+local async = require("gitlinker.async")
 
 local git = require("gitlinker.git")
 local path = require("gitlinker.path")
 local giturlparser = require("gitlinker.giturlparser")
 
---- @return string?
-local function _get_buf_dir()
-  local buf_path = vim.api.nvim_buf_get_name(0)
+--- @param buf_path string
+--- @return string?, string?
+local function _get_buf_dir(buf_path)
   local buf_dir = vim.fn.fnamemodify(buf_path, ":p:h")
   log.debug(
     string.format(
@@ -17,119 +17,167 @@ local function _get_buf_dir()
       vim.inspect(buf_dir)
     )
   )
-  if str.empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
-    return nil
+  if types.str_empty(buf_dir) or vim.fn.isdirectory(buf_dir or "") <= 0 then
+    return nil,
+      string.format(
+        "fatal: current buffer is not in a valid git repository: %s",
+        vim.inspect(buf_path)
+      )
   end
-  return buf_dir
+  return buf_dir, nil
 end
 
---- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @param bufnr integer  the buffer to link.
 --- @param remote string?
 --- @param file string?
 --- @param rev string?
---- @return gitlinker.Linker?
-local function make_linker(remote, file, rev)
-  local cwd = _get_buf_dir()
+--- @return gitlinker.Linker?, string?
+local function make_linker(bufnr, remote, file, rev)
+  -- The buffer is resolved by the caller, before the first `await` below. This
+  -- function suspends while `git` runs, and the user is free to switch files in
+  -- the meantime: reading the current buffer afterwards linked whichever file
+  -- was open when the command finished instead of the one it started from.
+  local buf_path = vim.api.nvim_buf_get_name(bufnr)
 
-  local file_provided = str.not_empty(file)
-  local rev_provided = str.not_empty(rev)
+  local buf_dir, buf_dir_err = _get_buf_dir(buf_path)
+  if not buf_dir then
+    return nil, buf_dir_err
+  end
 
-  local root = git.get_root(cwd)
+  -- Locate the repository root once: every git command below runs there, so
+  -- that pathspecs and `rev:path` tree lookups share a single, stable base
+  -- instead of the buffer directory (which `git diff` would resolve against).
+  local root, root_err = git.get_root(buf_dir)
   if not root then
-    return nil
+    return nil, root_err
   end
 
-  if str.empty(remote) then
-    remote = git.get_branch_remote(cwd)
+  -- `remote` is optional on the public API, but every git call below needs a
+  -- concrete name, so resolve it once into a non-optional local.
+  --- @type string
+  local selected_remote
+  if types.str_empty(remote) then
+    local detected_remote, detected_remote_err = git.get_branch_remote(root)
+    if not detected_remote then
+      return nil, detected_remote_err
+    end
+    selected_remote = detected_remote
+  else
+    selected_remote = remote --[[@as string]]
   end
-  if not remote then
-    return nil
-  end
-  -- logger.debug("|linker - Linker:make| remote:%s", vim.inspect(remote))
 
-  local remote_url = git.get_remote_url(remote, cwd)
+  local remote_url, remote_url_err = git.get_remote_url(selected_remote, root)
   if not remote_url then
-    return nil
+    return nil, remote_url_err
   end
 
-  local parsed_url, parsed_err = giturlparser.parse(remote_url) --[[@as table, string?]]
+  local parsed_url, parsed_url_err = giturlparser.parse(remote_url) --[[@as table, string?]]
   log.debug(
     string.format(
       "|make_linker| remote:%s, parsed_url:%s, parsed_err:%s",
       vim.inspect(remote),
       vim.inspect(parsed_url),
-      vim.inspect(parsed_err)
+      vim.inspect(parsed_url_err)
     )
   )
-  log.ensure(
-    parsed_url ~= nil,
-    string.format(
-      "failed to parse git remote url:%s, error:%s",
-      vim.inspect(remote_url),
-      vim.inspect(parsed_err)
-    )
-  )
-  local resolved_host = git.resolve_host(parsed_url.host)
-  if not resolved_host then
-    return nil
+  if not parsed_url then
+    return nil,
+      string.format(
+        "fatal: failed to parse git remote url:%s, error:%s",
+        vim.inspect(remote_url),
+        vim.inspect(parsed_url_err)
+      )
+  end
+  -- A remote that points at a directory on this machine (`/tmp/repo`,
+  -- `../other/repo`, `file:///tmp/repo`) parses without a host, or with the
+  -- `file` protocol. No web host means no permalink to build, so say that
+  -- plainly: the host resolution below used to hand the `nil` host to `ssh
+  -- -ttG`, and ssh's multi-line usage text ended up as the error message.
+  if types.str_empty(parsed_url.host) or parsed_url.protocol == "file" then
+    return nil,
+      string.format("fatal: local path remotes are not supported: %s", vim.inspect(remote_url))
   end
 
-  -- logger.debug(
-  --     "|linker - Linker:make| remote_url:%s",
-  --     vim.inspect(remote_url)
-  -- )
+  local resolved_host, resolved_host_err = git.resolve_host(parsed_url.host, root)
+  if not resolved_host then
+    return nil, resolved_host_err
+  end
 
-  if rev_provided then
+  local saved_rev = rev
+
+  -- If rev (git commit ID) is not provided, detect with current git HEAD commit
+  if not types.str_empty(rev) then
     -- Resolve the revspec so callers can pass 'HEAD', a branch or a tag and
     -- still get a permanent link. A full commit ID resolves to itself.
-    rev = git._get_rev(rev --[[@as string]], cwd) or rev
+    local resolved_rev, resolved_rev_err = git._get_rev(rev --[[@as string]], root)
+    if not resolved_rev then
+      return nil, resolved_rev_err
+    end
+    rev = resolved_rev
   else
-    rev = git.get_closest_remote_compatible_rev(remote, cwd)
+    local closest_rev, closest_rev_err =
+      git.get_closest_remote_compatible_rev(selected_remote, root)
+    if not closest_rev then
+      return nil, closest_rev_err
+    end
+    rev = closest_rev
   end
-  if str.empty(rev) then
-    return nil
+  if types.str_empty(rev) then
+    return nil,
+      string.format("fatal: failed to resolve the revision %s to link to", vim.inspect(saved_rev))
   end
   -- logger.debug("|linker - Linker:make| rev:%s", vim.inspect(rev))
 
   async.await(1, vim.schedule)
 
-  if not file_provided then
-    local buf_path_on_root = path.buffer_relpath(root) --[[@as string]]
-    local buf_path_encoded = vim.uri_encode(buf_path_on_root) --[[@as string]]
-    -- logger.debug(
-    --     "|linker - Linker:make| root:%s, buf_path_on_root:%s",
-    --     vim.inspect(root),
-    --     vim.inspect(buf_path_on_root)
-    -- )
+  local file_changed = false
 
-    local file_in_rev_result = git.is_file_in_rev(buf_path_on_root, rev --[[@as string]], cwd)
-    if not file_in_rev_result then
-      return nil
+  -- If file parameter is not provided, detect file with the linked buffer
+  if types.str_empty(file) then
+    -- Both the tree lookup and the diff below run in the repository root, so
+    -- the path handed to them has to be root-relative. A path relative to the
+    -- buffer directory matches nothing there: `git diff` then exits 0 with
+    -- empty output, which reads as "the file has not changed".
+    local relpath = path.buffer_relpath(bufnr, root)
+    if not relpath then
+      return nil,
+        string.format(
+          "fatal: failed to resolve the buffer path relative to the git repository root: %s (root: %s)",
+          vim.inspect(buf_path),
+          vim.inspect(root)
+        )
     end
-    file = buf_path_encoded
+
+    local file_in_rev, file_in_rev_err = git.is_file_in_rev(relpath, rev, root)
+    if not file_in_rev then
+      return nil, file_in_rev_err
+    end
+    file = vim.uri_encode(relpath)
+
+    -- `git` resumed this coroutine in a fast event context, and the checks
+    -- below touch the editor again, so hop back to the main loop first.
+    async.await(1, vim.schedule)
+
+    local changed, changed_err = git.file_has_changed(relpath, rev, root)
+    if changed == nil then
+      return nil, changed_err
+    end
+    file_changed = changed
   else
     file = vim.uri_encode(file)
   end
 
-  -- logger.debug(
-  --     "|linker - Linker:make| file_in_rev_result:%s",
-  --     vim.inspect(file_in_rev_result)
-  -- )
-
-  async.await(1, vim.schedule)
-
-  local file_changed = false
-  if not file_provided then
-    local buf_path_on_cwd = path.buffer_relpath() --[[@as string]]
-    file_changed = git.file_has_changed(buf_path_on_cwd, rev --[[@as string]], cwd)
-    -- logger.debug(
-    --     "|linker - Linker:make| buf_path_on_cwd:%s",
-    --     vim.inspect(buf_path_on_cwd)
-    -- )
+  -- A missing default/current branch must not stop the link from being built,
+  -- the router simply renders an empty value for it. Report and carry on.
+  local default_branch, default_branch_err = git.get_default_branch(selected_remote, root)
+  if default_branch_err then
+    log.warn(default_branch_err)
   end
-
-  local default_branch = git.get_default_branch(remote, cwd)
-  local current_branch = git.get_current_branch(cwd)
+  local current_branch, current_branch_err = git.get_current_branch(root)
+  if current_branch_err then
+    log.warn(current_branch_err)
+  end
 
   local o = {
     remote_url = remote_url,
@@ -138,8 +186,6 @@ local function make_linker(remote, file, rev)
     password = parsed_url.password,
     host = resolved_host,
     port = parsed_url.port,
-    --- @deprecated please use 'org'
-    user = parsed_url.org,
     org = parsed_url.org,
     repo = parsed_url.repo,
     rev = rev,
@@ -154,7 +200,7 @@ local function make_linker(remote, file, rev)
   }
 
   log.debug(string.format("|make_linker| o:%s", vim.inspect(o)))
-  return o
+  return o, nil
 end
 
 local M = {

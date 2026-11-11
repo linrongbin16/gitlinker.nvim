@@ -1,8 +1,6 @@
-local tbl = require("gitlinker.commons.tbl")
-local str = require("gitlinker.commons.str")
-local num = require("gitlinker.commons.num")
-local log = require("gitlinker.commons.log")
-local async = require("gitlinker.commons.async")
+local types = require("gitlinker.types")
+local log = require("gitlinker.log")
+local async = require("gitlinker.async")
 
 local configs = require("gitlinker.configs")
 local range = require("gitlinker.range")
@@ -15,7 +13,7 @@ local highlight = require("gitlinker.highlight")
 local function _url_template_engine(lk, template)
   local OPEN_BRACE = "{"
   local CLOSE_BRACE = "}"
-  if str.empty(template) or tbl.tbl_empty(lk) then
+  if types.str_empty(template) or types.tbl_empty(lk) then
     return nil
   end
 
@@ -26,13 +24,13 @@ local function _url_template_engine(lk, template)
   local i = 1
   local n = string.len(template)
   while i <= n do
-    local open_pos = str.find(template, OPEN_BRACE, i)
+    local open_pos = types.str_search(template, OPEN_BRACE, i)
     if not open_pos then
       table.insert(exprs, { plain = true, body = string.sub(template, i) })
       break
     end
     table.insert(exprs, { plain = true, body = string.sub(template, i, open_pos - 1) })
-    local close_pos = str.find(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
+    local close_pos = types.str_search(template, CLOSE_BRACE, open_pos + string.len(OPEN_BRACE))
     log.ensure(
       type(close_pos) == "number" and close_pos > open_pos,
       string.format(
@@ -69,15 +67,14 @@ local function _url_template_engine(lk, template)
         PASSWORD = lk.password or "",
         HOST = lk.host or "",
         PORT = lk.port or "",
-        USER = lk.user or "",
         ORG = lk.org or "",
-        REPO = str.endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo,
+        REPO = types.str_strip_suffix(lk.repo, ".git"),
         REV = lk.rev,
         FILE = lk.file,
         LSTART = lk.lstart,
-        LEND = num.ge(lk.lend, lk.lstart) and lk.lend or lk.lstart,
-        DEFAULT_BRANCH = str.not_empty(lk.default_branch) and lk.default_branch or "",
-        CURRENT_BRANCH = str.not_empty(lk.current_branch) and lk.current_branch or "",
+        LEND = types.greater_equal(lk.lend, lk.lstart) and lk.lend or lk.lstart,
+        DEFAULT_BRANCH = types.str_empty(lk.default_branch) and "" or lk.default_branch,
+        CURRENT_BRANCH = types.str_empty(lk.current_branch) and "" or lk.current_branch,
       })
       log.debug(
         string.format(
@@ -195,23 +192,171 @@ local function _blame(lk)
   return _router("blame", lk)
 end
 
+--- Whether `value` is a line number a file can have, i.e. a whole number of at
+--- least 1.
+---
+--- A line number that fails this is worse than useless downstream: `#L0` and
+--- `#L1.5` name no line of any file, so the remote answers with a 404, and a
+--- float or an infinity makes `vim.fn.col()` raise `E805` while highlighting,
+--- from inside the coroutine of `_void_link`, where nothing reports it.
+---
+--- @param value any
+--- @return boolean
+local function _is_line_number(value)
+  -- A NaN fails every comparison, including `==` with itself, which the
+  -- integrality test below relies on.
+  return type(value) == "number"
+    and value == value
+    and value ~= math.huge
+    and value ~= -math.huge
+    and value >= 1
+    and value == math.floor(value)
+end
+
+--- Turn a line number handed in by the caller into one a file can have.
+---
+--- Anything that is not a finite number (`nil`, an infinity, a NaN) is not a
+--- line number at all, so it is dropped and the caller falls back to the
+--- selection or the cursor line. A finite one is moved onto the first line when
+--- it points before it, and rounded down when it holds a fraction.
+---
+--- The upper bound is deliberately left alone: the range can point at a file
+--- named by `file`/`rev`, whose length is unknown here, and clamping it to the
+--- current buffer would silently move the range to an unrelated place.
+---
+--- @param value integer?
+--- @return integer?
+local function _resolve_line_number(value)
+  if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
+    return nil
+  end
+  return math.max(1, math.floor(value))
+end
+
+--- Normalize the two ends of a line range into one a file can have.
+---
+--- The result always has both ends, with `lstart` not after `lend`:
+---   - both given: only the order has to be fixed, a reversed range is the
+---     same lines as its sorted form;
+---   - one given: it names a single line, so it is also the other end;
+---   - none given: use the current selection, or the cursor line.
+---
+--- An end that is not a line number at all (`nil`, an infinity, a NaN) is
+--- dropped first, so a caller that only got one usable end still falls into
+--- the "one given" case.
+---
+--- @param lstart integer?
+--- @param lend integer?
+--- @return integer lstart
+--- @return integer lend
+local function _normalize_range(lstart, lend)
+  lstart = _resolve_line_number(lstart)
+  lend = _resolve_line_number(lend)
+  if lstart and lend then
+    if lend < lstart then
+      return lend, lstart
+    end
+    return lstart, lend
+  elseif lstart then
+    return lstart, lstart
+  elseif lend then
+    return lend, lend
+  end
+  local r = range.make_range()
+  return math.min(r.lstart, r.lend), math.max(r.lstart, r.lend)
+end
+
+--- Resolve what to highlight, before the first `await` of `_link`.
+---
+--- `_link` yields to the event loop a few times before it draws anything, so
+--- the line width has to be read up front: by the time `highlight.show()` runs,
+--- the current buffer may belong to another file and the range would be sized
+--- from whichever file the user switched to.
+---
+--- The range is already checked by `_link`: both ends are whole line numbers
+--- and `lend` is not before `lstart`, so it is used as given.
+---
+--- @param opts {lstart:integer,lend:integer,highlight_duration:integer?}
+--- @param confs gitlinker.Options
+--- @return {start:[integer,integer],finish:[integer,integer],duration:integer}?
+local function _highlight_target(opts, confs)
+  local duration = confs.highlight_duration
+  if type(opts.highlight_duration) == "number" then
+    duration = opts.highlight_duration
+  end
+  if duration <= 0 then
+    return nil
+  end
+  log.ensure(
+    opts.lstart <= opts.lend,
+    string.format("invalid lstart/lend: %s/%s", vim.inspect(opts.lstart), vim.inspect(opts.lend))
+  )
+  return {
+    start = { opts.lstart - 1, 0 },
+    -- `lend` is named explicitly: the one-argument form of `col()` measures
+    -- whatever line the cursor happens to sit on, which is only the end line
+    -- when the range is a single line.
+    finish = { opts.lend - 1, vim.fn.col({ opts.lend, "$" }) },
+    duration = duration,
+  }
+end
+
+--- Render a value raised by user code as the one line the logger prints.
+--- `error()` accepts any value, so a raised table or `nil` has to be turned
+--- into text before it reaches `string.format()`.
+--- @param err any
+--- @return string
+local function _error_message(err)
+  if type(err) == "string" then
+    return err
+  end
+  return vim.inspect(err)
+end
+
 --- @param opts {action:gitlinker.Action|boolean,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _link = function(opts)
   local confs = configs.get()
   -- logger.debug("[link] merged opts: %s", vim.inspect(opts))
 
-  local lk = linker.make_linker(opts.remote, opts.file, opts.rev)
+  -- `link()` and the `:GitLink` command both normalize the range before they
+  -- reach this point, so the check only fires for a caller that hands `opts`
+  -- to `_void_link` directly. It still has to be here: without it a missing
+  -- end reaches `luaeval`, which turns it into `vim.NIL`, and the default
+  -- templates then raise "attempt to compare two nil values" from inside the
+  -- template instead of saying what was wrong.
+  if
+    not _is_line_number(opts.lstart)
+    or not _is_line_number(opts.lend)
+    or opts.lstart > opts.lend
+  then
+    log.err(
+      string.format(
+        "fatal: invalid line range: %s(lstart) - %s(lend)",
+        vim.inspect(opts.lstart),
+        vim.inspect(opts.lend)
+      )
+    )
+    return nil
+  end
+
+  -- Read the buffer once, here, and hand it to everything below. `_link` yields
+  -- to the event loop a few times, and the user may open another file in the
+  -- meantime: anything that goes back to "the current buffer" after the first
+  -- `await` links, highlights and measures the file the user switched to.
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  local highlight_target = _highlight_target(opts, confs)
+
+  local lk, lk_err = linker.make_linker(bufnr, opts.remote, opts.file, opts.rev)
   if not lk then
+    if lk_err then
+      log.err(lk_err)
+    end
     return nil
   end
   lk.lstart = opts.lstart
   lk.lend = opts.lend
-
-  if str.not_empty(opts.file) then
-    lk.file = opts.file
-    lk.file_changed = false
-  end
 
   async.await(1, vim.schedule)
 
@@ -223,7 +368,7 @@ local _link = function(opts)
   --   vim.inspect(opts.router)
   -- )
   log.ensure(
-    ok and str.not_empty(url),
+    ok and not types.str_empty(url),
     string.format(
       "fatal: failed to generate permanent url from remote (%s): %s",
       vim.inspect(lk.remote_url),
@@ -231,17 +376,37 @@ local _link = function(opts)
     )
   )
 
+  -- The action is user code: a custom clipboard, a `vim.ui.open()` wrapper, an
+  -- OSC 52 call. Raising from it is an ordinary mistake, but this function runs
+  -- inside a task that nobody waits on, so a bare call loses the error
+  -- completely -- no message, and `v:errmsg` stays empty. Catch it and report
+  -- it the same way the router is reported.
   if opts.action then
-    opts.action(url --[[@as string]])
+    local action = opts.action --[[@as fun(url:string):any]]
+    local action_ok, action_err = pcall(action, url --[[@as string]])
+    if not action_ok then
+      log.err(
+        string.format("fatal: failed to run the action on url: %s", _error_message(action_err))
+      )
+    end
   end
 
-  local highlight_duration = confs.highlight_duration
-  if type(opts.highlight_duration) == "number" then
-    highlight_duration = opts.highlight_duration
-  end
-  if highlight_duration > 0 then
-    highlight.show({ lstart = lk.lstart, lend = lk.lend })
-    vim.defer_fn(highlight.clear, confs.highlight_duration)
+  if highlight_target then
+    local start = highlight_target.start
+    local finish = highlight_target.finish
+    local duration = highlight_target.duration
+    vim.schedule(function()
+      -- Drawing happens after the link is done, so a failure here cannot fail
+      -- the link itself. Left alone it escapes the scheduled callback, which
+      -- lands in `v:errmsg` and on stderr as a raw traceback; report it like
+      -- every other failure instead.
+      local shown, show_err = pcall(highlight.show, bufnr, start, finish, duration)
+      if not shown then
+        log.err(
+          string.format("fatal: failed to highlight the linked lines: %s", _error_message(show_err))
+        )
+      end
+    end)
   end
 
   local message = confs.message
@@ -261,28 +426,42 @@ local _link = function(opts)
     warn_on_file_change = opts.warn_on_file_change
   end
   if lk.file_changed and warn_on_file_change then
-    local warning = string.format(
-      "line numbers can be wrong, %s has changed since %s",
-      lk.file,
-      string.sub(lk.rev, 1, 8)
+    -- `log.warn`/`log.info` hand the message to `vim.notify`, which renders it
+    -- verbatim. A file name that needed uri-encoding arrives here as
+    -- `some%20dir/a%20b.lua`, so escaping the `%` again printed a link that
+    -- disagreed with the one in the clipboard.
+    log.warn(
+      string.format(
+        "line numbers can be wrong, %s has changed since %s",
+        lk.file,
+        string.sub(lk.rev, 1, 8)
+      )
     )
-    log.warn(warning:gsub("%%", "%%%%"))
   end
 
   if message then
     ---@diagnostic disable-next-line: need-check-nil
-    log.info(url:gsub("%%", "%%%%") --[[@as string]])
+    log.info(url --[[@as string]])
   end
 
   return url
 end
 
---- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,remote:string?,file:string?,rev:string?}
+--- @param opts {action:gitlinker.Action?,router:gitlinker.Router,lstart:integer,lend:integer,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}
 --- @return string?
 local _void_link = function(opts)
   return async.run(_link, opts)
 end
 
+--- Split the command line arguments into its `key=value` parameters.
+---
+--- The arguments arrive exactly as the user typed them, quotes included, so the
+--- split cannot be a plain `vim.split(" ")`: `file=some dir/a b.lua` is one
+--- value with spaces in it, and `:GitLink file="some dir/a b.lua"` is the same
+--- value quoted. Both forms are accepted; a backslash escapes the character
+--- that follows it, inside and outside quotes, so a value may also contain a
+--- literal `"`.
+---
 --- @param args string?
 --- @return {router_type:string,remote:string?,file:string?,rev:string?}
 local function _parse_args(args)
@@ -295,14 +474,47 @@ local function _parse_args(args)
   if string.len(args) == 0 then
     return { router_type = router_type, remote = remote, file = file, rev = rev }
   end
-  local args_splits = vim.split(args, " ", { plain = true, trimempty = true })
-  for _, a in ipairs(args_splits) do
+
+  -- A word is a run of characters split only by unescaped, unquoted blanks.
+  local words = {}
+  local word = {}
+  local quote = nil
+  local i = 1
+  local len = string.len(args)
+  while i <= len do
+    local c = string.sub(args, i, i)
+    if c == "\\" and i < len then
+      i = i + 1
+      table.insert(word, string.sub(args, i, i))
+    elseif quote then
+      if c == quote then
+        quote = nil
+      else
+        table.insert(word, c)
+      end
+    elseif c == '"' or c == "'" then
+      quote = c
+    elseif c == " " or c == "\t" then
+      if #word > 0 then
+        table.insert(words, table.concat(word))
+        word = {}
+      end
+    else
+      table.insert(word, c)
+    end
+    i = i + 1
+  end
+  if #word > 0 then
+    table.insert(words, table.concat(word))
+  end
+
+  for _, a in ipairs(words) do
     if string.len(a) > 0 then
-      if str.startswith(a, "remote=") then
+      if vim.startswith(a, "remote=") then
         remote = a:sub(8)
-      elseif str.startswith(a, "file=") then
+      elseif vim.startswith(a, "file=") then
         file = a:sub(6)
-      elseif str.startswith(a, "rev=") then
+      elseif vim.startswith(a, "rev=") then
         rev = a:sub(5)
       else
         router_type = a
@@ -319,32 +531,37 @@ local function setup(opts)
 
   -- logger
   log.setup({
-    name = "gitlinker",
     level = confs.debug and vim.log.levels.DEBUG or vim.log.levels.INFO,
     use_console = confs.console_log,
     use_file = confs.file_log,
-    file_name = "gitlinker.log",
   })
 
   -- command
   vim.api.nvim_create_user_command(confs.command.name, function(command_opts)
-    local r = range.make_range()
     local args = (type(command_opts.args) == "string" and string.len(command_opts.args) > 0)
         and vim.trim(command_opts.args)
       or nil
-    -- logger:debug(
-    --   "|setup| command opts:%s, parsed:%s, range:%s",
-    --   vim.inspect(command_opts),
-    --   vim.inspect(args),
-    --   vim.inspect(r)
-    -- )
-    local lstart = math.min(r.lstart, r.lend, command_opts.line1, command_opts.line2)
-    local lend = math.max(r.lstart, r.lend, command_opts.line1, command_opts.line2)
+
+    -- A range typed on the command line wins over the cursor line, otherwise
+    -- `:1,3GitLink` run from line 15 would link lines 1 to 15. `range` is what
+    -- separates "no range" from "a range the cursor happens to sit in": Vim
+    -- leaves it at 0 when the command was given none, and only then do
+    -- `line1`/`line2` fall back to the cursor line.
+    local lstart, lend
+    if command_opts.range > 0 then
+      lstart, lend = command_opts.line1, command_opts.line2
+    else
+      -- Visual mode reaches here without a range when it is mapped through
+      -- `<cmd>`, so fall back to the selection the marks still describe.
+      local r = range.make_range()
+      lstart = math.min(r.lstart, r.lend)
+      lend = math.max(r.lstart, r.lend)
+    end
     local parsed = _parse_args(args)
 
     local action = nil
     if command_opts.bang then
-      action = require("gitlinker.actions").system
+      action = require("gitlinker.actions").open
     else
       -- Prefer using user provided clipboard action, if exists.
       if vim.is_callable(confs.clipboard_override) then
@@ -381,37 +598,24 @@ local function setup(opts)
       return suggestions
     end,
   })
-
-  -- Configure highlight group
-  if confs.highlight_duration > 0 then
-    local hl_group = "NvimGitLinkerHighlightTextObject"
-    if not highlight.hl_group_exists(hl_group) then
-      vim.api.nvim_set_hl(0, hl_group, { link = "Search" })
-    end
-  end
 end
 
+--- Copy the options before filling in the defaults: a keymap closure hands the
+--- same table to every press, so writing the defaults into the caller's table
+--- would make the second press reuse the line range resolved by the first one.
+---
 --- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,warn_on_file_change:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
-local function link_api(opts)
-  opts = opts
-    or {
-      router_type = "browse",
-      action = require("gitlinker.actions").clipboard,
-    }
+local function link(opts)
+  opts = vim.deepcopy(opts or {})
 
-  opts.router_type = str.not_empty(opts.router_type) and opts.router_type or "browse"
+  opts.router_type = types.str_empty(opts.router_type) and "browse" or opts.router_type
   opts.action = vim.is_callable(opts.action) and opts.action
     or require("gitlinker.actions").clipboard
   opts.router = vim.is_callable(opts.router) and opts.router
     or function(lk)
       return _router(opts.router_type, lk)
     end
-
-  if not num.ge(opts.lstart, 0) and not num.ge(opts.lend, 0) then
-    local r = range.make_range()
-    opts.lstart = math.min(r.lstart, r.lend)
-    opts.lend = math.max(r.lstart, r.lend)
-  end
+  opts.lstart, opts.lend = _normalize_range(opts.lstart, opts.lend)
 
   _void_link({
     action = opts.action,
@@ -419,6 +623,7 @@ local function link_api(opts)
     lstart = opts.lstart,
     lend = opts.lend,
     message = opts.message,
+    warn_on_file_change = opts.warn_on_file_change,
     highlight_duration = opts.highlight_duration,
     remote = opts.remote,
     file = opts.file,
@@ -433,9 +638,11 @@ local M = {
   _router = _router,
   _browse = _browse,
   _blame = _blame,
+  _parse_args = _parse_args,
+  _normalize_range = _normalize_range,
 
   setup = setup,
-  link = link_api,
+  link = link,
 }
 
 return M

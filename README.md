@@ -1,16 +1,17 @@
+<!-- markdownlint-disable MD001 MD013 MD034 MD033 -->
+
 # gitlinker.nvim
 
 <p>
-<a href="https://github.com/neovim/neovim/releases/"><img alt="Neovim" src="https://img.shields.io/badge/require-stable-blue" /></a>
-<a href="https://luarocks.org/modules/linrongbin16/gitlinker.nvim"><img alt="luarocks" src="https://img.shields.io/luarocks/v/linrongbin16/gitlinker.nvim" /></a>
+<a href="https://github.com/neovim/neovim/releases/tag/v0.12.0"><img alt="Neovim" src="https://img.shields.io/badge/require-0.12%2B-blue" /></a>
 <a href="https://github.com/linrongbin16/gitlinker.nvim/actions/workflows/ci.yml"><img alt="ci.yml" src="https://img.shields.io/github/actions/workflow/status/linrongbin16/gitlinker.nvim/ci.yml?label=ci" /></a>
 </p>
 
-> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias, blame support and other improvements.
+> Maintained fork of [ruifm's gitlinker](https://github.com/ruifm/gitlinker.nvim), refactored with bug fixes, ssh host alias support, blame support and other improvements. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
 
-A lua plugin for [Neovim](https://github.com/neovim/neovim) to generate sharable file permalinks (with line ranges) for git host websites. Inspired by [tpope/vim-fugitive](https://github.com/tpope/vim-fugitive)'s `:GBrowse`.
+Generate sharable git permalinks, with line ranges, straight from Neovim. Put the cursor on a line (or select a range), run `:GitLink`, and the url of that exact blob on the git host website lands in your clipboard:
 
-Here's an example of git permalink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156.
+Here is an example of git permlink: https://github.com/neovim/neovim/blob/2e156a3b7d7e25e56b03683cc6228c531f4c91ef/src/nvim/main.c#L137-L156
 
 https://github.com/linrongbin16/gitlinker.nvim/assets/6496887/d3e425a5-cf08-487f-badc-d393ca9dda2f
 
@@ -26,15 +27,20 @@ PRs are welcomed for other git host websites!
 
 ## Table of Contents
 
-- [Break Changes & Updates](#break-changes--updates)
+- [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
+  - [lazy.nvim](#lazynvim)
+  - [pckr.nvim](#pckrnvim)
+  - [vim.pack](#vimpack)
+  - [Manual](#manual)
 - [Usage](#usage)
   - [Command](#command)
-    - [Multiple Remotes](#multiple-remotes)
-    - [Relative File Path](#relative-file-path)
-    - [Commit ID](#commit-id)
+    - [Router Types](#router-types)
+    - [Parameters](#parameters)
   - [API](#api)
+    - [`gitlinker.Router`](#gitlinkerrouter)
+    - [`gitlinker.Action`](#gitlinkeraction)
   - [Recommended Key Mappings](#recommended-key-mappings)
 - [Configuration](#configuration)
   - [Customize Urls](#customize-urls)
@@ -45,37 +51,27 @@ PRs are welcomed for other git host websites!
   - [Highlight Group](#highlight-group)
 - [Development](#development)
 - [Contribute](#contribute)
+- [License](#license)
 
-## Break Changes & Updates
+## Features
 
-1. Break Changes:
-   - Provide `GitLink` command instead of default key mappings.
-2. New Features:
-   - Windows (+wsl2) support.
-   - Blame support.
-   - Respect ssh host alias.
-   - Add `?plain=1` for markdown files.
-   - Fully customizable [git url](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) generation.
-3. Improvements:
-   - Use git `stderr` output as error message.
-   - Async child process IO via coroutine and `uv.spawn`.
-   - No third-party dependencies.
+- Provide `GitLink` command, not default key mappings.
+- Support Windows and WSL2 platforms.
+- Support git blame, default branch and current branch.
+- Respect ssh host alias.
+- Add `?plain=1` for markdown files.
+- Fully customizable [git url](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) generation.
 
 ## Requirements
 
-> [!NOTE]
->
-> This plugin always supports the latest stable and (possibly) nightly Neovim version.
-
-- Neovim &ge; 0.10.
-- [git](https://git-scm.com/).
-- [ssh](https://www.openssh.com/) (optional for resolve ssh host alias).
-- [wslview](https://github.com/wslutilities/wslu) (optional for open browser from Windows wsl2).
+- Neovim &ge; 0.12.
+- [git](https://git-scm.com/) available in `$PATH`.
+- [ssh](https://www.openssh.com/) (optional, used to resolve ssh host aliases from `~/.ssh/config`).
+- [wslu](https://packages.ubuntu.com/search?keywords=wslu) (optional, used to open browser from Windows wsl2).
 
 ## Installation
 
-<details>
-<summary><b>With <a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></b></summary>
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 require("lazy").setup({
@@ -84,148 +80,152 @@ require("lazy").setup({
     cmd = "GitLink",
     opts = {},
     keys = {
-      { "<leader>gy", "<cmd>GitLink<cr>", mode = { "n", "v" }, desc = "Yank git link" },
-      { "<leader>gY", "<cmd>GitLink!<cr>", mode = { "n", "v" }, desc = "Open git link" },
+      {
+        "<leader>gy",
+        "<cmd>GitLink<cr>",
+        mode = { "n", "v" },
+        desc = "Copy git permalink",
+      },
+      {
+        "<leader>gY",
+        "<cmd>GitLink!<cr>",
+        mode = { "n", "v" },
+        desc = "Open git permalink",
+      },
     },
   },
 })
 ```
 
-</details>
-
-<details>
-<summary><b>With <a href="https://github.com/lewis6991/pckr.nvim">pckr.nvim</a></b></summary>
+### [pckr.nvim](https://github.com/lewis6991/pckr.nvim)
 
 ```lua
-return require('pckr').add(
+return require("pckr").add({
   {
-    'linrongbin16/gitlinker.nvim',
+    "linrongbin16/gitlinker.nvim",
     config = function()
-      require('gitlinker').setup()
+      require("gitlinker").setup()
     end,
-  };
-)
+  },
+})
 ```
 
-</details>
+### [vim.pack](https://neovim.io/doc/user/pack.html#vim.pack)
+
+```lua
+vim.pack.add({ "https://github.com/linrongbin16/gitlinker.nvim" })
+```
+
+### Manual
+
+```sh
+git clone https://github.com/linrongbin16/gitlinker.nvim \
+  ~/.local/share/nvim/site/pack/plugins/start/gitlinker.nvim
+```
 
 ## Usage
 
 ### Command
 
-You can use the user command `GitLink` to generate a (perm)link to the git host website:
+`:GitLink` copies the permalink of the current line, or of the visual selection, to the clipboard:
 
-- `GitLink`: copy the `/blob` url to clipboard.
-- `GitLink blame`: copy the `/blame` url to clipboard.
-- `GitLink default_branch`: copy the `/main` or `/master` url to clipboard.
-- `GitLink current_branch`: copy the current branch url to clipboard.
+- `:GitLink`: `browse` url, copied to the clipboard, it is the optional default sub command.
+- `:GitLink blame`: `blame` url, copied to the clipboard.
+- `:GitLink default_branch`: url pinned to the default branch instead of a commit id.
+- `:GitLink current_branch`: url pinned to the current branch.
+- `:GitLink!`: same url as `:GitLink`, but opened in the browser instead of copied. For example: `:GitLink! blame`.
+
+The command takes a range and completes router types on `<Tab>`:
+
+```vim
+:5,8GitLink
+:'<,'>GitLink
+```
+
+#### Router Types
+
+A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
 
 > [!NOTE]
->
-> Add `!` after the command (`GitLink!`) to directly open the url in browser.
-
-There're several **router types**:
-
-- `browse`: generate the `/blob` url (default).
-- `blame`: generate the `/blame` url.
-- `default_branch`: generate the `/main` or `/master` url.
-- `current_branch`: generate the current branch url.
-
-> [!NOTE]
->
-> A router type is a collection of multiple implementations binding on different git host websites, it works for any git hosts. For example the [bitbucket.org](https://bitbucket.org/):
->
-> - `browse` generates the `/src` url (default): https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
-> - `blame` generates the `/annotate` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/annotate/dbf3922382576391fbe50b36c55066c1768b08b6/.gitignore#lines-9:14.
-> - `default_branch` generates the `/main` or `/master` url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/master/.gitignore#lines-9:14.
-> - `current_branch` generates the current branch url: https://bitbucket.org/gitlinkernvim/gitlinker.nvim/src/feat-dev/.gitignore#lines-9:14.
 >
 > Bitbucket Cloud serves its git-over-ssh traffic on `ssh.bitbucket.org` (and `altssh.bitbucket.org` for the port 443 alternative), which is also bound to the same website, so `git@ssh.bitbucket.org:<workspace>/<repo>.git` remotes generate `https://bitbucket.org/` urls as well.
 
-#### Multiple Remotes
+Each router type generates a different kind of url, and each host spells it differently:
 
-When there are multiple git remotes, please specify the remote with `remote=xxx` parameter. For example:
+| Router type        | github.com                           | gitlab.com                   | bitbucket.org                   | codeberg.org                                      | git.samba.org                                      |
+| ------------------ | ------------------------------------ | ---------------------------- | ------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
+| `browse` (default) | `/blob/<rev>/<file>?plain=1#L12-L20` | `/blob/<rev>/<file>#L12-L20` | `/src/<rev>/<file>#lines-12:20` | `/src/commit/<rev>/<file>?display=source#L12-L20` | `?p=<org>/<repo>.git;a=blob;f=<file>;hb=<rev>#l12` |
+| `blame`            | `/blame/<rev>/<file>`                | `/blame/<rev>/<file>`        | `/annotate/<rev>/<file>`        | `/blame/commit/<rev>/<file>`                      | not supported                                      |
+| `default_branch`   | `/blob/<default>/<file>`             | `/blob/<default>/<file>`     | `/src/<default>/<file>`         | `/src/branch/<default>/<file>`                    | same as `browse`                                   |
+| `current_branch`   | `/blob/<current>/<file>`             | `/blob/<current>/<file>`     | `/src/<current>/<file>`         | `/src/branch/<current>/<file>`                    | same as `browse`                                   |
 
-- `GitLink remote=upstream`: copy url for the `upstream` remote.
-- `GitLink! blame remote=upstream`: open blame url for the `upstream` remote.
+Same file, four router types, on bitbucket.org:
 
-> [!NOTE]
->
-> By default `GitLink` will use the first detected remote (usually it's `origin`).
+- `browse`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
+- `blame`: https://bitbucket.org/osrf/gazebo/annotate/master/README.md#lines-1:5
+- `default_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5
+- `current_branch`: https://bitbucket.org/osrf/gazebo/src/master/README.md#lines-1:5, where `master` is whatever branch is checked out
 
-#### Relative File Path
+#### Parameters
 
-When the current buffer name is not the file name you want, please specify the target file path with `file=xxx` parameter. For example:
+Three `key=value` arguments override what the current buffer would otherwise provide. They combine with any router type and with the bang:
 
-- `GitLink file=lua/gitlinker.lua`: copy url for the `lua/gitlinker.lua` file.
-- `GitLink! blame file=README.md`: open blame url for the `README.md` file.
+- `remote=`: pick the git remote. For example `:GitLink remote=upstream`, `:GitLink! blame remote=upstream`.
+- `file=`: pick the relative file path. For example `:GitLink file=lua/gitlinker.lua`, `:GitLink! blame file=README.md`.
+- `rev=`: pick the revision, accepting anything `git rev-parse` understands (`HEAD`, `HEAD~3`, a branch, a tag, a short sha). For example `:GitLink rev=00b3f9a1`, `:GitLink! blame rev=v5.5.2`.
 
-> [!NOTE]
->
-> By default `GitLink` will use the current buffer's name.
+When a parameter is omitted, `remote` is detected from the branch upstream, `file` is the current buffer's path relative to the repository root, and `rev` is the closest revision that exists in the remote: the upstream first, then `HEAD`, then `HEAD~1` through `HEAD~50`. `file` is uri-encoded before it goes into the url, so a path with spaces in it works: quote the value (`:GitLink file="some dir/a b.lua"`) or escape the spaces (`:GitLink file=some\ dir/a\ b.lua`).
 
-#### Commit ID
-
-When the current git repository's commit ID is not that one you want, please specify the target commit ID with `rev=xxx` parameter. For example:
-
-- `GitLink rev=00b3f9a1`: copy url for the `00b3f9a1` commit ID.
-- `GitLink! blame rev=00b3f9a1`: open blame url for the `00b3f9a1` commit ID.
-
-> [!NOTE]
->
-> By default `GitLink` will use the current git repository's commit ID.
+With more than one git remote configured the plugin does not guess: it opens a picker (`Please select remote index:`) so you can choose one. Passing `remote=xxx` up front skips the picker, which is what you want in a key mapping.
 
 ### API
 
 > [!NOTE]
 >
-> Highly recommend reading [Customize Urls](#customize-urls) before this section, which helps understanding the router design of this plugin.
-
-<details>
-<summary><i>Click here to see the details.</i></summary>
-<br/>
-
-You can also use the `link` API to generate git permlink:
+> Reading [Customize Urls](#customize-urls) first helps, it explains the router design this API is built on.
 
 ```lua
---- @alias gitlinker.Linker {remote_url:string,protocol:string?,username:string?,password:string?,host:string,port:string?,org:string?,user:string?,repo:string,rev:string,file:string,lstart:integer,lend:integer,file_changed:boolean,default_branch:string?,current_branch:string?}
+--- @alias gitlinker.Linker {remote_url:string, protocol:string?, username:string?, password:string?, host:string, port:string?, org:string?, repo:string, rev:string, file:string, lstart:integer, lend:integer, file_changed:boolean, default_branch:string?, current_branch:string?}
 --- @alias gitlinker.Router fun(lk:gitlinker.Linker):string?
 --- @alias gitlinker.Action fun(url:string):any
---- @param opts {router_type:string?,router:gitlinker.Router?,action:gitlinker.Action?,lstart:integer?,lend:integer?,message:boolean?,highlight_duration:integer?,remote:string?,file:string?,rev:string?}?
+--- @param opts {router_type:string?, router:gitlinker.Router?, action:gitlinker.Action?, lstart:integer?, lend:integer?, message:boolean?, warn_on_file_change:boolean?, highlight_duration:integer?, remote:string?, file:string?, rev:string?}?
 require("gitlinker").link(opts)
 ```
 
-> The `GitLink` is actually just a user command wrapper on this API.
+`:GitLink` is a thin user command wrapper around this API.
 
-**Parameters:**
+The call is **asynchronous and returns nothing**. Git runs in a coroutine and the url is delivered to your `action` callback a few event loop ticks later, so never expect a return value:
 
-- `opts`: (Optional) lua table that contains below fields:
-  - `router_type`: Which router type should use. By default is `browse` when not specified. It has below options:
-    - `browse`
-    - `blame`
-    - `default_branch`
-    - `current_branch`
+```lua
+require("gitlinker").link({
+  action = function(url)
+    print("generated url: " .. url)
+  end,
+})
+```
 
-  - `router`: Which router implementation should use. By default it uses the configured implementations when this plugin is been setup (see [Configuration](#configuration)). You can overwrite the configured behavior by passing your implementation to this field. Please see [`gitlinker.Router`](#gitlinkerrouter) for more details.
+`opts` is an optional lua table with below fields:
 
-    > [!NOTE]
-    >
-    > Once set this field, you will get full control of generating the url, and `router_type` field will no longer take effect.
+| Field                 | Type                | Default                                                            | Description                                                                                                                                                                                                                                                                    |
+| --------------------- | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `router_type`         | `string?`           | `browse`                                                           | Which router type to use: `browse`, `blame`, `default_branch`, `current_branch`.                                                                                                                                                                                               |
+| `router`              | `gitlinker.Router?` | the implementations registered by `setup()`                        | Which router implementation to use, see [Configuration](#configuration). Passing your own function overrides them for this call, see [`gitlinker.Router`](#gitlinkerrouter).                                                                                                   |
+| `action`              | `gitlinker.Action?` | `require("gitlinker.actions").clipboard`                           | What to do with the url, see [`gitlinker.Action`](#gitlinkeraction). `require("gitlinker.actions").clipboard` copies the url to the clipboard, `require("gitlinker.actions").open` opens the url in the browser, and any other callable receives the url as its only argument. |
+| `lstart`/`lend`       | `integer?`          | the current line, or the last visual selection when in visual mode | Line range, i.e. start and end line numbers.                                                                                                                                                                                                                                   |
+| `message`             | `boolean?`          | the configured value                                               | Whether to print the url in the command line, see [Configuration](#configuration).                                                                                                                                                                                             |
+| `warn_on_file_change` | `boolean?`          | the configured value                                               | Whether to print a warning message when file is changed, see [Configuration](#configuration).                                                                                                                                                                                  |
+| `highlight_duration`  | `integer?`          | the configured value                                               | How long, in milliseconds, to highlight the linked line range. `0` disables the highlight.                                                                                                                                                                                     |
+| `remote`              | `string?`           | the remote detected from the branch upstream                       | Specify the git remote.                                                                                                                                                                                                                                                        |
+| `file`                | `string?`           | the current buffer's name                                          | Specify the relative file path.                                                                                                                                                                                                                                                |
+| `rev`                 | `string?`           | the closest revision that exists in the remote                     | Specify the revision.                                                                                                                                                                                                                                                          |
 
-  - `action`: What action should do. By default it will copy the generated link to clipboard. It has below options, please see [`gitlinker.Action`](#gitlinkeraction) for more details.
-    - `require("gitlinker.actions").clipboard`: Copy url to clipboard.
-    - `require("gitlinker.actions").system`: Open url in browser.
-
-  - `lstart`/`lend`: Line range, i.e. start and end line numbers. By default it uses the current line or visual selections. You can also overwrite them to specify the line numbers.
-  - `message`: Whether print message in command line. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can overwrite the configured behavior by passing your option to this field.
-  - `highlight_duration`: How long (in milliseconds) to highlight the line range. By default it uses the configured value while this plugin is been setup (see [Configuration](#configuration)). You can overwrite the configured behavior by passing your option to this field.
-  - `remote`: Specify the git remote. By default it uses the first detected git remote (usually it's `origin`).
-  - `file`: Specify the relative file path. By default it uses the current buffer's name.
-  - `rev`: Specify the git commit ID. By default it uses the current git repository's commit ID.
+> [!WARNING]
+>
+> Once `router` is set, you have full control over url generation and `router_type` no longer takes effect.
 
 #### `gitlinker.Router`
 
-A lua function that implements a router for a git host website. It uses below function signature:
+A lua function that implements a router for a git host website:
 
 ```lua
 function(lk:gitlinker.Linker):string?
@@ -233,16 +233,18 @@ function(lk:gitlinker.Linker):string?
 
 **Parameters:**
 
-- `lk`: A lua table that presents the `gitlinker.Linker` data type. It contains all the information (fields) you need to generate a git link, e.g. the `protocol`, `host`, `username`, `path`, `rev`, etc. Please see [Customize Urls - Lua Function](#lua-function) for more details.
+| Field | Type               | Description                                                                                                                                                                                                                 |
+| ----- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lk`  | `gitlinker.Linker` | A table holding everything needed to build the url: `remote_url`, `protocol`, `host`, `org`, `repo`, `rev`, `file`, `lstart`, `lend`, `file_changed`, and so on. See [Lua Function](#lua-function) for the full field list. |
 
 **Returns:**
 
-- Returns the generated link as a `string` type, if success.
-- Returns `nil`, if failed.
+- The generated url as a `string`, on success.
+- `nil`, on failure.
 
 #### `gitlinker.Action`
 
-A lua function that does some operations with the generated url. It uses below function signature:
+A lua function that consumes the generated url:
 
 ```lua
 function(url:string):any
@@ -250,191 +252,123 @@ function(url:string):any
 
 **Parameters:**
 
-- `url`: The generated url. For example: https://codeberg.org/linrongbin16/gitlinker.nvim/src/commit/a570f22ff833447ee0c58268b3bae4f7197a8ad8/LICENSE#L4-L7.
+| Field | Type     | Description                                                                                                                                             |
+| ----- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url` | `string` | The generated url, for example https://codeberg.org/forgejo/forgejo/src/commit/d191d25cb3b5082607780bdff89fc2353a92161b/README.md?display=source#L1-L5. |
 
-For now we have below builtin actions:
+Two builtin actions are available:
 
-- `require("gitlinker.actions").clipboard`: Copy url to clipboard.
-- `require("gitlinker.actions").system`: Open url in browser.
+- `require("gitlinker.actions").clipboard`: copy the url to the clipboard (`vim.fn.setreg("+", url)`).
+- `require("gitlinker.actions").open`: open the url in the browser (`vim.ui.open(url)`).
 
-If you only need to print the generated url, you can pass a callback function to consume:
+To only print the url:
 
 ```lua
 require("gitlinker").link({
   action = function(url)
-    print("generated url:" .. vim.inspect(url))
+    print("generated url: " .. url)
   end,
 })
 ```
 
-</details>
-
 ### Recommended Key Mappings
 
-<details>
-<summary><i>Click here to see mappings with user commands.</i></summary>
-<br/>
+With vim commands:
 
 ```lua
--- with vim command:
+local function cmdmap(lhs, cmd, desc)
+  vim.keymap.set(
+    { "n", "v" },
+    lhs,
+    "<cmd>" .. cmd .. "<cr>",
+    { silent = true, desc = desc }
+  )
+end
 
 -- browse
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gl",
-  "<cmd>GitLink<cr>",
-  { silent = true, noremap = true, desc = "Yank git permlink" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gL",
-  "<cmd>GitLink!<cr>",
-  { silent = true, noremap = true, desc = "Open git permlink" }
-)
+cmdmap("<leader>gl", "GitLink", "Copy git permalink")
+cmdmap("<leader>gL", "GitLink!", "Open git permalink")
+
 -- blame
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gb",
-  "<cmd>GitLink blame<cr>",
-  { silent = true, noremap = true, desc = "Yank git blame link" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gB",
-  "<cmd>GitLink! blame<cr>",
-  { silent = true, noremap = true, desc = "Open git blame link" }
-)
--- default branch
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gd",
-  "<cmd>GitLink default_branch<cr>",
-  { silent = true, noremap = true, desc = "Copy default branch link" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gD",
-  "<cmd>GitLink! default_branch<cr>",
-  { silent = true, noremap = true, desc = "Open default branch link" }
-)
--- default branch
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gc",
-  "<cmd>GitLink current_branch<cr>",
-  { silent = true, noremap = true, desc = "Copy current branch link" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gD",
-  "<cmd>GitLink! current_branch<cr>",
-  { silent = true, noremap = true, desc = "Open current branch link" }
-)
+cmdmap("<leader>gb", "GitLink blame", "Copy git blame link")
+cmdmap("<leader>gB", "GitLink! blame", "Open git blame link")
 ```
 
-</details>
-
-<details>
-<summary><i>Click here to see mappings with lua apis.</i></summary>
-<br/>
+With lua apis:
 
 ```lua
--- with lua api:
+local gitlinker = require("gitlinker")
+local actions = require("gitlinker.actions")
+
+local function keymap(lhs, opts, desc)
+  vim.keymap.set({ "n", "v" }, lhs, function()
+    gitlinker.link(opts)
+  end, { silent = true, desc = desc })
+end
 
 -- browse
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gl",
-  require("gitlinker").link,
-  { silent = true, noremap = true, desc = "GitLink" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gL",
-  function()
-    require("gitlinker").link({ action = require("gitlinker.actions").system })
-  end,
-  { silent = true, noremap = true, desc = "GitLink!" }
-)
+keymap("<leader>gl", {}, "Copy git permalink")
+keymap("<leader>gL", { action = actions.open }, "Open git permalink")
+
 -- blame
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gb",
-  function()
-    require("gitlinker").link({ router_type = "blame" })
-  end,
-  { silent = true, noremap = true, desc = "GitLink blame" }
-)
-vim.keymap.set(
-  {"n", 'v'},
+keymap("<leader>gb", { router_type = "blame" }, "Copy git blame link")
+keymap(
   "<leader>gB",
-  function()
-    require("gitlinker").link({
-      router_type = "blame",
-      action = require("gitlinker.actions").system,
-    })
-  end,
-  { silent = true, noremap = true, desc = "GitLink! blame" }
-)
--- default branch
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gd",
-  function()
-    require("gitlinker").link({ router_type = "default_branch" })
-  end,
-  { silent = true, noremap = true, desc = "GitLink default_branch" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gD",
-  function()
-    require("gitlinker").link({
-      router_type = "default_branch",
-      action = require("gitlinker.actions").system,
-    })
-  end,
-  { silent = true, noremap = true, desc = "GitLink! default_branch" }
-)
--- default branch
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gc",
-  function()
-    require("gitlinker").link({ router_type = "current_branch" })
-  end,
-  { silent = true, noremap = true, desc = "GitLink current_branch" }
-)
-vim.keymap.set(
-  {"n", 'v'},
-  "<leader>gC",
-  function()
-    require("gitlinker").link({
-      router_type = "current_branch",
-      action = require("gitlinker.actions").system,
-    })
-  end,
-  { silent = true, noremap = true, desc = "GitLink! current_branch" }
+  { router_type = "blame", action = actions.open },
+  "Open git blame link"
 )
 ```
-
-</details>
 
 ## Configuration
 
 ```lua
-require('gitlinker').setup(opts)
+require("gitlinker").setup(opts)
 ```
 
-The `opts` is an optional lua table that override the default options.
+`opts` is an optional lua table deep-merged over the defaults in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua):
 
-For complete default options, please see `Defaults` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua).
+| Option                | Type                        | Default                                               | Description                                                                                      |
+| --------------------- | --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `message`             | `boolean`                   | `true`                                                | Print the generated url in the command line.                                                     |
+| `warn_on_file_change` | `boolean`                   | `true`                                                | Warn when the file changed since `<rev>` was committed, i.e. the line numbers may be stale.      |
+| `highlight_duration`  | `integer`                   | `500`                                                 | Milliseconds to highlight the linked line range. `0` disables highlighting.                      |
+| `command`             | `{name:string,desc:string}` | `{name="GitLink",desc="Generate git permanent link"}` | Name and description of the user command.                                                        |
+| `router`              | `table`                     | see `Defaults.router`                                 | Router bindings, see [Customize Urls](#customize-urls).                                          |
+| `debug`               | `boolean`                   | `false`                                               | Log at debug level instead of info.                                                              |
+| `console_log`         | `boolean`                   | `true`                                                | Write logs to the command line.                                                                  |
+| `file_log`            | `boolean`                   | `false`                                               | Also write logs to `stdpath("data")/gitlinker.log`.                                              |
+| `clipboard_override`  | `function?` \| `false`      | `false`                                               | Custom clipboard writer used by `:GitLink`, see [Alternative Clipboard](#alternative-clipboard). |
+
+Calling `setup()` is optional: the plugin file calls it with empty options when the plugin is loaded. Calling it a second time merges over the defaults again, so repeated calls are harmless.
 
 ### Customize Urls
 
 > [!NOTE]
 >
-> Recommend reading [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for better understanding git urls.
+> Recommend reading [Git Protocols](https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols) and [giturlparser](https://github.com/linrongbin16/giturlparser.lua?tab=readme-ov-file#features) for a better understanding of git urls.
+
+You can bind a router to a private git host with a key-value pair, the key is a [lua pattern](https://www.lua.org/pil/20.2.html) (similar to [Regular expression](https://en.wikipedia.org/wiki/Regular_expression) but much worse), the value is either a [string template](#string-template) or a [lua function](#lua-function).
+
+For example with GitHub Enterprise domain, you can add your own bindings:
+
+```lua
+require("gitlinker").setup({
+  router = {
+    browse = {
+      -- map style: pattern as key, implementation as value
+      ["^your%.github%.com"] = "https://your.github.com/"
+        .. "{_A.ORG}/"
+        .. "{_A.REPO}/blob/"
+        .. "{_A.REV}/"
+        .. "{_A.FILE}?plain=1"
+        .. "#L{_A.LSTART}"
+        .. "{(_A.LEND > _A.LSTART and ('-L' .. _A.LEND) or '')}",
+    },
+  },
+})
+```
+
+In above example, the key `"^your%.github%.com"` matches the remote git domain `"your.github.com"`, and it will generate the git url with a string template, with multiple components: `_A.ORG`, `_A.REPO`, `_A.REV`, etc. See [string template](#string-template) for more details.
 
 #### String Template
 
@@ -442,55 +376,25 @@ For complete default options, please see `Defaults` in [configs.lua](https://git
 >
 > Please see `Defaults.router` in [configs.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/configs.lua) for more examples.
 
-To create customized urls for other git hosts, please bind the target git host name with a new implementation, which simply constructs the url string from below components (upper case with prefix `_A.`):
+To create customized urls for other git hosts, bind the target git host to an implementation that constructs the url string from the components below, upper case with prefix `_A.`:
 
-- `_A.PROTOCOL`: Network protocol before `://` delimiter. For example:
-  - `https` in `https://github.com`.
-  - `ssh` in `ssh://github.com`.
-- `_A.USERNAME`: Optional user name component before `@` delimiter. For example:
-  - `git` in `ssh://git@github.com/linrongbin16/gitlinker.nvim.git`.
-  - `myname` in `myname@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** the ssh protocol `ssh://` is omitted in this case).
-- `_A.PASSWORD`: Optional password component after `_A.USERNAME`. For example:
-  - `mypass` in `myname:mypass@github.com:linrongbin16/gitlinker.nvim.git`.
-  - `mypass` in `https://myname:mypass@github.com/linrongbin16/gitlinker.nvim.git`.
-- `_A.HOST`: The host component. For example:
-  - `github.com` in `https://github.com/linrongbin16/gitlinker.nvim` (**Note:** for http/https protocol, the host ends with `/`).
-  - `127.0.0.1` in `git@127.0.0.1:linrongbin16/gitlinker.nvim` (**Note:** for _omitted_ ssh protocol, the host ends with `:`, and it cannot have `_A.PORT` component).
-- `_A.PORT`: Optional port component after `_A.HOST` (**Note:** omitted ssh protocols cannot have `_A.PORT` component). For example:
-  - `22` in `https://github.com:22/linrongbin16/gitlinker.nvim`.
-  - `123456` in `https://127.0.0.1:123456/linrongbin16/gitlinker.nvim`.
-- `_A.PATH`: Path component, i.e. all the other parts in the output of the `git remote get-url origin`. For example:
-  - `/linrongbin16/gitlinker.nvim.git` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `linrongbin16/gitlinker.nvim.git` in `git@github.com:linrongbin16/gitlinker.nvim.git` (**Note:** for ssh protocol, the `:` before the path component doesn't belong to it).
-- `_A.REV`: Git commit ID. For example:
-  - `a009dacda96756a8c418ff5fa689999b148639f6` in `https://github.com/linrongbin16/gitlinker.nvim/blob/a009dacda96756a8c418ff5fa689999b148639f6/lua/gitlinker/git.lua?plain=1#L3`.
-- `_A.FILE`: Relative file path. For example:
-  - `lua/gitlinker/routers.lua` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua`.
-- `_A.LSTART`/`_A.LEND`: Start/end line number. For example:
-  - `5`/`13` in `https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L5-L13`.
+| Component           | Value                                                                                                                                                                                                                                                                                                                                                             | Example                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `_A.PROTOCOL`       | Protocol before the `://` delimiter.                                                                                                                                                                                                                                                                                                                              | `https` in `https://github.com/...`; empty for `git@github.com:org/repo.git`   |
+| `_A.USERNAME`       | User name before the `@` delimiter.                                                                                                                                                                                                                                                                                                                               | `git` in `ssh://git@github.com/...`                                            |
+| `_A.PASSWORD`       | Password after the user name.                                                                                                                                                                                                                                                                                                                                     | `mypass` in `https://myname:mypass@github.com/...`                             |
+| `_A.HOST`           | Host name, without the brackets of an IPv6 literal.                                                                                                                                                                                                                                                                                                               | `github.com` in `https://github.com/...`, `::1` in `ssh://[::1]:2222/repo.git` |
+| `_A.PORT`           | Port after the host.                                                                                                                                                                                                                                                                                                                                              | `2222` in `ssh://host.xyz:2222/...`                                            |
+| `_A.ORG`            | Everything between the host and the repository name. This field can be empty when the remote url has no directory component, for example in `ssh://git@host.xyz/repo.git`, `_A.REPO` is `repo`, `_A.ORG` is empty. This field can also contain slashes, for example in `https://github.com/path/to/the/repo.git`, `_A.ORG` is `path/to/the`, `_A.REPO` is `repo`. | `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`         |
+| `_A.REPO`           | Last path segment, with the `.git` suffix stripped.                                                                                                                                                                                                                                                                                                               | `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`       |
+| `_A.REV`            | Resolved commit id.                                                                                                                                                                                                                                                                                                                                               | `a009dacda96756a8c418ff5fa689999b148639f6`                                     |
+| `_A.FILE`           | Relative file path, uri-encoded.                                                                                                                                                                                                                                                                                                                                  | `lua/gitlinker/git.lua`                                                        |
+| `_A.LSTART`         | Start line number.                                                                                                                                                                                                                                                                                                                                                | `5`                                                                            |
+| `_A.LEND`           | End line number, never smaller than `_A.LSTART`.                                                                                                                                                                                                                                                                                                                  | `13`                                                                           |
+| `_A.DEFAULT_BRANCH` | Default branch, from `git rev-parse --abbrev-ref <remote>/HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                      | `master`, `main`                                                               |
+| `_A.CURRENT_BRANCH` | Current branch, from `git rev-parse --abbrev-ref HEAD`. Empty when git cannot tell.                                                                                                                                                                                                                                                                               | `refactor-readme`                                                              |
 
-There're 2 more sugar components derived from `_A.PATH`:
-
-- `_A.REPO`: The last part after the last slash (`/`) in `_A.PATH` (around slashes are removed, and the `.git` suffix is been removed for easier writing). For example:
-  - `gitlinker.nvim` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `neovim` in `git@192.168.0.1:path/to/the/neovim.git`.
-- `_A.ORG`: All the previous parts before `_A.REPO` (around slashes are removed). For example:
-  - `linrongbin16` in `https://github.com/linrongbin16/gitlinker.nvim.git`.
-  - `path/to/the` in `https://github.com/path/to/the/repo.git`.
-
-> [!IMPORTANT]
->
-> The `_A.ORG` component can be empty if `_A.PATH` only contains 1 slash (`/`). For example `_A.ORG` in `ssh://git@host.xyz/repo.git` is empty, while `_A.REPO` is `repo`.
-
-There're 2 more sugar components for git branches:
-
-- `_A.DEFAULT_BRANCH`: Default branch retrieved from `git rev-parse --abbrev-ref origin/HEAD`. For example:
-  - `master` in `https://github.com/ruifm/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua#L37-L156`.
-  - `main` in `https://github.com/linrongbin16/commons.nvim/blob/main/lua/commons/uv.lua`.
-- `_A.CURRENT_BRANCH`: Current branch retrieved from `git rev-parse --abbrev-ref HEAD`. For example:
-  - `feat-router-types` in `https://github.com/ruifm/gitlinker.nvim/blob/feat-router-types/lua/gitlinker/routers.lua#L37-L156`.
-
-With above components, you can customize the line numbers (for example) in form `?&line=1&lines-count=2` like this:
+With these components you can, for example, rewrite the line range into the `?&lines=1&lines-count=2` form:
 
 ```lua
 require("gitlinker").setup({
@@ -502,52 +406,49 @@ require("gitlinker").setup({
         .. "{_A.REV}/"
         .. "{_A.FILE}"
         .. "?&lines={_A.LSTART}"
-        .. "{_A.LEND > _A.LSTART and ('&lines-count=' .. _A.LEND - _A.LSTART + 1) or ''}",
+        .. "{_A.LEND > _A.LSTART and '&lines-count=' or ''}"
+        .. "{_A.LEND > _A.LSTART and (_A.LEND - _A.LSTART + 1) or ''}",
     },
   },
 })
 ```
 
-The template string use curly braces `{}` to contain lua scripts, and evaluate via [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval) (the error message can be confusing if there's any syntax issue).
+The template string uses curly braces `{}` to hold lua expressions, evaluated through [luaeval()](https://neovim.io/doc/user/lua.html#lua-eval), so anything `luaeval` accepts works, including string literals. While error messages from a broken template can be confusing.
 
 #### Lua Function
 
-> [!NOTE]
->
-> Please see [routers.lua](https://github.com/linrongbin16/gitlinker.nvim/blob/master/lua/gitlinker/routers.lua) for more examples.
+You can also implement a router as a lua function. It receives one table, with the same fields as the string template but lower case and without the `_A.` prefix:
 
-You can also implement the router with a lua function. The function accepts only 1 lua table as its parameter, which contains the same fields as string template, but in lower case, without the prefix `_A.`:
+| Field            | Type      | Description                                                               |
+| ---------------- | --------- | ------------------------------------------------------------------------- |
+| `remote_url`     | `string`  | The url of the remote, as printed by `git remote get-url <remote>`.       |
+| `protocol`       | `string?` | Protocol before the `://` delimiter.                                      |
+| `username`       | `string?` | User name before the `@` delimiter.                                       |
+| `password`       | `string?` | Password after the user name.                                             |
+| `host`           | `string`  | Host name, without the brackets of an IPv6 literal.                       |
+| `port`           | `string?` | Port after the host.                                                      |
+| `org`            | `string?` | Everything between the host and the repository name.                      |
+| `repo`           | `string`  | Repository name, **with** the `.git` suffix kept.                         |
+| `rev`            | `string`  | Resolved commit id.                                                       |
+| `file`           | `string`  | Relative file path, uri-encoded.                                          |
+| `lstart`         | `integer` | Start line number.                                                        |
+| `lend`           | `integer` | End line number.                                                          |
+| `file_changed`   | `boolean` | Whether the file changed since `rev`, i.e. the line numbers may be stale. |
+| `default_branch` | `string?` | Default branch.                                                           |
+| `current_branch` | `string?` | Current branch.                                                           |
 
-- `protocol`
-- `username`
-- `password`
-- `host`
-- `port`
-- `path`
-- `rev`
-- `file`
-- `lstart`/`lend`
-
-The 2 sugar components derived from `path` are:
-
-- `org`
-- `repo` (**Note:** the `.git` suffix is not omitted)
-
-The 2 git branch components are:
-
-- `default_branch`
-- `current_branch`
-
-Recall to previous use case (customize the line numbers in form `?&line=1&lines-count=2`), you can implement the router with below function:
+The previous example, implemented as a function:
 
 ```lua
 --- @param s string
 --- @param t string
+--- @return boolean
 local function string_endswith(s, t)
   return string.len(s) >= string.len(t) and string.sub(s, #s - #t + 1) == t
 end
 
 --- @param lk gitlinker.Linker
+--- @return string
 local function your_router(lk)
   local builder = "https://"
   -- host
@@ -555,17 +456,17 @@ local function your_router(lk)
   -- org
   builder = builder .. lk.org .. "/"
   -- repo
-  builder = builder
-    .. (string_endswith(lk.repo, ".git") and lk.repo:sub(1, #lk.repo - 4) or lk.repo)
-    .. "/"
-  -- rev
-  builder = lk.rev .. "/"
+  local repo = lk.repo
+  if string_endswith(repo, ".git") then
+    repo = repo:sub(1, #repo - 4)
+  end
+  builder = builder .. repo .. "/"
+  -- blob and rev
+  builder = builder .. "blob/" .. lk.rev .. "/"
   -- file
-  builder = builder
-    .. lk.file
-    .. (string_endswith(lk.file, ".md") and "?plain=1" or "")
+  builder = builder .. lk.file
   -- line range
-  builder = builder .. string.format("&lines=%d", lk.lstart)
+  builder = builder .. string.format("?&lines=%d", lk.lstart)
   if lk.lend > lk.lstart then
     builder = builder
       .. string.format("&lines-count=%d", lk.lend - lk.lstart + 1)
@@ -582,32 +483,60 @@ require("gitlinker").setup({
 })
 ```
 
-There are some pre-defined APIs in `gitlinker.routers` that you can use:
-
-- `github_browse`/`github_blame`: for https://github.com/.
-- `gitlab_browse`/`gitlab_blame`: for https://gitlab.com/.
-- `bitbucket_browse`/`bitbucket_blame`: for https://bitbucket.org/ (also works for its ssh hosts `ssh.bitbucket.org`/`altssh.bitbucket.org`).
-- `codeberg_browse`/`codeberg_blame`: for https://codeberg.org/.
-- `samba_browse`: for https://git.samba.org/ (blame not support).
-
-If you need to bind a github enterprise host, please use:
+A github enterprise host is a common case, since it speaks the same url structure as `github.com`:
 
 ```lua
-require('gitlinker').setup({
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_browse(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blob",
+    lk.rev,
+    location,
+  }, "/")
+end
+
+--- @param lk gitlinker.Linker
+--- @return string
+local function github_blame(lk)
+  local repo = (lk.repo or ""):gsub("%.git$", "")
+  local location = string.format("%s?plain=1#L%d", lk.file, lk.lstart)
+  if lk.lend > lk.lstart then
+    location = location .. string.format("-L%d", lk.lend)
+  end
+  return table.concat({
+    "https://" .. lk.host,
+    lk.org,
+    repo,
+    "blame",
+    lk.rev,
+    location,
+  }, "/")
+end
+
+require("gitlinker").setup({
   router = {
     browse = {
-      ["^github%.your%.host"] = require('gitlinker.routers').github_browse,
+      ["^github%.your%.host"] = github_browse,
     },
     blame = {
-      ["^github%.your%.host"] = require('gitlinker.routers').github_blame,
+      ["^github%.your%.host"] = github_blame,
     },
-  }
+  },
 })
 ```
 
 ### Create Your Own Router
 
-You can even create your own router (with the same engine). For example let's create the `file_only` router type, it generates url without line numbers:
+Routers use the same engine everywhere, so a new router type is just a new key in `router`. This one, `file_only`, generates urls without line numbers:
 
 ```lua
 require("gitlinker").setup({
@@ -617,13 +546,13 @@ require("gitlinker").setup({
         .. "{_A.ORG}/"
         .. "{_A.REPO}/blob/"
         .. "{_A.REV}/"
-        .. "{_A.FILE}"
+        .. "{_A.FILE}",
     },
   },
 })
 ```
 
-Use it just like `browse`:
+Use it like any builtin router:
 
 ```vim
 GitLink file_only
@@ -634,18 +563,23 @@ GitLink! file_only
 
 You can define your own clipboard function during setup.
 
-For example, to copy the url over a remote SSH session with an OSC52-compatible terminal,
-you can use [nvim-osc52](https://github.com/ojroques/nvim-osc52) or Neovim's native
-OSC52 since 10.0
+For example, to copy the url over a remote ssh session with an OSC52-compatible terminal, either a plugin or the built-in support works:
+
+With [nvim-osc52](https://github.com/ojroques/nvim-osc52), whose `copy` already takes the text as its only argument:
 
 ```lua
-require('gitlinker').setup({
-  -- with nvim-osc52
-  clipboard_override = require('osc52').copy,
-  -- or Neovim 10.0+ native
+require("gitlinker").setup({
+  clipboard_override = require("osc52").copy,
+})
+```
+
+With Neovim's built-in OSC52 support, which is a curried function returning the actual writer:
+
+```lua
+require("gitlinker").setup({
   clipboard_override = function(url)
-    require('vim.ui.clipboard.osc52').copy('+')({url})
-  end
+    require("vim.ui.clipboard.osc52").copy("+")({ url })
+  end,
 })
 ```
 
@@ -655,16 +589,22 @@ require('gitlinker').setup({
 | -------------------------------- | ------------- | ------------------------------------ |
 | NvimGitLinkerHighlightTextObject | Search        | highlight line ranges when copy/open |
 
+The group is created only when `highlight_duration` is greater than `0`, and only if it does not exist yet, so you can define your own colors before the plugin loads.
+
 ## Development
 
-To develop the project and make PR, please setup with:
+To develop the project and make a PR, please set up:
 
-- [lua_ls](https://github.com/LuaLS/lua-language-server).
-- [stylua](https://github.com/JohnnyMorganz/StyLua).
-- [selene](https://github.com/Kampfkarren/selene).
+- [lua_ls](https://github.com/LuaLS/lua-language-server)
+- [stylua](https://github.com/JohnnyMorganz/StyLua)
+- [selene](https://github.com/Kampfkarren/selene)
 
 To run unit tests, please use `make test`.
 
 ## Contribute
 
 Please open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](https://github.com/linrongbin16/gitlinker.nvim/pulls) for anything about gitlinker.nvim.
+
+## License
+
+[GPL-3.0](./LICENSE) &copy; [linrongbin16](https://github.com/linrongbin16)
