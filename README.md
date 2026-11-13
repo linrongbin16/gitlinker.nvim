@@ -29,6 +29,7 @@ PRs are welcomed for other git host websites!
 
 - [Features](#features)
 - [Requirements](#requirements)
+  - [WSL2 Browser Opener](#wsl2-browser-opener)
 - [Installation](#installation)
   - [lazy.nvim](#lazynvim)
   - [pckr.nvim](#pckrnvim)
@@ -67,7 +68,34 @@ PRs are welcomed for other git host websites!
 - Neovim &ge; 0.12.
 - [git](https://git-scm.com/) available in `$PATH`.
 - [ssh](https://www.openssh.com/) (optional, used to resolve ssh host aliases from `~/.ssh/config`).
-- [wslu](https://packages.ubuntu.com/search?keywords=wslu) (optional, used to open browser from Windows wsl2).
+- [wslopen](https://github.com/mkletri/wslopen) (optional, used to open browser from WSL2, see [WSL2 Browser Opener](#wsl2-browser-opener)).
+
+### WSL2 Browser Opener
+
+`GitLink!` (and any action built on `open`) hands the url to [`vim.ui.open`](https://neovim.io/doc/user/ui.html#vim.ui.open()), which on WSL2 picks the first opener it finds in `$PATH`: `xdg-open` → `wslview` → `explorer.exe`.
+
+[wslopen](https://github.com/mkletri/wslopen) is the maintained replacement for the discontinued `wslview`. Install it, then let it register itself under the `wslview` name so that `vim.ui.open` (and anything else already configured for `wslu`) keeps working:
+
+```sh
+cargo install wslopen
+# or grab the static musl binary and put it on your $PATH:
+# https://github.com/mkletri/wslopen/releases
+
+wslopen setup --wslview-alias
+```
+
+> [!WARNING]
+> Do not use `wslu`/`wslview` for this. The project was discontinued [upstream](https://github.com/wslutilities) on 2025-02-16, the whole organization and every repository in it are archived, its package repository domain has expired, and the `wslu` package was [removed from Ubuntu 26.04](https://bugs.launchpad.net/bugs/2131669) — there is no working install path left.
+>
+> The launch primitives `wslview` calls are also unsafe for gitlinker urls. This plugin appends `?plain=1` to markdown links (see [Features](#features)) and `#L14-L15` anchors to code links. `explorer.exe` treats an argument containing `?` as a filesystem path and opens a folder window instead of the browser, and `cmd.exe /c start` re-parses the argument and truncates the url at the first unquoted `&`. Both exit without any error, so a `GitLink!` looks like it succeeded but never reaches a browser. `wslopen` hands urls to `rundll32.exe url.dll,FileProtocolHandler` instead, which preserves `?`, `&` and `#` intact.
+
+If you prefer not to install anything, use the default `clipboard` action (`:GitLink`) instead of `:GitLink!`, or point `vim.ui.open` at the windows opener yourself:
+
+```lua
+vim.ui.open(url, { cmd = { "rundll32.exe", "url.dll,FileProtocolHandler" } })
+```
+
+Note that this only covers gitlinker; other plugins and `gx` will still fall back to `explorer.exe`.
 
 ## Installation
 
