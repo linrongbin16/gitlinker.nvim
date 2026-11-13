@@ -67,7 +67,7 @@ PRs are welcomed for other git host websites!
 - Neovim &ge; 0.12.
 - [git](https://git-scm.com/) available in `$PATH`.
 - [ssh](https://www.openssh.com/) (optional, used to resolve ssh host aliases from `~/.ssh/config`).
-- [wslu](https://packages.ubuntu.com/search?keywords=wslu) (optional, used to open browser from Windows wsl2).
+- [wslopen](https://github.com/mkletri/wslopen) (optional, used to open browser from windows wsl2).
 
 ## Installation
 
