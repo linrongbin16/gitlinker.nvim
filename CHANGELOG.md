@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v6.0.0...v6.0.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **actions:** open the url in the windows browser on WSL ([#361](https://github.com/linrongbin16/gitlinker.nvim/issues/361)) ([5fc76a7](https://github.com/linrongbin16/gitlinker.nvim/commit/5fc76a76beb809fc073de0bef17f7f5dffd08f4b))
+
 ## [6.0.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v5.5.1...v6.0.0) (2026-11-11)
 
 
