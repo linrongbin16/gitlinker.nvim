@@ -597,7 +597,10 @@ To develop the project and make a PR, please set up:
 
 To run unit tests, please use `make test`.
 
-The async runtime under `lua/gitlinker/async/` is vendored verbatim from [async.nvim](https://github.com/lewis6991/async.nvim), so it is excluded from stylua, selene and the type check, and must not be edited by hand — send fixes upstream instead. Only the `require` paths are rewritten to `gitlinker.async.*`, and no tests are written against it.
+Do not touch below files as they are vendored from other projects:
+
+- `lua/gitlinker/async.lua` and `lua/gitlinker/async/` are from [async.nvim](https://github.com/lewis6991/async.nvim).
+- `lua/gitlinker/giturlparser.lua` is from [giturlparser.lua](https://github.com/linrongbin16/giturlparser.lua).
 
 ## Contribute
 
@@ -606,5 +609,3 @@ Please open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](
 ## License
 
 [GPL-3.0](./LICENSE) &copy; [linrongbin16](https://github.com/linrongbin16)
-
-The vendored async runtime in `lua/gitlinker/async/` is [MIT](https://github.com/lewis6991/async.nvim/blob/master/LICENSE) &copy; [Lewis Russell](https://github.com/lewis6991).
