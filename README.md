@@ -19,7 +19,7 @@ For now supported platforms are:
 
 - https://github.com/
 - https://gitlab.com/
-- https://bitbucket.org/ (and its ssh hosts `ssh.bitbucket.org`/`altssh.bitbucket.org`)
+- https://bitbucket.org/ (`ssh.bitbucket.org`/`altssh.bitbucket.org`)
 - https://codeberg.org/
 - https://git.samba.org/
 
@@ -145,10 +145,6 @@ The command takes a range and completes router types on `<Tab>`:
 #### Router Types
 
 A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
-
-> [!NOTE]
->
-> Bitbucket Cloud serves its git-over-ssh traffic on `ssh.bitbucket.org` (and `altssh.bitbucket.org` for the port 443 alternative), which is also bound to the same website, so `git@ssh.bitbucket.org:<workspace>/<repo>.git` remotes generate `https://bitbucket.org/` urls as well.
 
 Each router type generates a different kind of url, and each host spells it differently:
 
