@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.0](https://github.com/linrongbin16/gitlinker.nvim/compare/v6.0.1...v6.1.0) (2026-11-15)
+
+
+### Features
+
+* **async:** vendor async.nvim to replace the in-house runtime ([#365](https://github.com/linrongbin16/gitlinker.nvim/issues/365)) ([c6f3bce](https://github.com/linrongbin16/gitlinker.nvim/commit/c6f3bce4bd9b6ac54994ca9aa37c9eed4b3b978b))
+
 ## [6.0.1](https://github.com/linrongbin16/gitlinker.nvim/compare/v6.0.0...v6.0.1) (2026-11-14)
 
 
