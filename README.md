@@ -607,4 +607,4 @@ Please open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](
 
 [GPL-3.0](./LICENSE) &copy; [linrongbin16](https://github.com/linrongbin16)
 
-The vendored async runtime in `lua/gitlinker/async/` is [MIT](./lua/gitlinker/async/LICENSE) &copy; [Lewis Russell](https://github.com/lewis6991).
+The vendored async runtime in `lua/gitlinker/async/` is [MIT](https://github.com/lewis6991/async.nvim/blob/master/LICENSE) &copy; [Lewis Russell](https://github.com/lewis6991).
