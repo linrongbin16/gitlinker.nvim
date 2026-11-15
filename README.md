@@ -254,7 +254,7 @@ function(url:string):any
 
 Two builtin actions are available:
 
-- `require("gitlinker.actions").clipboard`: copy the url to the clipboard (`vim.fn.setreg("+", url)`).
+- `require("gitlinker.actions").clipboard`: copy the url to the clipboard.
 - `require("gitlinker.actions").open`: open the url in the browser.
 
 To only print the url:
