@@ -12,5 +12,11 @@
     "missing-return"
   ],
   "runtime.version": "LuaJIT",
-  "workspace.checkThirdParty": "Disable"
+  "workspace.checkThirdParty": "Disable",
+  "workspace.ignoreDir": [
+    "lua/gitlinker/async",
+    "lua/gitlinker/async.lua",
+    "gitlinker/async",
+    "gitlinker/async.lua"
+  ]
 }
