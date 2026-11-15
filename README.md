@@ -19,7 +19,7 @@ For now supported platforms are:
 
 - https://github.com/
 - https://gitlab.com/
-- https://bitbucket.org/ (`ssh.bitbucket.org`/`altssh.bitbucket.org`)
+- https://bitbucket.org/
 - https://codeberg.org/
 - https://git.samba.org/
 
