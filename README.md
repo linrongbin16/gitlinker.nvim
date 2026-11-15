@@ -597,6 +597,11 @@ To develop the project and make a PR, please set up:
 
 To run unit tests, please use `make test`.
 
+Do not touch below files as they are vendored from other projects:
+
+- `lua/gitlinker/async.lua` and `lua/gitlinker/async/` are from [async.nvim](https://github.com/lewis6991/async.nvim).
+- `lua/gitlinker/giturlparser.lua` is from [giturlparser.lua](https://github.com/linrongbin16/giturlparser.lua).
+
 ## Contribute
 
 Please open [issue](https://github.com/linrongbin16/gitlinker.nvim/issues)/[PR](https://github.com/linrongbin16/gitlinker.nvim/pulls) for anything about gitlinker.nvim.

@@ -2,6 +2,9 @@ std = "vim"
 
 exclude = [
   "lua/gitlinker/giturlparser.lua",
+  # Vendored from https://github.com/lewis6991/async.nvim, keep it untouched.
+  "lua/gitlinker/async.lua",
+  "lua/gitlinker/async/**",
 ]
 
 [lints]
