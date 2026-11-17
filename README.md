@@ -144,9 +144,7 @@ The command takes a range and completes router types on `<Tab>`:
 
 #### Router Types
 
-A router type is a set of implementations bound to different git host websites, it is not tied to one host. Bind your own git host under any of these names, or invent a new name entirely, see [Create Your Own Router](#create-your-own-router).
-
-Each router type generates a different kind of url, and each host spells it differently:
+A router type is a set of implementations bound to different git host websites, it is not tied to one host. Each router type generates a different kind of url, and each host spells it differently:
 
 | Router type        | github.com                           | gitlab.com                   | bitbucket.org                   | codeberg.org                                      | git.samba.org                                      |
 | ------------------ | ------------------------------------ | ---------------------------- | ------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
